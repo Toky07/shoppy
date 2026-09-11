@@ -1,0 +1,101 @@
+name,description,priceCents,stock,image
+"T-shirt Noir","Coton bio, coupe droite.",1999,40,001-t-shirt-noir.svg
+"T-shirt Blanc","Coton bio, coupe droite.",1999,40,002-t-shirt-blanc.svg
+"T-shirt Marine","Coton bio, coupe droite.",1999,40,003-t-shirt-marine.svg
+"T-shirt Rouge","Coton bio, coupe droite.",1999,40,004-t-shirt-rouge.svg
+"T-shirt Sauge","Coton bio, coupe droite.",1999,40,005-t-shirt-sauge.svg
+"T-shirt Sable","Coton bio, coupe droite.",1999,40,006-t-shirt-sable.svg
+"T-shirt Lavande","Coton bio, coupe droite.",1999,40,007-t-shirt-lavande.svg
+"T-shirt Graphite","Coton bio, coupe droite.",1999,40,008-t-shirt-graphite.svg
+"T-shirt Ciel","Coton bio, coupe droite.",1999,40,009-t-shirt-ciel.svg
+"T-shirt Bordeaux","Coton bio, coupe droite.",1999,40,010-t-shirt-bordeaux.svg
+"T-shirt Moutarde","Coton bio, coupe droite.",1999,40,011-t-shirt-moutarde.svg
+"T-shirt Olive","Coton bio, coupe droite.",1999,40,012-t-shirt-olive.svg
+"Hoodie Noir","Molleton doux, capuche ajustée.",4999,25,013-hoodie-noir.svg
+"Hoodie Gris chiné","Molleton doux, capuche ajustée.",4999,25,014-hoodie-gris-chin.svg
+"Hoodie Marine","Molleton doux, capuche ajustée.",4999,25,015-hoodie-marine.svg
+"Hoodie Crème","Molleton doux, capuche ajustée.",4999,25,016-hoodie-cr-me.svg
+"Hoodie Forest","Molleton doux, capuche ajustée.",4999,25,017-hoodie-forest.svg
+"Hoodie Terracotta","Molleton doux, capuche ajustée.",4999,25,018-hoodie-terracotta.svg
+"Hoodie Slate","Molleton doux, capuche ajustée.",4999,25,019-hoodie-slate.svg
+"Hoodie Violet","Molleton doux, capuche ajustée.",4999,25,020-hoodie-violet.svg
+"Hoodie Sable","Molleton doux, capuche ajustée.",4999,25,021-hoodie-sable.svg
+"Hoodie Ink","Molleton doux, capuche ajustée.",4999,25,022-hoodie-ink.svg
+"Sweat Noir","Col rond, intérieur gratté.",3999,30,023-sweat-noir.svg
+"Sweat Blanc","Col rond, intérieur gratté.",3999,30,024-sweat-blanc.svg
+"Sweat Navy","Col rond, intérieur gratté.",3999,30,025-sweat-navy.svg
+"Sweat Khaki","Col rond, intérieur gratté.",3999,30,026-sweat-khaki.svg
+"Sweat Rose poudré","Col rond, intérieur gratté.",3999,30,027-sweat-rose-poudr.svg
+"Sweat Bleu glacier","Col rond, intérieur gratté.",3999,30,028-sweat-bleu-glacier.svg
+"Sweat Charbon","Col rond, intérieur gratté.",3999,30,029-sweat-charbon.svg
+"Sweat Miel","Col rond, intérieur gratté.",3999,30,030-sweat-miel.svg
+"Casquette Noire","Visière courbée, taille unique.",1799,50,031-casquette-noire.svg
+"Casquette Beige","Visière courbée, taille unique.",1799,50,032-casquette-beige.svg
+"Casquette Verte","Visière courbée, taille unique.",1799,50,033-casquette-verte.svg
+"Casquette Bleue","Visière courbée, taille unique.",1799,50,034-casquette-bleue.svg
+"Casquette Rouge","Visière courbée, taille unique.",1799,50,035-casquette-rouge.svg
+"Casquette Blanche","Visière courbée, taille unique.",1799,50,036-casquette-blanche.svg
+"Casquette Denim","Visière courbée, taille unique.",1799,50,037-casquette-denim.svg
+"Casquette Kaki","Visière courbée, taille unique.",1799,50,038-casquette-kaki.svg
+"Mug Logo","Céramique 330 ml.",1299,60,039-mug-logo.svg
+"Mug Typo","Céramique 330 ml.",1299,60,040-mug-typo.svg
+"Mug Studio","Céramique 330 ml.",1299,60,041-mug-studio.svg
+"Mug Wave","Céramique 330 ml.",1299,60,042-mug-wave.svg
+"Mug Grid","Céramique 330 ml.",1299,60,043-mug-grid.svg
+"Mug Sun","Céramique 330 ml.",1299,60,044-mug-sun.svg
+"Mug Moon","Céramique 330 ml.",1299,60,045-mug-moon.svg
+"Mug City","Céramique 330 ml.",1299,60,046-mug-city.svg
+"Mug Forest","Céramique 330 ml.",1299,60,047-mug-forest.svg
+"Mug Ocean","Céramique 330 ml.",1299,60,048-mug-ocean.svg
+"Gourde Inox","Inox 500 ml, bouchon sport.",2499,35,049-gourde-inox.svg
+"Gourde Noir mat","Inox 500 ml, bouchon sport.",2499,35,050-gourde-noir-mat.svg
+"Gourde Blanc","Inox 500 ml, bouchon sport.",2499,35,051-gourde-blanc.svg
+"Gourde Sauge","Inox 500 ml, bouchon sport.",2499,35,052-gourde-sauge.svg
+"Gourde Sable","Inox 500 ml, bouchon sport.",2499,35,053-gourde-sable.svg
+"Gourde Sky","Inox 500 ml, bouchon sport.",2499,35,054-gourde-sky.svg
+"Gourde Coral","Inox 500 ml, bouchon sport.",2499,35,055-gourde-coral.svg
+"Gourde Slate","Inox 500 ml, bouchon sport.",2499,35,056-gourde-slate.svg
+"Tote bag Naturel","Coton canvas 280 g.",1599,45,057-tote-bag-naturel.svg
+"Tote bag Noir","Coton canvas 280 g.",1599,45,058-tote-bag-noir.svg
+"Tote bag Marine","Coton canvas 280 g.",1599,45,059-tote-bag-marine.svg
+"Tote bag Rouge","Coton canvas 280 g.",1599,45,060-tote-bag-rouge.svg
+"Tote bag Olive","Coton canvas 280 g.",1599,45,061-tote-bag-olive.svg
+"Tote bag Lavande","Coton canvas 280 g.",1599,45,062-tote-bag-lavande.svg
+"Tote bag Sable","Coton canvas 280 g.",1599,45,063-tote-bag-sable.svg
+"Tote bag Gris","Coton canvas 280 g.",1599,45,064-tote-bag-gris.svg
+"Carnet Ligné","A5, 96 pages.",1199,55,065-carnet-lign.svg
+"Carnet Pointillé","A5, 96 pages.",1199,55,066-carnet-pointill.svg
+"Carnet Blanc","A5, 96 pages.",1199,55,067-carnet-blanc.svg
+"Carnet Kraft","A5, 96 pages.",1199,55,068-carnet-kraft.svg
+"Carnet Nuit","A5, 96 pages.",1199,55,069-carnet-nuit.svg
+"Carnet Sauge","A5, 96 pages.",1199,55,070-carnet-sauge.svg
+"Carnet Terracotta","A5, 96 pages.",1199,55,071-carnet-terracotta.svg
+"Carnet Ciel","A5, 96 pages.",1199,55,072-carnet-ciel.svg
+"Poster Studio","Affiche 30×40 cm, papier mat.",1499,20,073-poster-studio.svg
+"Poster Wave","Affiche 30×40 cm, papier mat.",1499,20,074-poster-wave.svg
+"Poster Grid","Affiche 30×40 cm, papier mat.",1499,20,075-poster-grid.svg
+"Poster Sun","Affiche 30×40 cm, papier mat.",1499,20,076-poster-sun.svg
+"Poster Moon","Affiche 30×40 cm, papier mat.",1499,20,077-poster-moon.svg
+"Poster City","Affiche 30×40 cm, papier mat.",1499,20,078-poster-city.svg
+"Poster Forest","Affiche 30×40 cm, papier mat.",1499,20,079-poster-forest.svg
+"Poster Ocean","Affiche 30×40 cm, papier mat.",1499,20,080-poster-ocean.svg
+"Poster Type","Affiche 30×40 cm, papier mat.",1499,20,081-poster-type.svg
+"Poster Color","Affiche 30×40 cm, papier mat.",1499,20,082-poster-color.svg
+"Pack stickers Essentiel","Planche de 12 stickers vinyl.",699,80,083-pack-stickers-essentiel.svg
+"Pack stickers Studio","Planche de 12 stickers vinyl.",699,80,084-pack-stickers-studio.svg
+"Pack stickers Voyage","Planche de 12 stickers vinyl.",699,80,085-pack-stickers-voyage.svg
+"Pack stickers Typo","Planche de 12 stickers vinyl.",699,80,086-pack-stickers-typo.svg
+"Pack stickers Icones","Planche de 12 stickers vinyl.",699,80,087-pack-stickers-icones.svg
+"Pack stickers Color","Planche de 12 stickers vinyl.",699,80,088-pack-stickers-color.svg
+"Chaussettes Noires","Paire coton, 36-41.",999,70,089-chaussettes-noires.svg
+"Chaussettes Blanches","Paire coton, 36-41.",999,70,090-chaussettes-blanches.svg
+"Chaussettes Marines","Paire coton, 36-41.",999,70,091-chaussettes-marines.svg
+"Chaussettes Rayures","Paire coton, 36-41.",999,70,092-chaussettes-rayures.svg
+"Chaussettes Sauge","Paire coton, 36-41.",999,70,093-chaussettes-sauge.svg
+"Chaussettes Terracotta","Paire coton, 36-41.",999,70,094-chaussettes-terracotta.svg
+"Coque Clear","Protection iPhone, bords mats.",1899,40,095-coque-clear.svg
+"Coque Noir","Protection iPhone, bords mats.",1899,40,096-coque-noir.svg
+"Coque Sable","Protection iPhone, bords mats.",1899,40,097-coque-sable.svg
+"Coque Lavande","Protection iPhone, bords mats.",1899,40,098-coque-lavande.svg
+"Coque Grid","Protection iPhone, bords mats.",1899,40,099-coque-grid.svg
+"Coque Wave","Protection iPhone, bords mats.",1899,40,100-coque-wave.svg

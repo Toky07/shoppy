@@ -1,0 +1,79 @@
+<?php
+
+declare(strict_types=1);
+
+use App\User\Domain\Entity\User;
+use App\User\Domain\Repository\UserRepository;
+use App\User\Domain\ValueObject\Email;
+use App\User\Domain\ValueObject\Role;
+use App\User\Domain\ValueObject\UserId;
+use Doctrine\ORM\EntityManagerInterface;
+
+it('persists a user and finds it by email', function () {
+    $id = UserId::fromString('11111111-1111-4111-8111-111111111111');
+    $createdAt = new DateTimeImmutable('2026-08-20T12:00:00+00:00');
+    $user = User::register($id, Email::fromString('ada@nuvora.test'), $createdAt);
+
+    $repository = self::getContainer()->get(UserRepository::class);
+    $entityManager = self::getContainer()->get(EntityManagerInterface::class);
+
+    $repository->save($user);
+    $entityManager->clear();
+
+    $found = $repository->findByEmail(Email::fromString('ADA@nuvora.test'));
+
+    expect($found)->not->toBeNull()
+        ->and($found->id()->value())->toBe($id->value())
+        ->and($found->email()->value())->toBe('ada@nuvora.test')
+        ->and($found->createdAt()->format(DateTimeInterface::ATOM))->toBe('2026-08-20T12:00:00+00:00')
+        ->and($found->role())->toEqual(Role::customer());
+});
+
+it('persists an assigned admin role', function () {
+    $id = UserId::fromString('11111111-1111-4111-8111-111111111111');
+    $user = User::register(
+        $id,
+        Email::fromString('ada@nuvora.test'),
+        new DateTimeImmutable('2026-08-20T12:00:00+00:00'),
+    );
+    $user->assignRole(Role::admin());
+
+    $repository = self::getContainer()->get(UserRepository::class);
+    $entityManager = self::getContainer()->get(EntityManagerInterface::class);
+
+    $repository->save($user);
+    $entityManager->clear();
+
+    $found = $repository->findById($id);
+
+    expect($found)->not->toBeNull()
+        ->and($found->role())->toEqual(Role::admin());
+});
+
+it('updates a persisted user role', function () {
+    $id = UserId::fromString('11111111-1111-4111-8111-111111111111');
+    $repository = self::getContainer()->get(UserRepository::class);
+    $entityManager = self::getContainer()->get(EntityManagerInterface::class);
+
+    $repository->save(User::register(
+        $id,
+        Email::fromString('ada@nuvora.test'),
+        new DateTimeImmutable('2026-08-20T12:00:00+00:00'),
+    ));
+    $entityManager->clear();
+
+    $found = $repository->findById($id);
+    $found->assignRole(Role::admin());
+    $repository->save($found);
+    $entityManager->clear();
+
+    expect($repository->findById($id)->role())->toEqual(Role::admin());
+});
+
+it('returns null when the user does not exist', function () {
+    $repository = self::getContainer()->get(UserRepository::class);
+
+    expect($repository->findById(
+        UserId::fromString('11111111-1111-4111-8111-111111111111'),
+    ))->toBeNull();
+});

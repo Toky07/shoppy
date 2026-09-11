@@ -1,0 +1,65 @@
+# yaml-language-server: $schema=../vendor/symfony/dependency-injection/Loader/schema/services.schema.json
+
+# This file is the entry point to configure your own services.
+# Files in the packages/ subdirectory configure your dependencies.
+# See also https://symfony.com/doc/current/service_container/import.html
+
+# Put parameters here that don't need to change on each machine where the app is deployed
+# https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
+parameters:
+
+services:
+    # default configuration for services in *this* file
+    _defaults:
+        autowire: true      # Automatically injects dependencies in your services.
+        autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+
+    App\:
+        resource: '../src/'
+        exclude:
+            - '../src/Kernel.php'
+            - '../src/*/Domain/'
+            - '../src/*/Application/Command/'
+            - '../src/*/Application/Query/'
+            - '../src/*/Application/Response/'
+            - '../src/*/Application/Event/'
+            - '../src/*/Application/Csv/ProductCsvRow.php'
+            - '../src/*/Presentation/Request/'
+            - '../src/*/Presentation/Exception/'
+            - '../src/*/Presentation/Http/ErrorResponse.php'
+            - '../src/*/Presentation/Http/ErrorViolation.php'
+            - '../src/*/Presentation/Http/MappedHttpError.php'
+            - '../src/*/Infrastructure/Persistence/Doctrine/Entity/'
+
+    App\Product\Domain\Repository\ProductRepository: '@App\Product\Infrastructure\Persistence\Doctrine\DoctrineProductRepository'
+
+    App\User\Domain\Repository\UserRepository: '@App\User\Infrastructure\Persistence\Doctrine\DoctrineUserRepository'
+
+    App\Auth\Domain\Repository\CredentialsRepository: '@App\Auth\Infrastructure\Persistence\Doctrine\DoctrineCredentialsRepository'
+
+    App\Auth\Domain\Repository\AccessTokenRepository: '@App\Auth\Infrastructure\Persistence\Doctrine\DoctrineAccessTokenRepository'
+
+    App\Auth\Application\PasswordHasher: '@App\Auth\Infrastructure\Security\NativePasswordHasher'
+
+    App\Auth\Application\TokenGenerator: '@App\Auth\Infrastructure\Security\RandomTokenGenerator'
+
+    App\Shared\Domain\Clock: '@App\Shared\Infrastructure\SystemClock'
+
+    App\Order\Domain\Repository\OrderRepository: '@App\Order\Infrastructure\Persistence\Doctrine\DoctrineOrderRepository'
+
+    App\Order\Application\Catalog: '@App\Order\Infrastructure\Catalog\ProductCatalog'
+
+    App\Cart\Domain\Repository\CartRepository: '@App\Cart\Infrastructure\Persistence\Doctrine\DoctrineCartRepository'
+
+    App\Cart\Application\Catalog: '@App\Cart\Infrastructure\Catalog\ProductCatalog'
+
+    App\Payment\Domain\Repository\PaymentRepository: '@App\Payment\Infrastructure\Persistence\Doctrine\DoctrinePaymentRepository'
+
+    App\Payment\Application\PaymentGateway: '@App\Payment\Infrastructure\Gateway\LocalPaymentGateway'
+
+    App\Product\Application\Csv\ProductCsvReader: '@App\Product\Infrastructure\Csv\FileProductCsvReader'
+
+    App\Product\Application\Image\ProductImageWriter: '@App\Product\Infrastructure\Image\SvgProductImageWriter'
+
+    # add more service definitions when explicit configuration is needed
+    # please note that last definitions always *replace* previous ones

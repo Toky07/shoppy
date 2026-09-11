@@ -1,0 +1,4 @@
+services:
+    App\Auth\Application\PasswordHasher: '@App\Tests\Doubles\FakePasswordHasher'
+
+    App\Tests\Doubles\FakePasswordHasher: ~

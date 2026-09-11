@@ -1,0 +1,28 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Product\Domain\Repository;
+
+use App\Product\Domain\Entity\Product;
+use App\Product\Domain\ValueObject\ProductId;
+use App\Product\Domain\ValueObject\ProductListCriteria;
+use App\Product\Domain\ValueObject\ProductName;
+
+interface ProductRepository
+{
+    public function save(Product $product): void;
+
+    public function findById(ProductId $id): ?Product;
+
+    public function findByName(ProductName $name): ?Product;
+
+    /**
+     * @return list<Product>
+     */
+    public function findPage(int $offset, int $limit, ?ProductListCriteria $criteria = null): array;
+
+    public function countAll(?ProductListCriteria $criteria = null): int;
+
+    public function delete(Product $product): void;
+}
