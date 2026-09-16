@@ -33,11 +33,19 @@ final readonly class StockQuantity
 
     public function add(int $delta): self
     {
+        if ($delta < 0) {
+            throw new InvalidProductStock();
+        }
+
         return self::fromInt($this->value + $delta);
     }
 
     public function subtract(int $quantity): self
     {
+        if ($quantity < 0) {
+            throw new InvalidProductStock();
+        }
+
         return self::fromInt($this->value - $quantity);
     }
 
