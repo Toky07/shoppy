@@ -1,12 +1,14 @@
 <script setup lang="ts">
-import { computed, inject } from 'vue'
+import { computed, inject, ref } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
+import AppIcon from '@/shared/ui/AppIcon.vue'
 import PageStatus from '@/shared/ui/PageStatus.vue'
+import AddToCartForm from '@/modules/cart/ui/AddToCartForm.vue'
 import { catalogRepositoryKey } from '../application/catalogRepositoryKey'
 import { useProduct } from '../application/useProduct'
-import ProductPrice from './ProductPrice.vue'
+import FavoriteButton from './FavoriteButton.vue'
 import ProductImage from './ProductImage.vue'
-import AddToCartForm from '@/modules/cart/ui/AddToCartForm.vue'
+import ProductPrice from './ProductPrice.vue'
 import { stockLabel } from './stockLabel'
 
 const repository = inject(catalogRepositoryKey)
@@ -22,118 +24,160 @@ const notFound = computed(() => error.value?.code === 'product_not_found')
 const errorMessage = computed(() =>
   notFound.value ? 'Ce produit est introuvable.' : error.value?.message,
 )
+const outOfStock = computed(() => (product.value?.stock ?? 0) <= 0)
+
+const tabs = [
+  { id: 'description', label: 'Description' },
+  { id: 'delivery', label: 'Livraison' },
+  { id: 'warranty', label: 'Garantie' },
+] as const
+
+const activeTab = ref<(typeof tabs)[number]['id']>('description')
+const copied = ref(false)
+
+const reassurance = [
+  { icon: 'truck', title: 'Expédié sous 48 h', text: 'Suivi inclus, emballage sobre' },
+  { icon: 'refresh', title: 'Retour sous 30 jours', text: 'Remboursé sans discuter' },
+  { icon: 'shield', title: 'Garantie 2 ans', text: 'Pièces et main d\'œuvre' },
+  { icon: 'lock', title: 'Paiement sécurisé', text: 'Carte bancaire via Stripe' },
+] as const
+
+async function onCopyLink() {
+  try {
+    await navigator.clipboard.writeText(window.location.href)
+    copied.value = true
+    setTimeout(() => {
+      copied.value = false
+    }, 2000)
+  } catch {
+    /* presse-papier refusé */
+  }
+}
 </script>
 
 <template>
-  <section class="animate-fade-in pb-12">
-    <!-- Breadcrumb -->
-    <nav class="mb-8 flex items-center text-sm font-medium text-gray-500">
-      <RouterLink to="/" class="hover:text-indigo-600 transition-colors flex items-center gap-2">
-        <i class="fa-solid fa-arrow-left"></i> Retour au catalogue
+  <section class="animate-fade-in">
+    <nav class="mb-8 flex items-center gap-3 text-sm" aria-label="Fil d'Ariane">
+      <RouterLink to="/" class="inline-flex items-center gap-2 font-medium link-quiet">
+        <AppIcon name="arrow-left" :size="15" />
+        Retour au catalogue
       </RouterLink>
-      <span class="mx-3 text-gray-300">/</span>
-      <span class="text-gray-900 line-clamp-1" v-if="product">{{ product.name }}</span>
+      <span v-if="product" class="text-faint" aria-hidden="true">/</span>
+      <span v-if="product" class="truncate font-medium text-strong">{{ product.name }}</span>
     </nav>
 
-    <PageStatus :status="status === 'ready' ? 'ready' : status" :error-message="errorMessage">
-      <article v-if="product" class="grid gap-12 lg:gap-20 lg:grid-cols-2 items-start">
-        
-        <!-- Image Section (Sticky) -->
-        <div class="lg:sticky lg:top-28 relative rounded-[2.5rem] overflow-hidden bg-white shadow-2xl shadow-gray-200/50 aspect-[4/5] flex items-center justify-center group">
-          <ProductImage :src="product.imageUrl" :alt="product.name" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
-          
-          <!-- Floating Badges -->
-          <div class="absolute top-6 left-6 flex flex-col gap-3">
-            <span class="px-4 py-1.5 bg-white/90 backdrop-blur-md text-gray-900 text-xs font-black uppercase tracking-widest rounded-full shadow-lg">Nouveau</span>
+    <PageStatus
+      :status="status === 'ready' ? 'ready' : status"
+      :error-message="errorMessage"
+      skeleton="detail"
+    >
+      <article v-if="product" class="grid items-start gap-10 lg:grid-cols-2 lg:gap-16">
+        <!-- Visuel -->
+        <div class="lg:sticky lg:top-28">
+          <div
+            class="group relative aspect-4/5 overflow-hidden rounded-panel border border-line bg-surface shadow-lifted"
+          >
+            <ProductImage
+              :src="product.imageUrl"
+              :alt="product.name"
+              class="transition-transform duration-[900ms] group-hover:scale-105"
+            />
+            <div class="absolute top-5 left-5 flex flex-col gap-2">
+              <span v-if="outOfStock" class="badge-danger">Rupture</span>
+              <span v-else class="badge-accent">Disponible</span>
+            </div>
+            <div class="absolute top-5 right-5">
+              <FavoriteButton
+                :product-id="product.id"
+                :product-name="product.name"
+                size="lg"
+              />
+            </div>
           </div>
-          
-          <!-- Wishlist -->
-          <div class="absolute top-6 right-6">
-            <button class="h-14 w-14 rounded-full bg-white/90 backdrop-blur-md text-gray-400 hover:text-red-500 shadow-lg flex items-center justify-center transition-all hover:scale-110">
-              <i class="fa-regular fa-heart text-2xl"></i>
+
+          <div class="mt-4 flex items-center justify-between px-1">
+            <p class="text-xs text-faint">Réf. {{ product.id.slice(0, 8).toUpperCase() }}</p>
+            <button
+              type="button"
+              class="inline-flex items-center gap-2 text-xs font-semibold link-quiet"
+              @click="onCopyLink"
+            >
+              <AppIcon :name="copied ? 'check' : 'copy'" :size="14" />
+              {{ copied ? 'Lien copié' : 'Partager' }}
             </button>
           </div>
         </div>
 
-        <!-- Details Section -->
-        <div class="flex flex-col pt-4 lg:pt-10">
-          <!-- Status & Title -->
-          <div class="mb-6">
-            <div class="flex items-center gap-3 mb-4">
-              <span class="flex items-center gap-1.5 px-3 py-1 bg-green-100 text-green-800 text-xs font-bold uppercase tracking-wider rounded-md">
-                <i class="fa-solid fa-check"></i> En stock
-              </span>
-              <span class="text-sm font-medium text-gray-500 flex items-center gap-1.5">
-                <i class="fa-solid fa-box"></i> {{ stockLabel(product.stock) }}
-              </span>
+        <!-- Achat -->
+        <div class="flex flex-col">
+          <p class="text-xs font-semibold tracking-[0.12em] text-muted uppercase">
+            <span>{{ stockLabel(product.stock) }}</span>
+          </p>
+
+          <h1 class="display-tight mt-4 text-4xl text-strong sm:text-5xl">{{ product.name }}</h1>
+
+          <div class="mt-6 flex flex-wrap items-baseline gap-4">
+            <p class="numeric font-display text-4xl font-extrabold text-strong">
+              <ProductPrice :price="product.price" />
+            </p>
+            <p class="text-xs text-muted">TTC · livraison offerte dès 49 €</p>
+          </div>
+
+          <div class="panel mt-8 p-5 sm:p-6">
+            <AddToCartForm :product-id="product.id" :stock="product.stock" />
+          </div>
+
+          <!-- Onglets -->
+          <div class="mt-10">
+            <div class="flex gap-1 border-b border-line" role="tablist" aria-label="Détails du produit">
+              <button
+                v-for="tab in tabs"
+                :key="tab.id"
+                type="button"
+                role="tab"
+                class="relative -mb-px border-b-2 px-4 py-3 text-sm font-semibold transition-colors"
+                :class="
+                  activeTab === tab.id
+                    ? 'border-accent text-strong'
+                    : 'border-transparent text-muted hover:text-strong'
+                "
+                :aria-selected="activeTab === tab.id"
+                @click="activeTab = tab.id"
+              >
+                {{ tab.label }}
+              </button>
             </div>
-            
-            <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight text-gray-900 leading-tight mb-4">
-              {{ product.name }}
-            </h1>
-            
-            <div class="flex items-baseline gap-4">
-              <p class="text-4xl font-black text-indigo-600">
-                <ProductPrice :price="product.price" />
+
+            <div class="pt-6 text-sm leading-relaxed text-body">
+              <template v-if="activeTab === 'description'">
+                <p v-if="product.description">{{ product.description }}</p>
+                <p v-else class="text-faint italic">Aucune description disponible pour ce produit.</p>
+              </template>
+              <p v-else-if="activeTab === 'delivery'">
+                Expédition depuis la France sous 48 heures ouvrées, avec numéro de suivi. Livraison
+                offerte à partir de 49 € d'achat, retours gratuits pendant 30 jours.
+              </p>
+              <p v-else>
+                Deux ans de garantie constructeur sur les pièces et la main d'œuvre. En cas de
+                souci, on remplace ou on rembourse, sans formulaire à rallonge.
               </p>
             </div>
           </div>
 
-          <!-- Description -->
-          <div class="prose prose-gray prose-lg mb-10">
-            <p v-if="product.description" class="text-gray-600 leading-relaxed">
-              {{ product.description }}
-            </p>
-            <p v-else class="text-gray-400 italic">Aucune description disponible pour ce produit.</p>
-          </div>
-
-          <!-- Action Area -->
-          <div class="bg-white p-6 md:p-8 rounded-[2rem] shadow-xl shadow-gray-200/50 border border-gray-100 mb-10">
-            <AddToCartForm :product-id="product.id" :stock="product.stock" class="w-full" />
-          </div>
-          
-          <!-- Trust Badges -->
-          <div class="grid grid-cols-2 gap-y-8 gap-x-4">
-            <div class="flex items-start gap-4">
-              <div class="h-12 w-12 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 flex-shrink-0">
-                <i class="fa-solid fa-truck-fast text-xl"></i>
-              </div>
-              <div>
-                <h4 class="text-sm font-bold text-gray-900">Livraison Express</h4>
-                <p class="text-xs text-gray-500 mt-1">Sous 24/48h chez vous</p>
-              </div>
-            </div>
-            
-            <div class="flex items-start gap-4">
-              <div class="h-12 w-12 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 flex-shrink-0">
-                <i class="fa-solid fa-rotate-left text-xl"></i>
-              </div>
-              <div>
-                <h4 class="text-sm font-bold text-gray-900">Retours 30 jours</h4>
-                <p class="text-xs text-gray-500 mt-1">Satisfait ou remboursé</p>
-              </div>
-            </div>
-            
-            <div class="flex items-start gap-4">
-              <div class="h-12 w-12 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 flex-shrink-0">
-                <i class="fa-solid fa-shield-halved text-xl"></i>
-              </div>
-              <div>
-                <h4 class="text-sm font-bold text-gray-900">Garantie 2 ans</h4>
-                <p class="text-xs text-gray-500 mt-1">Sur tous nos produits</p>
-              </div>
-            </div>
-            
-            <div class="flex items-start gap-4">
-              <div class="h-12 w-12 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 flex-shrink-0">
-                <i class="fa-solid fa-lock text-xl"></i>
-              </div>
-              <div>
-                <h4 class="text-sm font-bold text-gray-900">Paiement 100% sûr</h4>
-                <p class="text-xs text-gray-500 mt-1">Données cryptées</p>
-              </div>
-            </div>
-          </div>
+          <!-- Réassurance -->
+          <ul class="mt-10 grid gap-4 sm:grid-cols-2">
+            <li v-for="item in reassurance" :key="item.title" class="flex items-start gap-3">
+              <span
+                class="flex size-10 shrink-0 items-center justify-center rounded-2xl border border-line bg-surface-inset text-accent-strong"
+              >
+                <AppIcon :name="item.icon" :size="18" />
+              </span>
+              <span>
+                <strong class="block text-sm font-semibold text-strong">{{ item.title }}</strong>
+                <span class="text-xs text-muted">{{ item.text }}</span>
+              </span>
+            </li>
+          </ul>
         </div>
       </article>
     </PageStatus>

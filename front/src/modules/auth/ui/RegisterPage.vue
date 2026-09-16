@@ -40,6 +40,7 @@ async function onSubmit(credentials: { email: string; password: string }) {
 <template>
   <AuthCredentialsForm
     title="Inscription"
+    subtitle="Deux champs, trente secondes, et c'est fait."
     submit-label="Créer un compte"
     :pending="pending"
     :error-message="errorMessage"
@@ -47,6 +48,8 @@ async function onSubmit(credentials: { email: string; password: string }) {
     @submit="onSubmit"
   >
     Déjà un compte ?
-    <RouterLink to="/login" class="text-indigo-600 hover:text-indigo-700 font-bold ml-1 transition-colors">Se connecter</RouterLink>
+    <RouterLink to="/login" class="ml-1 font-semibold text-strong underline underline-offset-2">
+      Se connecter
+    </RouterLink>
   </AuthCredentialsForm>
 </template>

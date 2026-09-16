@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { computed, inject, ref, watch } from 'vue'
-import { RouterLink, useRoute, useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
+import AppIcon from '@/shared/ui/AppIcon.vue'
 import { toApiError } from '@/shared/http/toApiError'
 import { centsToEuros, eurosToCents } from '@/shared/money/euros'
 import { adminCatalogRepositoryKey } from '@/modules/catalog/application/adminCatalogRepositoryKey'
 import { catalogRepositoryKey } from '@/modules/catalog/application/catalogRepositoryKey'
 import AdminGate from './AdminGate.vue'
+import AdminPageHeader from './AdminPageHeader.vue'
 
 const catalog = inject(catalogRepositoryKey)
 const adminCatalog = inject(adminCatalogRepositoryKey)
@@ -51,7 +53,8 @@ watch(
       imageUrl.value = product.imageUrl ?? ''
     } catch (caught) {
       const error = toApiError(caught)
-      loadError.value = error.code === 'product_not_found' ? 'Ce produit est introuvable.' : error.message
+      loadError.value =
+        error.code === 'product_not_found' ? 'Ce produit est introuvable.' : error.message
     }
   },
   { immediate: true },
@@ -102,68 +105,86 @@ async function onDelete() {
 </script>
 
 <template>
-  <section>
-    <p class="mb-6 text-sm">
-      <RouterLink to="/admin/products" class="text-stone-600 hover:text-stone-900">Retour au catalogue</RouterLink>
-    </p>
-    <h1 class="text-2xl font-semibold tracking-tight">
-      {{ isCreate ? 'Nouveau produit' : 'Modifier le produit' }}
-    </h1>
+  <section class="animate-fade-in">
+    <AdminPageHeader
+      eyebrow="Catalogue"
+      :title="isCreate ? 'Nouveau produit' : 'Modifier le produit'"
+      :icon="isCreate ? 'plus' : 'settings'"
+      back-to="/admin/products"
+      back-label="Retour au catalogue"
+    />
+
     <AdminGate :redirect="route.path">
-      <p v-if="loadError" class="mt-6" role="alert">{{ loadError }}</p>
-      <form v-else class="mt-6 max-w-md space-y-4" @submit.prevent="onSubmit">
-        <p v-if="errorMessage" role="alert" class="rounded-md bg-red-50 px-3 py-2 text-sm text-red-800">
-          {{ errorMessage }}
-        </p>
-        <label class="block text-sm">
-          <span class="mb-1 block text-stone-600">Nom</span>
-          <input v-model="name" required class="w-full rounded-md border border-stone-300 px-3 py-2" />
+      <div v-if="loadError" role="alert" class="notice-danger mt-10 max-w-xl">
+        <AppIcon name="alert-circle" :size="18" class="mt-0.5" />
+        <span>{{ loadError }}</span>
+      </div>
+
+      <form v-else class="panel mt-10 max-w-xl space-y-6 p-6 sm:p-8" @submit.prevent="onSubmit">
+        <div v-if="errorMessage" role="alert" class="notice-danger">
+          <AppIcon name="alert-circle" :size="18" class="mt-0.5" />
+          <span>{{ errorMessage }}</span>
+        </div>
+
+        <label class="block">
+          <span class="field-label">Nom</span>
+          <input v-model="name" required class="field" placeholder="Nuvora Tee" />
         </label>
-        <label class="block text-sm">
-          <span class="mb-1 block text-stone-600">Prix (€)</span>
-          <input
-            v-model.number="priceEuros"
-            type="number"
-            min="0"
-            step="0.01"
-            required
-            class="w-full rounded-md border border-stone-300 px-3 py-2"
+
+        <div class="grid gap-6 sm:grid-cols-2">
+          <label class="block">
+            <span class="field-label">Prix (€)</span>
+            <input
+              v-model.number="priceEuros"
+              type="number"
+              min="0"
+              step="0.01"
+              required
+              class="field numeric"
+            />
+          </label>
+
+          <label class="block">
+            <span class="field-label">Stock</span>
+            <input
+              v-model.number="stock"
+              type="number"
+              min="0"
+              step="1"
+              required
+              class="field numeric"
+            />
+          </label>
+        </div>
+
+        <label class="block">
+          <span class="field-label">Description</span>
+          <textarea
+            v-model="description"
+            rows="4"
+            class="field resize-y"
+            placeholder="Ce qui rend ce produit utile, en deux phrases."
           />
         </label>
-        <label class="block text-sm">
-          <span class="mb-1 block text-stone-600">Description</span>
-          <textarea v-model="description" rows="3" class="w-full rounded-md border border-stone-300 px-3 py-2" />
+
+        <label v-if="isCreate" class="block">
+          <span class="field-label">Image (URL)</span>
+          <input v-model="imageUrl" class="field" placeholder="/media/products/mon-produit.svg" />
         </label>
-        <label class="block text-sm">
-          <span class="mb-1 block text-stone-600">Stock</span>
-          <input
-            v-model.number="stock"
-            type="number"
-            min="0"
-            step="1"
-            required
-            class="w-full rounded-md border border-stone-300 px-3 py-2"
-          />
-        </label>
-        <label v-if="isCreate" class="block text-sm">
-          <span class="mb-1 block text-stone-600">Image (URL)</span>
-          <input v-model="imageUrl" class="w-full rounded-md border border-stone-300 px-3 py-2" />
-        </label>
-        <div class="flex flex-wrap gap-3">
-          <button
-            type="submit"
-            class="rounded-md bg-stone-900 px-4 py-2 text-sm text-white hover:bg-stone-800 disabled:opacity-50"
-            :disabled="pending"
-          >
+
+        <div class="flex flex-wrap gap-3 border-t border-line pt-6">
+          <button type="submit" class="btn-primary" :disabled="pending">
+            <AppIcon :name="isCreate ? 'plus' : 'check'" :size="16" />
             {{ isCreate ? 'Créer' : 'Enregistrer' }}
           </button>
           <button
             v-if="!isCreate"
             type="button"
-            class="rounded-md border border-stone-300 px-4 py-2 text-sm hover:bg-stone-50 disabled:opacity-50"
+            class="btn-danger"
             :disabled="pending"
             @click="onDelete"
           >
+            <AppIcon name="trash" :size="15" />
             Supprimer
           </button>
         </div>

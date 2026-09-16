@@ -1,39 +1,65 @@
 <script setup lang="ts">
 import { RouterLink } from 'vue-router'
+import AppIcon from '@/shared/ui/AppIcon.vue'
+import type { IconName } from '@/shared/ui/icons'
 import AdminGate from './AdminGate.vue'
+import AdminPageHeader from './AdminPageHeader.vue'
+
+const sections: { to: string; label: string; icon: IconName; description: string }[] = [
+  {
+    to: '/admin/orders',
+    label: 'Commandes',
+    icon: 'package',
+    description: 'Suivre les commandes clients et confirmer les paiements.',
+  },
+  {
+    to: '/admin/products',
+    label: 'Catalogue',
+    icon: 'tag',
+    description: 'Créer, modifier et retirer des produits, ajuster les stocks.',
+  },
+  {
+    to: '/admin/users',
+    label: 'Utilisateurs',
+    icon: 'users',
+    description: 'Consulter les comptes et attribuer les rôles.',
+  },
+]
 </script>
 
 <template>
   <section class="animate-fade-in">
-    <div class="mb-8">
-      <h1 class="text-4xl font-extrabold tracking-tight text-gray-900">Administration</h1>
-      <p class="text-gray-500 mt-2">Gérez votre boutique, vos commandes et vos utilisateurs.</p>
-    </div>
+    <AdminPageHeader
+      eyebrow="Console"
+      title="Administration"
+      icon="settings"
+      description="Le back-office de la boutique : commandes, catalogue et accès."
+    />
 
     <AdminGate redirect="/admin">
-      <div class="grid md:grid-cols-3 gap-6 mt-8">
-        <RouterLink to="/admin/orders" aria-label="Commandes" class="group bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:border-indigo-100 transition-all flex flex-col items-center text-center">
-          <div class="h-16 w-16 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-            <i class="fa-solid fa-box-open text-2xl"></i>
-          </div>
-          <h2 class="text-lg font-bold text-gray-900 mb-1">Commandes</h2>
-          <p class="text-sm text-gray-500">Gérez les commandes clients et les paiements</p>
-        </RouterLink>
-
-        <RouterLink to="/admin/products" aria-label="Catalogue" class="group bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:indigo-100 transition-all flex flex-col items-center text-center">
-          <div class="h-16 w-16 bg-violet-50 text-violet-600 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-            <i class="fa-solid fa-tags text-2xl"></i>
-          </div>
-          <h2 class="text-lg font-bold text-gray-900 mb-1">Catalogue</h2>
-          <p class="text-sm text-gray-500">Gérez vos produits, prix et stocks</p>
-        </RouterLink>
-
-        <RouterLink to="/admin/users" aria-label="Utilisateurs" class="group bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:border-indigo-100 transition-all flex flex-col items-center text-center">
-          <div class="h-16 w-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-            <i class="fa-solid fa-users text-2xl"></i>
-          </div>
-          <h2 class="text-lg font-bold text-gray-900 mb-1">Utilisateurs</h2>
-          <p class="text-sm text-gray-500">Gérez les comptes clients et administrateurs</p>
+      <div class="mt-10 grid gap-5 md:grid-cols-3">
+        <RouterLink
+          v-for="section in sections"
+          :key="section.to"
+          :to="section.to"
+          :aria-label="section.label"
+          class="group panel relative flex flex-col p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-lifted"
+        >
+          <span
+            class="flex size-12 items-center justify-center rounded-2xl border border-line bg-surface-inset text-accent-strong transition-colors group-hover:bg-accent-soft"
+          >
+            <AppIcon :name="section.icon" :size="22" />
+          </span>
+          <h2 class="mt-5 font-display text-lg font-bold text-strong">{{ section.label }}</h2>
+          <p class="mt-2 text-sm leading-relaxed text-muted">{{ section.description }}</p>
+          <span class="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-strong">
+            Ouvrir
+            <AppIcon
+              name="arrow-right"
+              :size="15"
+              class="transition-transform duration-300 group-hover:translate-x-1"
+            />
+          </span>
         </RouterLink>
       </div>
     </AdminGate>

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import AppIcon from '@/shared/ui/AppIcon.vue'
+
 defineProps<{
   src: string | null
   alt: string
@@ -6,16 +8,16 @@ defineProps<{
 </script>
 
 <template>
-  <div class="overflow-hidden bg-stone-100 h-full w-full">
-    <img
-      v-if="src"
-      :src="src"
-      :alt="alt"
-      loading="lazy"
-      class="h-full w-full object-cover"
-    />
-    <div v-else class="flex h-full w-full items-center justify-center text-sm text-stone-400">
-      <i class="fa-regular fa-image text-2xl mb-2"></i>
+  <div class="relative h-full w-full overflow-hidden bg-surface-inset">
+    <img v-if="src" :src="src" :alt="alt" loading="lazy" class="h-full w-full object-cover" />
+    <div
+      v-else
+      class="mesh flex h-full w-full flex-col items-center justify-center gap-2 text-faint"
+      role="img"
+      :aria-label="alt"
+    >
+      <AppIcon name="image" :size="26" />
+      <span class="text-[0.65rem] font-semibold tracking-[0.15em] uppercase">Shoppy</span>
     </div>
   </div>
 </template>

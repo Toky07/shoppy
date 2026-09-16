@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, inject, ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { RouterLink, useRoute, useRouter } from 'vue-router'
+import AppIcon from '@/shared/ui/AppIcon.vue'
 import { toApiError } from '@/shared/http/toApiError'
 import { authSessionKey } from '@/modules/auth/application/authSessionKey'
 import { cartStateKey } from '@/modules/cart/application/cartStateKey'
@@ -51,50 +52,59 @@ async function onSubmit() {
 
 <template>
   <form class="flex flex-col gap-4" @submit.prevent="onSubmit">
-    <div class="flex items-center gap-4">
-      <div class="flex items-center border border-gray-200 rounded-xl bg-white overflow-hidden shadow-sm">
-        <button 
-          type="button" 
-          class="px-4 py-3 text-gray-500 hover:bg-gray-50 hover:text-indigo-600 transition-colors disabled:opacity-50"
-          @click="quantity > 1 && quantity--"
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+      <div
+        class="flex items-center justify-between gap-1 rounded-full border border-line bg-surface-inset p-1 sm:justify-start"
+      >
+        <button
+          type="button"
+          class="flex size-9 items-center justify-center rounded-full text-body transition-colors hover:bg-surface hover:text-strong disabled:opacity-40"
+          aria-label="Diminuer la quantité"
           :disabled="outOfStock || pending || quantity <= 1"
+          @click="quantity > 1 && quantity--"
         >
-          <i class="fa-solid fa-minus text-xs"></i>
+          <AppIcon name="minus" :size="15" />
         </button>
         <input
           v-model.number="quantity"
-          class="w-12 text-center font-semibold text-gray-900 border-none focus:ring-0 p-0"
+          class="numeric w-12 border-none bg-transparent text-center text-sm font-bold text-strong focus:outline-none"
           type="number"
           min="1"
           :max="stock"
+          aria-label="Quantité"
           :disabled="outOfStock || pending"
         />
-        <button 
-          type="button" 
-          class="px-4 py-3 text-gray-500 hover:bg-gray-50 hover:text-indigo-600 transition-colors disabled:opacity-50"
-          @click="quantity < stock && quantity++"
+        <button
+          type="button"
+          class="flex size-9 items-center justify-center rounded-full text-body transition-colors hover:bg-surface hover:text-strong disabled:opacity-40"
+          aria-label="Augmenter la quantité"
           :disabled="outOfStock || pending || quantity >= stock"
+          @click="quantity < stock && quantity++"
         >
-          <i class="fa-solid fa-plus text-xs"></i>
+          <AppIcon name="plus" :size="15" />
         </button>
       </div>
 
-      <button
-        type="submit"
-        class="flex-grow flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-8 py-3.5 text-sm font-bold text-white shadow-lg shadow-indigo-200 hover:bg-indigo-700 hover:shadow-xl hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none"
-        :disabled="outOfStock || pending"
-      >
-        <i v-if="pending" class="fa-solid fa-circle-notch fa-spin"></i>
-        <i v-else class="fa-solid fa-cart-plus"></i>
+      <button type="submit" class="btn-primary btn-lg flex-1" :disabled="outOfStock || pending">
+        <span v-if="pending" class="animate-orbit"><AppIcon name="loader" :size="17" /></span>
+        <AppIcon v-else name="cart" :size="17" />
         Ajouter au panier
       </button>
     </div>
 
-    <div v-if="successMessage" role="status" class="flex items-center gap-2 text-sm font-medium text-green-700 bg-green-50 px-4 py-3 rounded-lg border border-green-100">
-      <i class="fa-solid fa-circle-check"></i> {{ successMessage }}
+    <div v-if="successMessage" role="status" class="notice-positive">
+      <AppIcon name="check-circle" :size="17" class="mt-0.5" />
+      <span>
+        {{ successMessage }}
+        <RouterLink to="/cart" class="font-semibold underline underline-offset-2">
+          Voir mon panier
+        </RouterLink>
+      </span>
     </div>
-    <div v-if="errorMessage" role="alert" class="flex items-center gap-2 text-sm font-medium text-red-700 bg-red-50 px-4 py-3 rounded-lg border border-red-100">
-      <i class="fa-solid fa-circle-exclamation"></i> {{ errorMessage }}
+
+    <div v-if="errorMessage" role="alert" class="notice-danger">
+      <AppIcon name="alert-circle" :size="17" class="mt-0.5" />
+      <span>{{ errorMessage }}</span>
     </div>
   </form>
 </template>

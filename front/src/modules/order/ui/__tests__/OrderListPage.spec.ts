@@ -43,7 +43,7 @@ describe('OrderListPage', () => {
     })
 
     expect(
-      screen.getAllByRole('link', { name: /Voir les détails/ })[0].getAttribute('href'),
+      screen.getAllByRole('link', { name: /Voir les détails/ })[0]?.getAttribute('href'),
     ).toBe(`/orders/${pendingOrder.id}`)
   })
 })

@@ -3,9 +3,11 @@ import type { RouteRecordRaw } from 'vue-router'
 export const routes: RouteRecordRaw[] = [
   { path: '/', name: 'catalog', component: () => import('@/modules/catalog/ui/ProductListPage.vue') },
   { path: '/products/:id', name: 'product', component: () => import('@/modules/catalog/ui/ProductDetailPage.vue') },
+  { path: '/favorites', name: 'favorites', component: () => import('@/modules/catalog/ui/FavoritesPage.vue') },
   { path: '/cart', name: 'cart', component: () => import('@/modules/cart/ui/CartPage.vue') },
   { path: '/orders', name: 'orders', component: () => import('@/modules/order/ui/OrderListPage.vue') },
   { path: '/orders/:id', name: 'order', component: () => import('@/modules/order/ui/OrderDetailPage.vue') },
+  { path: '/account', name: 'account', component: () => import('@/modules/auth/ui/AccountPage.vue') },
   { path: '/login', name: 'login', component: () => import('@/modules/auth/ui/LoginPage.vue') },
   { path: '/register', name: 'register', component: () => import('@/modules/auth/ui/RegisterPage.vue') },
   { path: '/admin', name: 'admin', component: () => import('@/modules/admin/ui/AdminHomePage.vue') },

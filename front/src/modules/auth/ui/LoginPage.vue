@@ -42,12 +42,15 @@ async function onSubmit(credentials: { email: string; password: string }) {
 <template>
   <AuthCredentialsForm
     title="Connexion"
+    subtitle="Content de vous revoir. Reprenez là où vous en étiez."
     submit-label="Se connecter"
     :pending="pending"
     :error-message="errorMessage"
     @submit="onSubmit"
   >
     Pas encore de compte ?
-    <RouterLink to="/register" class="text-indigo-600 hover:text-indigo-700 font-bold ml-1 transition-colors">Créer un compte</RouterLink>
+    <RouterLink to="/register" class="ml-1 font-semibold text-strong underline underline-offset-2">
+      Créer un compte
+    </RouterLink>
   </AuthCredentialsForm>
 </template>

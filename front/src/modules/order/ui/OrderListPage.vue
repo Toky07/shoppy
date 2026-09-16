@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed, inject } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
+import AppIcon from '@/shared/ui/AppIcon.vue'
+import EmptyState from '@/shared/ui/EmptyState.vue'
 import PageStatus from '@/shared/ui/PageStatus.vue'
 import Pagination from '@/shared/ui/Pagination.vue'
 import ProductPrice from '@/modules/catalog/ui/ProductPrice.vue'
@@ -12,6 +14,7 @@ import { DEFAULT_ORDER_LIMIT } from '../application/defaultOrderLimit'
 import { useOrderList } from '../application/useOrderList'
 import { orderErrorMessage } from './orderErrorMessage'
 import { orderStatusLabel } from './orderStatusLabel'
+import { orderStatusStyle } from './orderStatusStyle'
 
 const session = inject(authSessionKey)
 const repository = inject(orderRepositoryKey)
@@ -30,88 +33,106 @@ const query = computed(() => ({
 }))
 const { status, page, error } = useOrderList(orderRepository, query, isAuthenticated)
 const loadError = computed(() => (error.value ? orderErrorMessage(error.value) : undefined))
+
+function itemCount(count: number) {
+  return `${count} article${count > 1 ? 's' : ''}`
+}
 </script>
 
 <template>
   <section class="animate-fade-in">
-    <div class="mb-8">
-      <h1 class="text-4xl font-extrabold tracking-tight text-gray-900">Mes Commandes</h1>
-      <p class="text-gray-500 mt-2">Suivez l'état de vos commandes et consultez votre historique.</p>
+    <div>
+      <span class="badge-neutral"><AppIcon name="package" :size="13" /> Historique</span>
+      <h1 class="display-tight mt-5 text-4xl text-strong sm:text-5xl">Mes Commandes</h1>
+      <p class="mt-3 text-sm text-muted">
+        Suivez l'état de vos achats et retrouvez vos justificatifs.
+      </p>
     </div>
 
     <template v-if="!isAuthenticated">
-      <div class="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm text-center max-w-md mx-auto mt-12">
-        <div class="h-20 w-20 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-6 text-indigo-600">
-          <i class="fa-solid fa-lock text-3xl"></i>
+      <div class="panel mx-auto mt-12 max-w-md p-8 text-center">
+        <div
+          class="mx-auto mb-6 flex size-14 items-center justify-center rounded-2xl border border-line bg-surface-inset text-accent-strong"
+        >
+          <AppIcon name="lock" :size="24" />
         </div>
-        <h2 class="text-xl font-bold text-gray-900 mb-2">Connexion requise</h2>
-        <p class="text-gray-500 mb-8">Vous devez être connecté pour voir l'historique de vos commandes.</p>
+        <h2 class="text-xl font-bold text-strong">Connexion requise</h2>
+        <p class="mt-3 text-sm text-muted">
+          Vous devez être connecté pour voir l'historique de vos commandes.
+        </p>
         <RouterLink
           :to="{ path: '/login', query: { redirect: '/orders' } }"
-          class="inline-block w-full rounded-xl bg-indigo-600 px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-indigo-200 hover:bg-indigo-700 hover:-translate-y-0.5 transition-all"
+          class="btn-primary btn-lg mt-8 w-full"
         >
           Se connecter
         </RouterLink>
       </div>
     </template>
-    
-    <div v-else class="mt-8">
-      <PageStatus :status="status" :error-message="loadError">
+
+    <div v-else class="mt-10">
+      <PageStatus :status="status" :error-message="loadError" skeleton="rows">
         <template #empty>
-          <div class="flex flex-col items-center justify-center py-20 text-center bg-white rounded-3xl border border-gray-100 shadow-sm">
-            <div class="h-24 w-24 bg-gray-50 rounded-full flex items-center justify-center mb-6">
-              <i class="fa-solid fa-box-open text-4xl text-gray-400"></i>
-            </div>
-            <h3 class="text-2xl font-bold text-gray-900 mb-2">Aucune commande</h3>
-            <p class="text-gray-500 mb-8 max-w-sm">Vous n'avez pas encore passé de commande. Découvrez nos produits !</p>
-            <RouterLink to="/" class="rounded-xl bg-indigo-600 px-8 py-3.5 text-sm font-bold text-white shadow-lg shadow-indigo-200 hover:bg-indigo-700 hover:-translate-y-0.5 transition-all">
+          <EmptyState
+            icon="package"
+            title="Aucune commande"
+            description="Vous n'avez pas encore passé de commande. Le catalogue vous attend."
+          >
+            <RouterLink to="/" class="btn-primary btn-lg">
               Explorer le catalogue
+              <AppIcon name="arrow-right" :size="16" />
             </RouterLink>
-          </div>
+          </EmptyState>
         </template>
-        
-        <div v-if="page" class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+
+        <div v-if="page" class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           <article
             v-for="order in page.items"
             :key="order.id"
-            class="group flex flex-col rounded-2xl border border-gray-100 bg-white p-6 shadow-sm hover:shadow-md transition-all"
+            class="group panel relative flex flex-col p-6 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lifted"
           >
-            <div class="flex justify-between items-start mb-4">
-              <div class="flex items-center gap-2 text-sm font-medium text-gray-500">
-                <i class="fa-regular fa-calendar"></i>
-                {{ formatDate(order.createdAt) }}
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <p class="text-xs font-semibold tracking-[0.12em] text-faint uppercase">
+                  N° {{ order.id.slice(0, 8).toUpperCase() }}
+                </p>
+                <p class="mt-2 flex items-center gap-2 text-sm font-medium text-body">
+                  <AppIcon name="calendar" :size="14" />
+                  {{ formatDate(order.createdAt) }}
+                </p>
               </div>
-              <span class="px-3 py-1 text-xs font-bold uppercase tracking-wider rounded-full bg-gray-100 text-gray-700">
+              <span :class="orderStatusStyle(order.status).badge">
+                <AppIcon :name="orderStatusStyle(order.status).icon" :size="12" />
                 {{ orderStatusLabel(order.status) }}
               </span>
             </div>
-            
-            <div class="mb-6">
-              <p class="text-sm text-gray-500 mb-1">Total de la commande</p>
-              <p class="text-2xl font-black text-gray-900">
-                <ProductPrice :price="order.total" />
-              </p>
+
+            <div class="mt-6 flex items-end justify-between gap-4">
+              <div>
+                <p class="text-xs text-muted">{{ itemCount(order.items.length) }}</p>
+                <p class="numeric mt-1 font-display text-2xl font-extrabold text-strong">
+                  <ProductPrice :price="order.total" />
+                </p>
+              </div>
             </div>
-            
-            <div class="mt-auto pt-4 border-t border-gray-50">
+
+            <div class="mt-6 border-t border-line pt-4">
               <RouterLink
                 :to="{ name: 'order', params: { id: order.id } }"
-                class="flex items-center justify-between text-sm font-bold text-indigo-600 group-hover:text-indigo-700 transition-colors"
+                class="inline-flex items-center gap-2 text-sm font-semibold text-strong"
               >
                 Voir les détails
-                <i class="fa-solid fa-arrow-right transform group-hover:translate-x-1 transition-transform"></i>
+                <AppIcon
+                  name="arrow-right"
+                  :size="15"
+                  class="transition-transform duration-300 group-hover:translate-x-1"
+                />
               </RouterLink>
             </div>
           </article>
         </div>
-        
-        <div class="mt-12 flex justify-center">
-          <Pagination
-            v-if="page"
-            :page="page.page"
-            :limit="page.limit"
-            :total="page.total"
-          />
+
+        <div v-if="page" class="mt-12 flex justify-center">
+          <Pagination :page="page.page" :limit="page.limit" :total="page.total" />
         </div>
       </PageStatus>
     </div>

@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed, inject, ref } from 'vue'
 import { RouterLink } from 'vue-router'
+import AppIcon from '@/shared/ui/AppIcon.vue'
+import EmptyState from '@/shared/ui/EmptyState.vue'
 import PageStatus from '@/shared/ui/PageStatus.vue'
 import ProductPrice from '@/modules/catalog/ui/ProductPrice.vue'
 import { toApiError } from '@/shared/http/toApiError'
@@ -23,6 +25,9 @@ const actionError = ref<string>()
 const checkoutOrderId = ref<string>()
 const isAuthenticated = computed(() => authSession.isAuthenticated.value)
 const cart = computed(() => state.cart.value)
+const itemCount = computed(() =>
+  (cart.value?.items ?? []).reduce((total, item) => total + item.quantity, 0),
+)
 const status = computed(() => {
   if (state.loading.value && !cart.value) {
     return 'loading'
@@ -75,61 +80,78 @@ async function onCheckout() {
 
 <template>
   <section class="animate-fade-in">
-    <div class="mb-8">
-      <h1 class="text-4xl font-extrabold tracking-tight text-gray-900">Votre Panier</h1>
-      <p class="text-gray-500 mt-2">Vérifiez vos articles avant de passer commande.</p>
+    <div class="flex flex-wrap items-end justify-between gap-6">
+      <div>
+        <span class="badge-neutral"><AppIcon name="cart" :size="13" /> Étape 1 sur 2</span>
+        <h1 class="display-tight mt-5 text-4xl text-strong sm:text-5xl">Votre Panier</h1>
+        <p class="mt-3 text-sm text-muted">
+          Vérifiez vos articles, le paiement se fait à l'étape suivante.
+        </p>
+      </div>
+      <RouterLink to="/" class="btn-outline">
+        <AppIcon name="arrow-left" :size="16" />
+        Continuer mes achats
+      </RouterLink>
     </div>
 
     <template v-if="!isAuthenticated">
-      <div class="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm text-center max-w-md mx-auto mt-12">
-        <div class="h-20 w-20 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-6 text-indigo-600">
-          <i class="fa-solid fa-lock text-3xl"></i>
+      <div class="panel mx-auto mt-12 max-w-md p-8 text-center">
+        <div
+          class="mx-auto mb-6 flex size-14 items-center justify-center rounded-2xl border border-line bg-surface-inset text-accent-strong"
+        >
+          <AppIcon name="lock" :size="24" />
         </div>
-        <h2 class="text-xl font-bold text-gray-900 mb-2">Connexion requise</h2>
-        <p class="text-gray-500 mb-8">Vous devez être connecté pour accéder à votre panier et passer commande.</p>
+        <h2 class="text-xl font-bold text-strong">Connexion requise</h2>
+        <p class="mt-3 text-sm text-muted">
+          Vous devez être connecté pour accéder à votre panier et passer commande.
+        </p>
         <RouterLink
           :to="{ path: '/login', query: { redirect: '/cart' } }"
-          class="inline-block w-full rounded-xl bg-indigo-600 px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-indigo-200 hover:bg-indigo-700 hover:-translate-y-0.5 transition-all"
+          class="btn-primary btn-lg mt-8 w-full"
         >
           Se connecter
         </RouterLink>
       </div>
     </template>
+
     <template v-else>
-      <div v-if="checkoutOrderId" class="mb-8 p-6 bg-green-50 border border-green-100 rounded-2xl flex items-start gap-4" role="status">
-        <div class="h-10 w-10 bg-green-100 rounded-full flex items-center justify-center text-green-600 flex-shrink-0">
-          <i class="fa-solid fa-check text-xl"></i>
-        </div>
+      <div v-if="checkoutOrderId" role="status" class="notice-positive mt-10">
+        <AppIcon name="check-circle" :size="20" class="mt-0.5" />
         <div>
-          <h3 class="text-lg font-bold text-green-900">Commande confirmée !</h3>
-          <p class="text-green-700 mt-1">Votre commande n°{{ checkoutOrderId }} a été créée avec succès.</p>
-          <RouterLink :to="{ name: 'order', params: { id: checkoutOrderId } }" class="inline-block mt-3 text-sm font-bold text-green-800 hover:text-green-600 underline">
-            Voir les détails de la commande <i class="fa-solid fa-arrow-right ml-1"></i>
+          <strong class="block font-display text-base">Commande confirmée</strong>
+          <p class="mt-1">Votre commande n°{{ checkoutOrderId }} a été créée avec succès.</p>
+          <RouterLink
+            :to="{ name: 'order', params: { id: checkoutOrderId } }"
+            class="mt-3 inline-flex items-center gap-1.5 font-semibold underline underline-offset-2"
+          >
+            Voir les détails de la commande
+            <AppIcon name="arrow-right" :size="15" />
           </RouterLink>
         </div>
       </div>
 
-      <div v-if="actionError" class="mb-8 p-4 bg-red-50 border border-red-100 rounded-xl flex items-center gap-3 text-red-700 font-medium" role="alert">
-        <i class="fa-solid fa-circle-exclamation"></i> {{ actionError }}
+      <div v-if="actionError" role="alert" class="notice-danger mt-10">
+        <AppIcon name="alert-circle" :size="18" class="mt-0.5" />
+        <span>{{ actionError }}</span>
       </div>
 
-      <PageStatus :status="status" :error-message="loadError">
-        <template #empty>
-          <div class="flex flex-col items-center justify-center py-20 text-center bg-white rounded-3xl border border-gray-100 shadow-sm">
-            <div class="h-24 w-24 bg-gray-50 rounded-full flex items-center justify-center mb-6">
-              <i class="fa-solid fa-cart-arrow-down text-4xl text-gray-400"></i>
-            </div>
-            <h3 class="text-2xl font-bold text-gray-900 mb-2">Votre panier est vide</h3>
-            <p class="text-gray-500 mb-8 max-w-sm">On dirait que vous n'avez pas encore trouvé votre bonheur. Découvrez nos nouveautés !</p>
-            <RouterLink to="/" class="rounded-xl bg-indigo-600 px-8 py-3.5 text-sm font-bold text-white shadow-lg shadow-indigo-200 hover:bg-indigo-700 hover:-translate-y-0.5 transition-all">
-              Continuer mes achats
-            </RouterLink>
-          </div>
-        </template>
+      <div class="mt-10">
+        <PageStatus :status="status" :error-message="loadError" skeleton="rows">
+          <template #empty>
+            <EmptyState
+              icon="cart"
+              title="Votre panier est vide"
+              description="On dirait que vous n'avez pas encore trouvé votre bonheur. Jetez un œil aux nouveautés."
+            >
+              <RouterLink to="/" class="btn-primary btn-lg">
+                Explorer le catalogue
+                <AppIcon name="arrow-right" :size="16" />
+              </RouterLink>
+            </EmptyState>
+          </template>
 
-        <div v-if="cart && cart.items.length > 0" class="grid lg:grid-cols-3 gap-8 items-start">
-          <div class="lg:col-span-2">
-            <ul class="space-y-4">
+          <div v-if="cart && cart.items.length > 0" class="grid items-start gap-6 lg:grid-cols-3">
+            <ul class="space-y-3 lg:col-span-2">
               <CartLine
                 v-for="item in cart.items"
                 :key="item.productId"
@@ -138,61 +160,59 @@ async function onCheckout() {
                 @remove="onRemove(item.productId)"
               />
             </ul>
-          </div>
 
-          <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm sticky top-24">
-            <h2 class="text-lg font-bold text-gray-900 mb-6">Résumé de la commande</h2>
-            
-            <div class="space-y-4 text-sm text-gray-600 mb-6">
-              <div class="flex justify-between">
-                <span>Sous-total ({{ cart.items.length }} articles)</span>
-                <span class="font-medium text-gray-900"><ProductPrice :price="cart.total" /></span>
-              </div>
-              <div class="flex justify-between">
-                <span>Frais de livraison</span>
-                <span class="text-green-600 font-medium">Gratuit</span>
-              </div>
-            </div>
+            <div class="panel sticky top-28 p-6">
+              <h2 class="font-display text-lg font-bold text-strong">Résumé</h2>
 
-            <div class="border-t border-gray-100 pt-6 mb-8">
-              <div class="flex justify-between items-center">
-                <span class="text-base font-bold text-gray-900">Total TTC</span>
-                <span class="text-2xl font-black text-gray-900"><ProductPrice :price="cart.total" /></span>
-              </div>
-            </div>
+              <dl class="mt-6 space-y-3 text-sm">
+                <div class="flex items-baseline justify-between gap-4">
+                  <dt class="text-muted">
+                    Sous-total ({{ itemCount }} article{{ itemCount > 1 ? 's' : '' }})
+                  </dt>
+                  <dd class="numeric font-semibold text-strong">
+                    <ProductPrice :price="cart.total" />
+                  </dd>
+                </div>
+                <div class="flex items-baseline justify-between gap-4">
+                  <dt class="text-muted">Livraison</dt>
+                  <dd class="font-semibold text-positive">Offerte</dd>
+                </div>
+              </dl>
 
-            <div class="flex flex-col gap-3">
-              <button
-                type="button"
-                class="w-full flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-6 py-4 text-sm font-bold text-white shadow-lg shadow-indigo-200 hover:bg-indigo-700 hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:hover:translate-y-0"
-                :disabled="pending"
-                @click="onCheckout"
-              >
-                <i v-if="pending" class="fa-solid fa-circle-notch fa-spin"></i>
-                <i v-else class="fa-solid fa-lock"></i>
-                Payer ma commande
-              </button>
-              
-              <button
-                type="button"
-                class="w-full flex items-center justify-center gap-2 rounded-xl bg-white border border-gray-200 px-6 py-3.5 text-sm font-bold text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
-                :disabled="pending"
-                @click="onClear"
-              >
-                <i class="fa-regular fa-trash-can"></i>
-                Vider le panier
-              </button>
-            </div>
-            
-            <div class="mt-6 flex items-center justify-center gap-4 text-gray-400">
-              <i class="fa-brands fa-cc-visa text-2xl"></i>
-              <i class="fa-brands fa-cc-mastercard text-2xl"></i>
-              <i class="fa-brands fa-cc-paypal text-2xl"></i>
-              <i class="fa-brands fa-cc-apple-pay text-2xl"></i>
+              <div class="mt-6 flex items-baseline justify-between gap-4 border-t border-line pt-6">
+                <span class="font-semibold text-strong">Total TTC</span>
+                <span class="numeric font-display text-2xl font-extrabold text-strong">
+                  <ProductPrice :price="cart.total" />
+                </span>
+              </div>
+
+              <div class="mt-7 flex flex-col gap-2.5">
+                <button
+                  type="button"
+                  class="btn-primary btn-lg w-full"
+                  :disabled="pending"
+                  @click="onCheckout"
+                >
+                  <span v-if="pending" class="animate-orbit">
+                    <AppIcon name="loader" :size="17" />
+                  </span>
+                  <AppIcon v-else name="lock" :size="16" />
+                  Payer ma commande
+                </button>
+                <button type="button" class="btn-ghost w-full" :disabled="pending" @click="onClear">
+                  <AppIcon name="trash" :size="15" />
+                  Vider le panier
+                </button>
+              </div>
+
+              <p class="mt-6 flex items-center justify-center gap-2 text-center text-[0.7rem] text-faint">
+                <AppIcon name="shield" :size="14" />
+                Paiement chiffré, aucune donnée bancaire stockée
+              </p>
             </div>
           </div>
-        </div>
-      </PageStatus>
+        </PageStatus>
+      </div>
     </template>
   </section>
 </template>

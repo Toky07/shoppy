@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, inject, ref } from 'vue'
-import { RouterLink, useRoute } from 'vue-router'
+import { useRoute } from 'vue-router'
+import AppIcon from '@/shared/ui/AppIcon.vue'
 import PageStatus from '@/shared/ui/PageStatus.vue'
 import ProductPrice from '@/modules/catalog/ui/ProductPrice.vue'
 import { formatDate } from '@/shared/datetime/formatDate'
@@ -11,7 +12,9 @@ import { useOrder } from '@/modules/order/application/useOrder'
 import OrderLine from '@/modules/order/ui/OrderLine.vue'
 import { orderErrorMessage } from '@/modules/order/ui/orderErrorMessage'
 import { orderStatusLabel } from '@/modules/order/ui/orderStatusLabel'
+import { orderStatusStyle } from '@/modules/order/ui/orderStatusStyle'
 import AdminGate from './AdminGate.vue'
+import AdminPageHeader from './AdminPageHeader.vue'
 
 const session = inject(authSessionKey)
 const orderRepository = inject(orderRepositoryKey)
@@ -45,37 +48,76 @@ async function onMarkPaid() {
 </script>
 
 <template>
-  <section>
-    <p class="mb-6 text-sm">
-      <RouterLink to="/admin/orders" class="text-stone-600 hover:text-stone-900">Retour aux commandes</RouterLink>
-    </p>
-    <h1 class="text-2xl font-semibold tracking-tight">Commande</h1>
+  <section class="animate-fade-in">
+    <AdminPageHeader
+      eyebrow="Console"
+      title="Commande"
+      icon="package"
+      back-to="/admin/orders"
+      back-label="Retour aux commandes"
+    />
+
     <AdminGate :redirect="route.path">
-      <div class="mt-6">
-        <PageStatus :status="status === 'ready' ? 'ready' : status" :error-message="loadError">
-        <article v-if="order" class="mt-6">
-          <h2 class="text-xl font-semibold">Commande du {{ formatDate(order.createdAt) }}</h2>
-          <p class="mt-2 text-stone-600">{{ orderStatusLabel(order.status) }}</p>
-          <p class="mt-1 break-all text-sm text-stone-500">Client {{ order.customerId }}</p>
-          <ul class="mt-6 divide-y divide-stone-200 border-y border-stone-200">
-            <OrderLine v-for="item in order.items" :key="item.productId" :item="item" />
-          </ul>
-          <p class="mt-4 text-lg font-semibold">
-            Total
-            <ProductPrice :price="order.total" />
-          </p>
-          <p v-if="actionError" class="mt-4" role="alert">{{ actionError }}</p>
-          <button
-            v-if="canMarkPaid"
-            type="button"
-            class="mt-6 rounded-md bg-stone-900 px-4 py-2 text-sm text-white hover:bg-stone-800 disabled:opacity-50"
-            :disabled="pending"
-            @click="onMarkPaid"
-          >
-            Marquer comme payée
-          </button>
-        </article>
-      </PageStatus>
+      <div class="mt-10">
+        <PageStatus
+          :status="status === 'ready' ? 'ready' : status"
+          :error-message="loadError"
+          skeleton="rows"
+        >
+          <article v-if="order" class="panel mx-auto max-w-3xl overflow-hidden">
+            <div
+              class="flex flex-wrap items-center justify-between gap-4 border-b border-line bg-surface-inset p-6"
+            >
+              <div>
+                <h2 class="font-display text-xl font-bold text-strong">
+                  Commande du {{ formatDate(order.createdAt) }}
+                </h2>
+                <p class="numeric mt-2 text-xs break-all text-faint">Client {{ order.customerId }}</p>
+              </div>
+              <span :class="orderStatusStyle(order.status).badge">
+                <AppIcon :name="orderStatusStyle(order.status).icon" :size="12" />
+                {{ orderStatusLabel(order.status) }}
+              </span>
+            </div>
+
+            <div class="p-6">
+              <h3 class="field-label">Articles</h3>
+              <ul class="divide-y divide-line">
+                <OrderLine v-for="item in order.items" :key="item.productId" :item="item" />
+              </ul>
+            </div>
+
+            <div class="border-t border-line bg-surface-inset p-6">
+              <div v-if="actionError" role="alert" class="notice-danger mb-5">
+                <AppIcon name="alert-circle" :size="18" class="mt-0.5" />
+                <span>{{ actionError }}</span>
+              </div>
+
+              <div class="flex flex-wrap items-center justify-between gap-5">
+                <div>
+                  <p class="text-xs text-muted">Total</p>
+                  <p class="numeric mt-1 font-display text-2xl font-extrabold text-strong">
+                    <ProductPrice :price="order.total" />
+                  </p>
+                </div>
+
+                <button
+                  v-if="canMarkPaid"
+                  type="button"
+                  class="btn-primary"
+                  :disabled="pending"
+                  @click="onMarkPaid"
+                >
+                  <span v-if="pending" class="animate-orbit">
+                    <AppIcon name="loader" :size="16" />
+                  </span>
+                  <AppIcon v-else name="check" :size="16" />
+                  Marquer comme payée
+                </button>
+              </div>
+            </div>
+          </article>
+        </PageStatus>
       </div>
     </AdminGate>
   </section>
