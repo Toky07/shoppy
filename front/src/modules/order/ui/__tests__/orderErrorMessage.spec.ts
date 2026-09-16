@@ -12,5 +12,6 @@ describe('orderErrorMessage', () => {
       'Cette commande ne peut plus être payée.',
     )
     expect(orderErrorMessage({ code: 'payment_charge_failed', message: 'x' })).toBe('Le paiement a échoué.')
+    expect(orderErrorMessage({ code: 'payment_provider_not_configured', message: 'x' })).toBe('Le paiement a échoué.')
   })
 })

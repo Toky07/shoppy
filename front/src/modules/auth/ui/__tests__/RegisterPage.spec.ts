@@ -9,7 +9,7 @@ describe('RegisterPage', () => {
     const authRepository = new FakeAuthRepository()
     const { router } = await renderApp({ authRepository, path: '/register' })
 
-    await userEvent.type(screen.getByLabelText('Email'), 'Ada@shoppy.test')
+    await userEvent.type(screen.getByLabelText('Adresse email'), 'Ada@shoppy.test')
     await userEvent.type(screen.getByLabelText('Mot de passe'), 'password123')
     await userEvent.click(screen.getByRole('button', { name: 'Créer un compte' }))
 

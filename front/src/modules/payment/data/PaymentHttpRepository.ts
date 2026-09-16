@@ -1,7 +1,9 @@
 import type { HttpClient } from '@/shared/http/HttpClient'
 import type { PaymentRepository } from '../application/PaymentRepository'
+import type { StartCheckoutRequest } from '../application/StartCheckoutRequest'
 import type { Payment } from '../domain/Payment'
-import { mapPayment } from './paymentMapper'
+import type { PaymentCheckout } from '../domain/PaymentCheckout'
+import { mapPayment, mapPaymentCheckout } from './paymentMapper'
 
 export class PaymentHttpRepository implements PaymentRepository {
   constructor(private readonly http: HttpClient) {}
@@ -12,5 +14,9 @@ export class PaymentHttpRepository implements PaymentRepository {
 
   async complete(orderId: string): Promise<Payment> {
     return mapPayment(await this.http.post('/payments/complete', { orderId }))
+  }
+
+  async startCheckout(request: StartCheckoutRequest): Promise<PaymentCheckout> {
+    return mapPaymentCheckout(await this.http.post('/payments/checkout', { ...request }))
   }
 }

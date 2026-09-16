@@ -15,7 +15,7 @@ export function orderErrorMessage(error: {
     return 'Cette commande ne peut plus être payée.'
   }
 
-  if (error.code === 'payment_charge_failed') {
+  if (error.code === 'payment_charge_failed' || error.code === 'payment_provider_not_configured') {
     return 'Le paiement a échoué.'
   }
 

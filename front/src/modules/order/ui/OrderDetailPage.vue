@@ -58,7 +58,18 @@ async function run(action: () => Promise<unknown>) {
 
 function onPay() {
   return run(async () => {
-    await payments.complete(orderId.value)
+    const checkout = await payments.startCheckout({
+      orderId: orderId.value,
+      provider: 'stripe',
+      successUrl: `${window.location.origin}/orders/${orderId.value}?payment=success`,
+      cancelUrl: `${window.location.origin}/orders/${orderId.value}?payment=cancel`,
+    })
+
+    if (checkout.redirectUrl) {
+      window.location.assign(checkout.redirectUrl)
+      return
+    }
+
     await reload()
     await reloadPayment()
   })

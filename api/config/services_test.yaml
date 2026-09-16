@@ -1,0 +1,17 @@
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    App\Tests\Doubles\FakeStripeCheckoutClient: ~
+
+    App\Payment\Infrastructure\Gateway\Stripe\StripeCheckoutClient: '@App\Tests\Doubles\FakeStripeCheckoutClient'
+
+    App\Payment\Infrastructure\Gateway\StripePaymentGateway:
+        arguments:
+            $currency: 'eur'
+        tags: ['payment.gateway']
+
+    App\Tests\Doubles\FakeStripeWebhookParser: ~
+
+    App\Payment\Application\StripeWebhookParser: '@App\Tests\Doubles\FakeStripeWebhookParser'

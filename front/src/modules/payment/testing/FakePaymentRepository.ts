@@ -1,6 +1,8 @@
 import { ApiError } from '@/shared/http/ApiError'
 import type { PaymentRepository } from '../application/PaymentRepository'
+import type { StartCheckoutRequest } from '../application/StartCheckoutRequest'
 import type { Payment } from '../domain/Payment'
+import type { PaymentCheckout } from '../domain/PaymentCheckout'
 
 function clonePayment(payment: Payment): Payment {
   return {
@@ -12,9 +14,17 @@ function clonePayment(payment: Payment): Payment {
 export class FakePaymentRepository implements PaymentRepository {
   public payment: Payment | null
   public completed: string[] = []
+  public checkouts: StartCheckoutRequest[] = []
   public completeError: Error | null = null
+  public checkoutError: Error | null = null
   public getError: Error | null = null
   public onComplete: ((orderId: string) => void) | null = null
+  public checkoutResult: PaymentCheckout = {
+    provider: 'stripe',
+    status: 'pending',
+    completedImmediately: false,
+    redirectUrl: 'https://checkout.test/cs_test_session',
+  }
 
   constructor(payment: Payment | null = null) {
     this.payment = payment ? clonePayment(payment) : null
@@ -47,5 +57,14 @@ export class FakePaymentRepository implements PaymentRepository {
     this.payment = next
     this.onComplete?.(orderId)
     return clonePayment(next)
+  }
+
+  async startCheckout(request: StartCheckoutRequest): Promise<PaymentCheckout> {
+    this.checkouts.push({ ...request })
+    if (this.checkoutError) {
+      throw this.checkoutError
+    }
+
+    return { ...this.checkoutResult }
   }
 }

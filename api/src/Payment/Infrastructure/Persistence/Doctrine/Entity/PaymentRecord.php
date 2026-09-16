@@ -40,6 +40,12 @@ class PaymentRecord
     #[ORM\Column(name: 'completed_at', nullable: true)]
     private ?DateTimeImmutable $completedAt = null;
 
+    #[ORM\Column(length: 32, nullable: true)]
+    private ?string $provider = null;
+
+    #[ORM\Column(name: 'provider_reference', length: 255, nullable: true)]
+    private ?string $providerReference = null;
+
     public static function fromDomain(Payment $payment): self
     {
         $record = new self();
@@ -52,6 +58,8 @@ class PaymentRecord
     {
         $this->status = $payment->status()->value();
         $this->completedAt = $payment->completedAt();
+        $this->provider = $payment->provider();
+        $this->providerReference = $payment->providerReference();
     }
 
     public function toDomain(): Payment
@@ -64,6 +72,8 @@ class PaymentRecord
             PaymentStatus::fromString($this->status),
             $this->createdAt,
             $this->completedAt,
+            $this->provider,
+            $this->providerReference,
         );
     }
 
@@ -76,5 +86,7 @@ class PaymentRecord
         $this->status = $payment->status()->value();
         $this->createdAt = $payment->createdAt();
         $this->completedAt = $payment->completedAt();
+        $this->provider = $payment->provider();
+        $this->providerReference = $payment->providerReference();
     }
 }

@@ -22,4 +22,15 @@ final class InMemoryPaymentRepository implements PaymentRepository
     {
         return $this->byOrderId[$orderId->value()] ?? null;
     }
+
+    public function findByProviderReference(string $providerReference): ?Payment
+    {
+        foreach ($this->byOrderId as $payment) {
+            if ($payment->providerReference() === $providerReference) {
+                return $payment;
+            }
+        }
+
+        return null;
+    }
 }

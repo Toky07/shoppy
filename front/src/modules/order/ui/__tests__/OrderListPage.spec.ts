@@ -9,11 +9,11 @@ describe('OrderListPage', () => {
   it('asks a guest to log in', async () => {
     await renderApp({ path: '/orders' })
 
-    expect(screen.getByRole('heading', { name: 'Commandes' })).toBeTruthy()
-    expect(screen.getByText('Connectez-vous pour voir vos commandes.')).toBeTruthy()
+    expect(screen.getByRole('heading', { name: 'Mes Commandes' })).toBeTruthy()
+    expect(screen.getByText("Vous devez être connecté pour voir l'historique de vos commandes.")).toBeTruthy()
     expect(
       screen
-        .getAllByRole('link', { name: 'Connexion' })
+        .getAllByRole('link', { name: 'Se connecter' })
         .some((link) => link.getAttribute('href') === '/login?redirect=/orders'),
     ).toBe(true)
   })
@@ -26,7 +26,7 @@ describe('OrderListPage', () => {
     })
 
     await waitFor(() => {
-      expect(screen.getByText('Aucune commande pour le moment.')).toBeTruthy()
+      expect(screen.getByRole('heading', { name: 'Aucune commande' })).toBeTruthy()
     })
   })
 
@@ -43,7 +43,7 @@ describe('OrderListPage', () => {
     })
 
     expect(
-      screen.getByRole('link', { name: 'Voir la commande du 10 septembre 2026' }).getAttribute('href'),
+      screen.getAllByRole('link', { name: /Voir les détails/ })[0].getAttribute('href'),
     ).toBe(`/orders/${pendingOrder.id}`)
   })
 })

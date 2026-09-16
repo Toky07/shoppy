@@ -23,6 +23,8 @@ final class Payment
         private PaymentStatus $status,
         private DateTimeImmutable $createdAt,
         private ?DateTimeImmutable $completedAt,
+        private ?string $provider,
+        private ?string $providerReference,
     ) {
     }
 
@@ -33,7 +35,7 @@ final class Payment
         MoneyAmount $amount,
         DateTimeImmutable $createdAt,
     ): self {
-        return new self($id, $orderId, $customerId, $amount, PaymentStatus::pending(), $createdAt, null);
+        return new self($id, $orderId, $customerId, $amount, PaymentStatus::pending(), $createdAt, null, null, null);
     }
 
     public static function reconstitute(
@@ -44,8 +46,20 @@ final class Payment
         PaymentStatus $status,
         DateTimeImmutable $createdAt,
         ?DateTimeImmutable $completedAt,
+        ?string $provider = null,
+        ?string $providerReference = null,
     ): self {
-        return new self($id, $orderId, $customerId, $amount, $status, $createdAt, $completedAt);
+        return new self(
+            $id,
+            $orderId,
+            $customerId,
+            $amount,
+            $status,
+            $createdAt,
+            $completedAt,
+            $provider,
+            $providerReference,
+        );
     }
 
     public function id(): PaymentId
@@ -81,6 +95,30 @@ final class Payment
     public function completedAt(): ?DateTimeImmutable
     {
         return $this->completedAt;
+    }
+
+    public function provider(): ?string
+    {
+        return $this->provider;
+    }
+
+    public function providerReference(): ?string
+    {
+        return $this->providerReference;
+    }
+
+    public function attachCheckout(string $provider, ?string $providerReference): void
+    {
+        if ($this->status->isCompleted()) {
+            throw new PaymentAlreadyCompleted();
+        }
+
+        if (!$this->status->isPending()) {
+            throw new PaymentNotPayable();
+        }
+
+        $this->provider = $provider;
+        $this->providerReference = $providerReference;
     }
 
     public function complete(DateTimeImmutable $completedAt): void

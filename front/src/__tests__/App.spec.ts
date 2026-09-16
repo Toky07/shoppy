@@ -10,7 +10,7 @@ describe('App', () => {
 
     await waitFor(() => {
       expect(screen.getByRole('link', { name: 'Shoppy' })).toBeTruthy()
-      expect(screen.getByRole('heading', { name: 'Catalogue' })).toBeTruthy()
+      expect(screen.getByRole('heading', { name: 'Notre Collection' })).toBeTruthy()
     })
   })
 })

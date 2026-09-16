@@ -10,7 +10,7 @@ describe('LoginPage', () => {
     const authRepository = new FakeAuthRepository()
     const { router } = await renderApp({ authRepository, path: '/login' })
 
-    await userEvent.type(screen.getByLabelText('Email'), 'visitor@shoppy.test')
+    await userEvent.type(screen.getByLabelText('Adresse email'), 'visitor@shoppy.test')
     await userEvent.type(screen.getByLabelText('Mot de passe'), 'password123')
     await userEvent.click(screen.getByRole('button', { name: 'Se connecter' }))
 
@@ -28,7 +28,7 @@ describe('LoginPage', () => {
     authRepository.loginError = new ApiError(401, 'invalid_credentials', 'Invalid credentials.')
     await renderApp({ authRepository, path: '/login' })
 
-    await userEvent.type(screen.getByLabelText('Email'), 'visitor@shoppy.test')
+    await userEvent.type(screen.getByLabelText('Adresse email'), 'visitor@shoppy.test')
     await userEvent.type(screen.getByLabelText('Mot de passe'), 'password123')
     await userEvent.click(screen.getByRole('button', { name: 'Se connecter' }))
 

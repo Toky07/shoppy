@@ -1,4 +1,8 @@
 services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
     App\Auth\Application\PasswordHasher: '@App\Tests\Doubles\FakePasswordHasher'
 
     App\Tests\Doubles\FakePasswordHasher: ~

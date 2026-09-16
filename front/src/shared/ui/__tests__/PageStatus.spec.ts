@@ -6,7 +6,7 @@ describe('PageStatus', () => {
   it('shows a loading message', () => {
     render(PageStatus, { props: { status: 'loading' } })
 
-    expect(screen.getByText('Chargement…')).toBeTruthy()
+    expect(screen.getByText('Chargement en cours...')).toBeTruthy()
   })
 
   it('shows an error alert', () => {

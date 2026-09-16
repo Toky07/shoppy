@@ -2,6 +2,7 @@ import { InvalidResponseError } from '@/shared/http/InvalidResponseError'
 import { mapMoney } from '@/shared/money/mapMoney'
 import { isRecord } from '@/shared/types/isRecord'
 import type { Payment } from '../domain/Payment'
+import type { PaymentCheckout } from '../domain/PaymentCheckout'
 import type { PaymentStatus } from '../domain/PaymentStatus'
 
 const PAYMENT_STATUSES: PaymentStatus[] = ['pending', 'completed', 'cancelled']
@@ -31,5 +32,24 @@ export function mapPayment(payload: unknown): Payment {
     status: payload.status,
     createdAt: payload.createdAt,
     completedAt: payload.completedAt,
+  }
+}
+
+export function mapPaymentCheckout(payload: unknown): PaymentCheckout {
+  if (
+    !isRecord(payload) ||
+    typeof payload.provider !== 'string' ||
+    !isPaymentStatus(payload.status) ||
+    typeof payload.completedImmediately !== 'boolean' ||
+    (payload.redirectUrl !== null && typeof payload.redirectUrl !== 'string')
+  ) {
+    throw new InvalidResponseError('Invalid payment checkout payload.')
+  }
+
+  return {
+    provider: payload.provider,
+    status: payload.status,
+    completedImmediately: payload.completedImmediately,
+    redirectUrl: payload.redirectUrl,
   }
 }

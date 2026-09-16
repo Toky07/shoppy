@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { InvalidResponseError } from '@/shared/http/InvalidResponseError'
-import { mapPayment } from '../paymentMapper'
+import { mapPayment, mapPaymentCheckout } from '../paymentMapper'
 import { createPaymentJson, pendingPayment } from '../../testing/paymentFixtures'
 
 describe('mapPayment', () => {
@@ -16,5 +16,27 @@ describe('mapPayment', () => {
 
   it('rejects an invalid payload', () => {
     expect(() => mapPayment({ id: 'x' })).toThrow(InvalidResponseError)
+  })
+})
+
+describe('mapPaymentCheckout', () => {
+  it('maps a hosted stripe checkout', () => {
+    expect(
+      mapPaymentCheckout({
+        provider: 'stripe',
+        status: 'pending',
+        completedImmediately: false,
+        redirectUrl: 'https://checkout.test/cs_test_session',
+      }),
+    ).toEqual({
+      provider: 'stripe',
+      status: 'pending',
+      completedImmediately: false,
+      redirectUrl: 'https://checkout.test/cs_test_session',
+    })
+  })
+
+  it('rejects an invalid checkout payload', () => {
+    expect(() => mapPaymentCheckout({ provider: 'stripe' })).toThrow(InvalidResponseError)
   })
 })

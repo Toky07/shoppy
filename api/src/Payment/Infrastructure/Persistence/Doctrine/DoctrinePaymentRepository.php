@@ -34,6 +34,19 @@ final readonly class DoctrinePaymentRepository implements PaymentRepository
         return $this->findRecordByOrderId($orderId->value())?->toDomain();
     }
 
+    public function findByProviderReference(string $providerReference): ?Payment
+    {
+        $record = $this->entityManager->createQueryBuilder()
+            ->select('p')
+            ->from(PaymentRecord::class, 'p')
+            ->where('p.providerReference = :providerReference')
+            ->setParameter('providerReference', $providerReference)
+            ->getQuery()
+            ->getOneOrNullResult();
+
+        return $record instanceof PaymentRecord ? $record->toDomain() : null;
+    }
+
     private function findRecordByOrderId(string $orderId): ?PaymentRecord
     {
         $record = $this->entityManager->createQueryBuilder()

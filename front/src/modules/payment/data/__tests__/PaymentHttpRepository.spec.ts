@@ -26,6 +26,42 @@ describe('PaymentHttpRepository', () => {
     ])
   })
 
+  it('starts a stripe checkout with POST /payments/checkout', async () => {
+    const http = new FakeHttpClient(() => ({
+      provider: 'stripe',
+      status: 'pending',
+      completedImmediately: false,
+      redirectUrl: 'https://checkout.test/cs_test_session',
+    }))
+    const repository = new PaymentHttpRepository(http)
+
+    await expect(
+      repository.startCheckout({
+        orderId: pendingOrder.id,
+        provider: 'stripe',
+        successUrl: `http://localhost:5173/orders/${pendingOrder.id}?payment=success`,
+        cancelUrl: `http://localhost:5173/orders/${pendingOrder.id}?payment=cancel`,
+      }),
+    ).resolves.toEqual({
+      provider: 'stripe',
+      status: 'pending',
+      completedImmediately: false,
+      redirectUrl: 'https://checkout.test/cs_test_session',
+    })
+    expect(http.calls).toEqual([
+      {
+        method: 'POST',
+        path: '/payments/checkout',
+        body: {
+          orderId: pendingOrder.id,
+          provider: 'stripe',
+          successUrl: `http://localhost:5173/orders/${pendingOrder.id}?payment=success`,
+          cancelUrl: `http://localhost:5173/orders/${pendingOrder.id}?payment=cancel`,
+        },
+      },
+    ])
+  })
+
   it('propagates API errors', async () => {
     const http = new FakeHttpClient(() => {
       throw new ApiError(409, 'payment_not_payable', 'Payment is not payable.')

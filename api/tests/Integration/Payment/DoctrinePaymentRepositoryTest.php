@@ -30,10 +30,23 @@ it('persists and completes a payment', function () {
 
     expect($found)->not->toBeNull()
         ->and($found->status())->toEqual(PaymentStatus::pending())
-        ->and($found->amount()->cents())->toBe(3998);
+        ->and($found->amount()->cents())->toBe(3998)
+        ->and($found->provider())->toBeNull()
+        ->and($found->providerReference())->toBeNull();
 
-    $found->complete(new DateTimeImmutable('2026-08-20T13:00:00+00:00'));
+    $found->attachCheckout('stripe', 'cs_test_cccccccc-cccc-4ccc-8ccc-cccccccccccc');
     $repository->save($found);
+    $entityManager->clear();
+
+    $started = $repository->findByOrderId(OrderReference::fromString('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'));
+
+    expect($started)->not->toBeNull()
+        ->and($started->status())->toEqual(PaymentStatus::pending())
+        ->and($started->provider())->toBe('stripe')
+        ->and($started->providerReference())->toBe('cs_test_cccccccc-cccc-4ccc-8ccc-cccccccccccc');
+
+    $started->complete(new DateTimeImmutable('2026-08-20T13:00:00+00:00'));
+    $repository->save($started);
     $entityManager->clear();
 
     $completed = $repository->findByOrderId(OrderReference::fromString('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'));

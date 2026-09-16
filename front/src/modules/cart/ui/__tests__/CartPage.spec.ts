@@ -12,11 +12,13 @@ describe('CartPage', () => {
   it('asks a guest to log in', async () => {
     await renderApp({ path: '/cart' })
 
-    expect(screen.getByRole('heading', { name: 'Panier' })).toBeTruthy()
-    expect(screen.getByText('Connectez-vous pour voir votre panier.')).toBeTruthy()
+    expect(screen.getByRole('heading', { name: 'Votre Panier' })).toBeTruthy()
+    expect(
+      screen.getByText('Vous devez être connecté pour accéder à votre panier et passer commande.'),
+    ).toBeTruthy()
     expect(
       screen
-        .getAllByRole('link', { name: 'Connexion' })
+        .getAllByRole('link', { name: 'Se connecter' })
         .some((link) => link.getAttribute('href') === '/login?redirect=/cart'),
     ).toBe(true)
   })
@@ -29,7 +31,7 @@ describe('CartPage', () => {
     })
 
     await waitFor(() => {
-      expect(screen.getByText('Votre panier est vide.')).toBeTruthy()
+      expect(screen.getByRole('heading', { name: 'Votre panier est vide' })).toBeTruthy()
     })
   })
 
@@ -56,11 +58,11 @@ describe('CartPage', () => {
       expect(cartRepository.updated).toEqual([{ productId: nuvoraTee.id, quantity: 3 }])
     })
 
-    await userEvent.click(screen.getByRole('button', { name: 'Retirer Nuvora Tee' }))
+    await userEvent.click(screen.getByRole('button', { name: /Retirer/ }))
 
     await waitFor(() => {
       expect(cartRepository.removed).toEqual([nuvoraTee.id])
-      expect(screen.getByText('Votre panier est vide.')).toBeTruthy()
+      expect(screen.getByRole('heading', { name: 'Votre panier est vide' })).toBeTruthy()
     })
   })
 
@@ -73,14 +75,14 @@ describe('CartPage', () => {
     })
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Vider le panier' })).toBeTruthy()
+      expect(screen.getByRole('button', { name: /Vider le panier/ })).toBeTruthy()
     })
 
-    await userEvent.click(screen.getByRole('button', { name: 'Vider le panier' }))
+    await userEvent.click(screen.getByRole('button', { name: /Vider le panier/ }))
 
     await waitFor(() => {
       expect(cartRepository.clearCount).toBe(1)
-      expect(screen.getByText('Votre panier est vide.')).toBeTruthy()
+      expect(screen.getByRole('heading', { name: 'Votre panier est vide' })).toBeTruthy()
     })
   })
 
@@ -93,18 +95,20 @@ describe('CartPage', () => {
     })
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Commander' })).toBeTruthy()
+      expect(screen.getByRole('button', { name: /Payer ma commande/ })).toBeTruthy()
     })
 
-    await userEvent.click(screen.getByRole('button', { name: 'Commander' }))
+    await userEvent.click(screen.getByRole('button', { name: /Payer ma commande/ }))
 
     await waitFor(() => {
       expect(cartRepository.checkoutCount).toBe(1)
-      expect(screen.getByRole('status').textContent).toContain(`Commande ${pendingCheckout.id} créée.`)
-      expect(screen.getByRole('link', { name: 'Voir la commande' }).getAttribute('href')).toBe(
+      expect(screen.getByRole('status').textContent).toContain(
+        `Votre commande n°${pendingCheckout.id} a été créée avec succès.`,
+      )
+      expect(screen.getByRole('link', { name: /Voir les détails de la commande/ }).getAttribute('href')).toBe(
         `/orders/${pendingCheckout.id}`,
       )
-      expect(screen.getByText('Votre panier est vide.')).toBeTruthy()
+      expect(screen.getByRole('heading', { name: 'Votre panier est vide' })).toBeTruthy()
     })
   })
 
@@ -118,10 +122,10 @@ describe('CartPage', () => {
     })
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Commander' })).toBeTruthy()
+      expect(screen.getByRole('button', { name: /Payer ma commande/ })).toBeTruthy()
     })
 
-    await userEvent.click(screen.getByRole('button', { name: 'Commander' }))
+    await userEvent.click(screen.getByRole('button', { name: /Payer ma commande/ }))
 
     await waitFor(() => {
       expect(screen.getByRole('alert').textContent).toContain('Stock insuffisant pour ce produit.')

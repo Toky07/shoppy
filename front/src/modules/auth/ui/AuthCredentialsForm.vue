@@ -48,12 +48,13 @@ function onSubmit() {
           </div>
 
           <div>
-            <label class="block text-sm font-bold text-gray-700 mb-1.5">Adresse email</label>
+            <label class="block text-sm font-bold text-gray-700 mb-1.5" for="auth-email">Adresse email</label>
             <div class="relative">
               <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
                 <i class="fa-regular fa-envelope"></i>
               </div>
               <input
+                id="auth-email"
                 v-model="email"
                 type="email"
                 name="email"
@@ -66,12 +67,13 @@ function onSubmit() {
           </div>
 
           <div>
-            <label class="block text-sm font-bold text-gray-700 mb-1.5">Mot de passe</label>
+            <label class="block text-sm font-bold text-gray-700 mb-1.5" for="auth-password">Mot de passe</label>
             <div class="relative">
               <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
                 <i class="fa-solid fa-lock"></i>
               </div>
               <input
+                id="auth-password"
                 v-model="password"
                 type="password"
                 name="password"

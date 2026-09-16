@@ -12,4 +12,6 @@ interface PaymentRepository
     public function save(Payment $payment): void;
 
     public function findByOrderId(OrderReference $orderId): ?Payment;
+
+    public function findByProviderReference(string $providerReference): ?Payment;
 }
