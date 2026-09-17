@@ -38,7 +38,7 @@ it('exposes its identity and required fields', function () {
         ->and($product->createdAt())->toBe($createdAt)
         ->and($product->description())->toBeNull()
         ->and($product->stock()->value())->toBe(0)
-        ->and($product->image())->toBeNull();
+        ->and($product->slug()->value())->toBe('nuvora-tee');
 });
 
 it('exposes its description when provided', function () {
@@ -59,19 +59,6 @@ it('creates a product with an initial stock', function () {
     );
 
     expect($product->stock()->value())->toBe(12);
-});
-
-it('creates a product with an image', function () {
-    $image = \App\Product\Domain\ValueObject\ProductImage::fromString('/media/products/nuvora-tee.svg');
-    $product = Product::create(
-        ProductId::fromString('550e8400-e29b-41d4-a716-446655440000'),
-        ProductName::fromString('Nuvora Tee'),
-        ProductPrice::fromCents(1999),
-        new DateTimeImmutable('2026-08-20T12:00:00+00:00'),
-        image: $image,
-    );
-
-    expect($product->image())->toBe($image);
 });
 
 it('renames the product', function () {

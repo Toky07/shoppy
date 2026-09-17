@@ -4,10 +4,23 @@ import { isRecord } from '@/shared/types/isRecord'
 import type { Product } from '../domain/Product'
 import type { ProductPage } from '../domain/ProductPage'
 
+function mapImageUrls(payload: Record<string, unknown>): string[] {
+  if (payload.imageUrls === undefined) {
+    return typeof payload.imageUrl === 'string' && payload.imageUrl !== '' ? [payload.imageUrl] : []
+  }
+
+  if (!Array.isArray(payload.imageUrls) || payload.imageUrls.some((url) => typeof url !== 'string')) {
+    throw new InvalidResponseError('Invalid product payload.')
+  }
+
+  return payload.imageUrls.filter((url) => url !== '')
+}
+
 export function mapProduct(payload: unknown): Product {
   if (
     !isRecord(payload) ||
     typeof payload.id !== 'string' ||
+    typeof payload.slug !== 'string' ||
     typeof payload.name !== 'string' ||
     (payload.description !== null && typeof payload.description !== 'string') ||
     typeof payload.stock !== 'number' ||
@@ -17,13 +30,17 @@ export function mapProduct(payload: unknown): Product {
     throw new InvalidResponseError('Invalid product payload.')
   }
 
+  const imageUrls = mapImageUrls(payload)
+
   return {
     id: payload.id,
+    slug: payload.slug,
     name: payload.name,
     description: payload.description,
     price: mapMoney(payload.price, 'Invalid product price.'),
     stock: payload.stock,
-    imageUrl: typeof payload.imageUrl === 'string' ? payload.imageUrl : null,
+    imageUrl: imageUrls[0] ?? null,
+    imageUrls,
     createdAt: payload.createdAt,
   }
 }

@@ -40,7 +40,6 @@ final readonly class CreateProductController
             priceCents: $httpRequest->priceCents,
             description: $httpRequest->description,
             stock: $httpRequest->stock,
-            imageUrl: $httpRequest->imageUrl,
         ));
 
         $product = $this->getProduct->handle(new GetProductQuery($id->value()));
@@ -48,7 +47,7 @@ final readonly class CreateProductController
         return new JsonResponse(
             $product->toArray(),
             Response::HTTP_CREATED,
-            ['Location' => '/products/'.$id->value()],
+            ['Location' => '/products/'.$product->slug],
         );
     }
 }

@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import type { CartItem } from '../domain/CartItem'
+import AppIcon from '@/shared/ui/AppIcon.vue'
 import ProductPrice from '@/modules/catalog/ui/ProductPrice.vue'
+import type { CartItem } from '../domain/CartItem'
 
-defineProps<{
+const props = defineProps<{
   item: CartItem
 }>()
 
@@ -18,69 +19,74 @@ function onQuantityChange(event: Event) {
   }
   emit('updateQuantity', value)
 }
+
+function step(delta: number) {
+  const next = props.item.quantity + delta
+  if (next >= 1 && next <= props.item.availableStock) {
+    emit('updateQuantity', next)
+  }
+}
 </script>
 
 <template>
-  <li class="flex flex-col sm:flex-row gap-4 p-4 bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-    <div class="h-24 w-24 bg-gray-50 rounded-xl flex-shrink-0 overflow-hidden">
-      <!-- Placeholder for image if we had one in CartItem, otherwise just a nice icon -->
-      <div class="w-full h-full flex items-center justify-center text-gray-300">
-        <i class="fa-solid fa-image text-2xl"></i>
-      </div>
+  <li class="panel-flat flex gap-4 p-4 transition-shadow hover:shadow-soft sm:gap-5 sm:p-5">
+    <div
+      class="flex size-20 shrink-0 items-center justify-center rounded-2xl border border-line bg-surface-inset text-faint sm:size-24"
+    >
+      <AppIcon name="package" :size="26" />
     </div>
-    
-    <div class="flex-grow flex flex-col justify-between">
-      <div class="flex justify-between items-start gap-4">
-        <div>
-          <h2 class="font-bold text-gray-900 line-clamp-2">{{ item.name }}</h2>
-          <p class="mt-1 text-sm font-medium text-gray-500">
+
+    <div class="flex min-w-0 flex-1 flex-col">
+      <div class="flex items-start justify-between gap-4">
+        <div class="min-w-0">
+          <h2 class="truncate font-display text-base font-bold text-strong">{{ item.name }}</h2>
+          <p class="numeric mt-1 text-xs text-muted">
             <ProductPrice :price="item.unitPrice" /> l'unité
           </p>
         </div>
-        <div class="text-right">
-          <p class="font-black text-gray-900 text-lg">
-            <ProductPrice :price="item.lineTotal" />
-          </p>
-        </div>
+        <p class="numeric shrink-0 font-display text-lg font-extrabold text-strong">
+          <ProductPrice :price="item.lineTotal" />
+        </p>
       </div>
-      
-      <div class="mt-4 flex items-center justify-between">
-        <div class="flex items-center border border-gray-200 rounded-lg bg-gray-50">
-          <button 
-            type="button" 
-            class="px-3 py-1.5 text-gray-500 hover:text-indigo-600 transition-colors"
-            @click="item.quantity > 1 && emit('updateQuantity', item.quantity - 1)"
+
+      <div class="mt-4 flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-1 rounded-full border border-line bg-surface-inset p-1">
+          <button
+            type="button"
+            class="flex size-8 items-center justify-center rounded-full text-body transition-colors hover:bg-surface hover:text-strong disabled:opacity-40"
+            :aria-label="`Diminuer la quantité de ${item.name}`"
             :disabled="item.quantity <= 1"
+            @click="step(-1)"
           >
-            <i class="fa-solid fa-minus text-[10px]"></i>
+            <AppIcon name="minus" :size="14" />
           </button>
           <input
             :aria-label="`Quantité ${item.name}`"
-            class="w-10 text-center text-sm font-bold text-gray-900 bg-transparent border-none focus:ring-0 p-0"
+            class="numeric w-10 border-none bg-transparent text-center text-sm font-bold text-strong focus:outline-none"
             type="number"
             min="1"
             :max="item.availableStock"
             :value="item.quantity"
             @change="onQuantityChange"
           />
-          <button 
-            type="button" 
-            class="px-3 py-1.5 text-gray-500 hover:text-indigo-600 transition-colors"
-            @click="item.quantity < item.availableStock && emit('updateQuantity', item.quantity + 1)"
+          <button
+            type="button"
+            class="flex size-8 items-center justify-center rounded-full text-body transition-colors hover:bg-surface hover:text-strong disabled:opacity-40"
+            :aria-label="`Augmenter la quantité de ${item.name}`"
             :disabled="item.quantity >= item.availableStock"
+            @click="step(1)"
           >
-            <i class="fa-solid fa-plus text-[10px]"></i>
+            <AppIcon name="plus" :size="14" />
           </button>
         </div>
-        
-        <button 
-          type="button" 
-          class="text-sm font-medium text-gray-400 hover:text-red-500 transition-colors flex items-center gap-1.5" 
+
+        <button
+          type="button"
+          class="inline-flex items-center gap-1.5 text-xs font-semibold text-faint transition-colors hover:text-danger"
           @click="emit('remove')"
-          title="Retirer l'article"
         >
-          <i class="fa-regular fa-trash-can"></i>
-          <span class="hidden sm:inline">Retirer</span>
+          <AppIcon name="trash" :size="14" />
+          Retirer
         </button>
       </div>
     </div>

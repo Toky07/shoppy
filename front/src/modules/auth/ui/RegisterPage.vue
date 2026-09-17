@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { inject, ref } from 'vue'
+import { inject } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
-import { toApiError } from '@/shared/http/toApiError'
+import { usePendingAction } from '@/shared/async/usePendingAction'
 import { authRepositoryKey } from '../application/authRepositoryKey'
 import { authSessionKey } from '../application/authSessionKey'
 import { register } from '../application/register'
@@ -17,29 +17,21 @@ if (!repository || !session) {
 
 const authRepository = repository
 const authSession = session
-
 const router = useRouter()
-const pending = ref(false)
-const errorMessage = ref<string>()
+const { pending, errorMessage, run } = usePendingAction((error) => authErrorMessage(error))
 
-async function onSubmit(credentials: { email: string; password: string }) {
-  pending.value = true
-  errorMessage.value = undefined
-
-  try {
+function onSubmit(credentials: { email: string; password: string }) {
+  return run(async () => {
     await register(authRepository, authSession, credentials)
     await router.push('/')
-  } catch (caught) {
-    errorMessage.value = authErrorMessage(toApiError(caught))
-  } finally {
-    pending.value = false
-  }
+  })
 }
 </script>
 
 <template>
   <AuthCredentialsForm
     title="Inscription"
+    subtitle="Deux champs, trente secondes, et c'est fait."
     submit-label="Créer un compte"
     :pending="pending"
     :error-message="errorMessage"
@@ -47,6 +39,8 @@ async function onSubmit(credentials: { email: string; password: string }) {
     @submit="onSubmit"
   >
     Déjà un compte ?
-    <RouterLink to="/login" class="text-indigo-600 hover:text-indigo-700 font-bold ml-1 transition-colors">Se connecter</RouterLink>
+    <RouterLink to="/login" class="ml-1 font-semibold text-strong underline underline-offset-2">
+      Se connecter
+    </RouterLink>
   </AuthCredentialsForm>
 </template>

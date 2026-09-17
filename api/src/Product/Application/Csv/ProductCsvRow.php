@@ -6,12 +6,15 @@ namespace App\Product\Application\Csv;
 
 final readonly class ProductCsvRow
 {
+    /**
+     * @param list<string> $images
+     */
     public function __construct(
         public string $name,
         public ?string $description,
         public int $priceCents,
         public int $stock,
-        public string $image,
+        public array $images,
     ) {
     }
 }

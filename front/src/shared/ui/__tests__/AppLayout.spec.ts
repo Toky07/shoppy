@@ -15,12 +15,13 @@ describe('AppLayout auth nav', () => {
     expect(screen.getByRole('link', { name: 'Inscription' })).toBeTruthy()
   })
 
-  it('logs out from the header', async () => {
+  it('logs out from the account menu', async () => {
     const authRepository = new FakeAuthRepository()
     await renderApp({ authRepository, session: visitorSession })
 
     expect(screen.getByText('visitor@shoppy.test')).toBeTruthy()
-    await userEvent.click(screen.getByRole('button', { name: 'Déconnexion' }))
+    await userEvent.click(screen.getByRole('button', { name: /Mon compte/ }))
+    await userEvent.click(screen.getByRole('menuitem', { name: 'Déconnexion' }))
 
     await waitFor(() => {
       expect(screen.getByRole('link', { name: 'Connexion' })).toBeTruthy()

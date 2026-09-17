@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, inject } from 'vue'
-import { useRoute } from 'vue-router'
+import { RouterLink, useRoute } from 'vue-router'
+import EmptyState from '@/shared/ui/EmptyState.vue'
 import PageStatus from '@/shared/ui/PageStatus.vue'
 import Pagination from '@/shared/ui/Pagination.vue'
 import { parsePageQuery } from '@/shared/routing/parsePageQuery'
@@ -8,7 +9,9 @@ import { parseSearchQuery } from '@/shared/routing/parseSearchQuery'
 import { catalogRepositoryKey } from '../application/catalogRepositoryKey'
 import { DEFAULT_PRODUCT_LIMIT } from '../application/defaultProductLimit'
 import { parseProductSort } from '../application/productSort'
+import { useCatalogView } from '../application/useCatalogView'
 import { useProductList } from '../application/useProductList'
+import CatalogHero from './CatalogHero.vue'
 import CatalogToolbar from './CatalogToolbar.vue'
 import ProductCard from './ProductCard.vue'
 
@@ -19,6 +22,7 @@ if (!repository) {
 }
 
 const route = useRoute()
+const { view } = useCatalogView()
 const search = computed(() => parseSearchQuery(route.query.q))
 const query = computed(() => ({
   page: parsePageQuery(route.query.page),
@@ -31,42 +35,49 @@ const { status, page, error } = useProductList(repository, query)
 
 <template>
   <section class="animate-fade-in">
-    <div class="mb-8 flex flex-col gap-6">
-      <div>
-        <h1 class="mb-2 text-4xl font-extrabold tracking-tight text-gray-900">Notre Collection</h1>
-        <p class="text-gray-500">Découvrez nos produits soigneusement sélectionnés pour vous.</p>
-      </div>
+    <CatalogHero />
+
+    <div
+      class="sticky top-16 z-30 -mx-5 mt-8 bg-canvas/80 px-5 py-3 backdrop-blur-xl lg:-mx-6 lg:px-6"
+    >
       <CatalogToolbar :total="page?.total" />
     </div>
 
-    <PageStatus :status="status" :error-message="error?.message">
+    <PageStatus :status="status" :error-message="error?.message" skeleton="cards">
       <template #empty>
-        <div class="flex flex-col items-center justify-center py-20 text-center bg-white rounded-2xl border border-gray-100 shadow-sm">
-          <div class="h-20 w-20 bg-gray-50 rounded-full flex items-center justify-center mb-4">
-            <i class="fa-solid fa-box-open text-3xl text-gray-400"></i>
-          </div>
-          <h3 class="text-lg font-medium text-gray-900">
-            {{ search ? 'Aucun résultat' : 'Aucun produit' }}
-          </h3>
-          <p class="text-gray-500 mt-1">
-            {{
-              search
-                ? `Aucun produit ne correspond à « ${search} ».`
-                : 'Revenez plus tard pour découvrir nos nouveautés.'
-            }}
-          </p>
-        </div>
+        <EmptyState
+          class="mt-6"
+          icon="search"
+          :title="search ? 'Aucun résultat' : 'Aucun produit'"
+          :description="
+            search
+              ? `Aucun produit ne correspond à « ${search} ».`
+              : 'Revenez bientôt : de nouvelles pièces arrivent chaque mois.'
+          "
+        >
+          <RouterLink v-if="search" to="/" class="btn-primary">Voir tout le catalogue</RouterLink>
+        </EmptyState>
       </template>
-      <div v-if="page" class="mt-6 grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        <ProductCard v-for="product in page.items" :key="product.id" :product="product" />
-      </div>
-      <div class="mt-12 flex justify-center">
-        <Pagination
-          v-if="page"
-          :page="page.page"
-          :limit="page.limit"
-          :total="page.total"
+
+      <div
+        v-if="page"
+        class="mt-6"
+        :class="
+          view === 'list'
+            ? 'flex flex-col gap-3'
+            : 'grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
+        "
+      >
+        <ProductCard
+          v-for="product in page.items"
+          :key="product.id"
+          :product="product"
+          :variant="view"
         />
+      </div>
+
+      <div v-if="page" class="mt-12 flex justify-center">
+        <Pagination :page="page.page" :limit="page.limit" :total="page.total" />
       </div>
     </PageStatus>
   </section>

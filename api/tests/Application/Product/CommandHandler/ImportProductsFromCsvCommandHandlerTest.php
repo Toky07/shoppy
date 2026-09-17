@@ -2,57 +2,80 @@
 
 declare(strict_types=1);
 
+use App\Media\Application\CommandHandler\UploadMediaCommandHandler;
+use App\Media\Domain\ValueObject\MediaOwnerId;
+use App\Media\Domain\ValueObject\MediaOwnerType;
+use App\Media\Infrastructure\Persistence\InMemoryMediaRepository;
 use App\Product\Application\Command\ImportProductsFromCsvCommand;
-use App\Product\Application\CommandHandler\CreateProductCommandHandler;
 use App\Product\Application\CommandHandler\ImportProductsFromCsvCommandHandler;
 use App\Product\Infrastructure\Csv\FileProductCsvReader;
 use App\Product\Infrastructure\Persistence\InMemoryProductRepository;
-use App\Tests\Doubles\FakeProductImageWriter;
+use App\Tests\Doubles\FakeMediaStorage;
+use App\Tests\Doubles\FakeProductImageLoader;
 use App\Tests\Doubles\FixedClock;
 
-it('imports products from csv and writes images', function () {
+it('imports products from csv and uploads every image as media', function () {
     $csv = tempnam(sys_get_temp_dir(), 'products').'.csv';
     file_put_contents($csv, <<<CSV
-name,description,priceCents,stock,image
-T-shirt Noir,Coton bio,1999,12,001-tshirt-noir.svg
+name,description,priceCents,stock,images
+T-shirt Noir,Coton bio,1999,12,one.jpg|two.jpg|three.jpg|four.jpg|five.jpg
 Mug Logo,,1299,8,https://cdn.shoppy.test/mug.png
 CSV);
     $repository = new InMemoryProductRepository();
-    $images = new FakeProductImageWriter();
+    $media = new InMemoryMediaRepository();
+    $images = new FakeProductImageLoader();
     $handler = new ImportProductsFromCsvCommandHandler(
         new FileProductCsvReader(),
         $images,
-        new CreateProductCommandHandler($repository, new FixedClock(new DateTimeImmutable('2026-08-20T12:00:00+00:00'))),
+        createProducts($repository, new FixedClock(new DateTimeImmutable('2026-08-20T12:00:00+00:00'))),
         $repository,
+        new UploadMediaCommandHandler(
+            $media,
+            new FakeMediaStorage(),
+            new FixedClock(new DateTimeImmutable('2026-09-16T12:00:00+00:00')),
+        ),
     );
 
     $imported = $handler->handle(new ImportProductsFromCsvCommand($csv));
     unlink($csv);
 
-    $products = $repository->findPage(0, 20);
+    $tee = $repository->findByName(\App\Product\Domain\ValueObject\ProductName::fromString('T-shirt Noir'));
+    $mug = $repository->findByName(\App\Product\Domain\ValueObject\ProductName::fromString('Mug Logo'));
 
     expect($imported)->toBe(2)
-        ->and($products)->toHaveCount(2)
-        ->and($images->written)->toEqual([['slug' => '001-tshirt-noir.svg', 'label' => 'T-shirt Noir']])
-        ->and($repository->findByName(\App\Product\Domain\ValueObject\ProductName::fromString('T-shirt Noir'))?->image()?->value())
-        ->toBe('/media/products/001-tshirt-noir.svg')
-        ->and($repository->findByName(\App\Product\Domain\ValueObject\ProductName::fromString('Mug Logo'))?->image()?->value())
-        ->toBe('https://cdn.shoppy.test/mug.png');
+        ->and($repository->findPage(0, 20))->toHaveCount(2)
+        ->and($images->loaded)->toBe([
+            'one.jpg',
+            'two.jpg',
+            'three.jpg',
+            'four.jpg',
+            'five.jpg',
+            'https://cdn.shoppy.test/mug.png',
+        ])
+        ->and($media->findByOwner(MediaOwnerType::fromInput('product'), MediaOwnerId::fromString($tee->id()->value())))
+        ->toHaveCount(5)
+        ->and($media->findByOwner(MediaOwnerType::fromInput('product'), MediaOwnerId::fromString($mug->id()->value())))
+        ->toHaveCount(1);
 });
 
 it('skips products that already exist', function () {
     $csv = tempnam(sys_get_temp_dir(), 'products').'.csv';
     file_put_contents($csv, <<<CSV
-name,description,priceCents,stock,image
-T-shirt Noir,Coton bio,1999,12,001-tshirt-noir.svg
+name,description,priceCents,stock,images
+T-shirt Noir,Coton bio,1999,12,one.jpg|two.jpg
 CSV);
     $repository = new InMemoryProductRepository();
-    $create = new CreateProductCommandHandler($repository, new FixedClock(new DateTimeImmutable('2026-08-20T12:00:00+00:00')));
+    $create = createProducts($repository, new FixedClock(new DateTimeImmutable('2026-08-20T12:00:00+00:00')));
     $handler = new ImportProductsFromCsvCommandHandler(
         new FileProductCsvReader(),
-        new FakeProductImageWriter(),
+        new FakeProductImageLoader(),
         $create,
         $repository,
+        new UploadMediaCommandHandler(
+            new InMemoryMediaRepository(),
+            new FakeMediaStorage(),
+            new FixedClock(new DateTimeImmutable('2026-09-16T12:00:00+00:00')),
+        ),
     );
 
     $first = $handler->handle(new ImportProductsFromCsvCommand($csv));

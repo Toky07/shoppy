@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
+import AppIcon from './AppIcon.vue'
 
 const props = defineProps<{
   page: number
@@ -12,30 +13,27 @@ const route = useRoute()
 const pageCount = computed(() => Math.max(1, Math.ceil(props.total / props.limit)))
 const visible = computed(() => props.total > props.limit)
 
-// Générer les numéros de page à afficher (ex: 1, 2, ..., 5, 6, 7, ..., 10)
-const pageNumbers = computed(() => {
+/** 1 … 4 5 6 … 12 */
+const pageNumbers = computed<(number | 'gap')[]>(() => {
   const current = props.page
   const last = pageCount.value
-  const delta = 1 // Nombre de pages à afficher autour de la page courante
-  
-  const range = []
-  for (let i = Math.max(2, current - delta); i <= Math.min(last - 1, current + delta); i++) {
-    range.push(i)
+  const items: (number | 'gap')[] = [1]
+
+  for (let index = Math.max(2, current - 1); index <= Math.min(last - 1, current + 1); index += 1) {
+    items.push(index)
   }
 
-  if (current - delta > 2) {
-    range.unshift('...')
+  if (current - 1 > 2) {
+    items.splice(1, 0, 'gap')
   }
-  if (current + delta < last - 1) {
-    range.push('...')
+  if (current + 1 < last - 1) {
+    items.push('gap')
   }
-
-  range.unshift(1)
   if (last !== 1) {
-    range.push(last)
+    items.push(last)
   }
 
-  return range
+  return items
 })
 
 function toPage(target: number) {
@@ -44,53 +42,51 @@ function toPage(target: number) {
 </script>
 
 <template>
-  <nav v-if="visible" aria-label="Pagination" class="flex items-center justify-center gap-2 mt-8">
-    <!-- Bouton Précédent -->
-    <RouterLink
-      v-if="page > 1"
-      :to="toPage(page - 1)"
-      class="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-gray-500 border border-gray-200 shadow-sm hover:text-indigo-600 hover:border-indigo-200 hover:bg-indigo-50 transition-all group"
-      aria-label="Page précédente"
-    >
-      <i class="fa-solid fa-chevron-left text-xs group-hover:-translate-x-0.5 transition-transform"></i>
-    </RouterLink>
-    <div v-else class="flex h-10 w-10 items-center justify-center rounded-xl bg-gray-50 text-gray-300 border border-gray-100 cursor-not-allowed">
-      <i class="fa-solid fa-chevron-left text-xs"></i>
+  <nav v-if="visible" aria-label="Pagination" class="flex flex-col items-center gap-4">
+    <div class="flex items-center gap-2">
+      <RouterLink
+        v-if="page > 1"
+        :to="toPage(page - 1)"
+        class="btn-outline size-10 p-0"
+        aria-label="Page précédente"
+      >
+        <AppIcon name="chevron-left" :size="16" />
+      </RouterLink>
+      <span v-else class="btn size-10 border border-line p-0 text-faint" aria-hidden="true">
+        <AppIcon name="chevron-left" :size="16" />
+      </span>
+
+      <div class="flex items-center gap-1 rounded-full border border-line bg-surface p-1">
+        <template v-for="(item, index) in pageNumbers" :key="index">
+          <span v-if="item === 'gap'" class="px-1.5 text-faint" aria-hidden="true">…</span>
+          <RouterLink
+            v-else
+            :to="toPage(item)"
+            class="numeric inline-flex size-8 items-center justify-center rounded-full text-sm font-semibold transition-colors"
+            :class="
+              item === page
+                ? 'bg-primary text-primary-fg'
+                : 'text-muted hover:bg-surface-muted hover:text-strong'
+            "
+            :aria-current="item === page ? 'page' : undefined"
+            >{{ item }}</RouterLink
+          >
+        </template>
+      </div>
+
+      <RouterLink
+        v-if="page < pageCount"
+        :to="toPage(page + 1)"
+        class="btn-outline size-10 p-0"
+        aria-label="Page suivante"
+      >
+        <AppIcon name="chevron-right" :size="16" />
+      </RouterLink>
+      <span v-else class="btn size-10 border border-line p-0 text-faint" aria-hidden="true">
+        <AppIcon name="chevron-right" :size="16" />
+      </span>
     </div>
 
-    <!-- Numéros de page -->
-    <div class="flex items-center gap-1.5 bg-white border border-gray-200 rounded-xl p-1 shadow-sm">
-      <template v-for="(item, index) in pageNumbers" :key="index">
-        <span v-if="item === '...'" class="flex h-8 w-8 items-center justify-center text-gray-400 text-sm">
-          <i class="fa-solid fa-ellipsis"></i>
-        </span>
-        <RouterLink
-          v-else
-          :to="toPage(item as number)"
-          class="flex h-8 w-8 items-center justify-center rounded-lg text-sm font-bold transition-all"
-          :class="[
-            item === page 
-              ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200' 
-              : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-          ]"
-          :aria-current="item === page ? 'page' : undefined"
-        >
-          {{ item }}
-        </RouterLink>
-      </template>
-    </div>
-
-    <!-- Bouton Suivant -->
-    <RouterLink
-      v-if="page < pageCount"
-      :to="toPage(page + 1)"
-      class="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-gray-500 border border-gray-200 shadow-sm hover:text-indigo-600 hover:border-indigo-200 hover:bg-indigo-50 transition-all group"
-      aria-label="Page suivante"
-    >
-      <i class="fa-solid fa-chevron-right text-xs group-hover:translate-x-0.5 transition-transform"></i>
-    </RouterLink>
-    <div v-else class="flex h-10 w-10 items-center justify-center rounded-xl bg-gray-50 text-gray-300 border border-gray-100 cursor-not-allowed">
-      <i class="fa-solid fa-chevron-right text-xs"></i>
-    </div>
+    <p class="numeric text-xs text-muted">Page {{ page }} sur {{ pageCount }} · {{ total }} résultats</p>
   </nav>
 </template>

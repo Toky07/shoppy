@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Product\Application\CommandHandler;
 
 use App\Product\Application\Command\UpdateProductCommand;
+use App\Product\Application\UniqueProductSlug;
 use App\Product\Domain\Exception\ProductNotFound;
 use App\Product\Domain\Repository\ProductRepository;
 use App\Product\Domain\ValueObject\ProductDescription;
@@ -14,8 +15,10 @@ use App\Product\Domain\ValueObject\ProductPrice;
 
 final readonly class UpdateProductCommandHandler
 {
-    public function __construct(private ProductRepository $productRepository)
-    {
+    public function __construct(
+        private ProductRepository $productRepository,
+        private UniqueProductSlug $uniqueProductSlug,
+    ) {
     }
 
     public function handle(UpdateProductCommand $command): void
@@ -24,11 +27,13 @@ final readonly class UpdateProductCommandHandler
         $product = $this->productRepository->findById($id);
 
         if ($product === null) {
-            throw new ProductNotFound($id);
+            throw new ProductNotFound($id->value());
         }
 
         if ($command->name !== null) {
-            $product->rename(ProductName::fromString($command->name));
+            $name = ProductName::fromString($command->name);
+            $product->rename($name);
+            $product->changeSlug($this->uniqueProductSlug->allocate($name, $id));
         }
 
         if ($command->priceCents !== null) {

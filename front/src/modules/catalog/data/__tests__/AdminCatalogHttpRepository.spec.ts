@@ -14,7 +14,6 @@ describe('AdminCatalogHttpRepository', () => {
         priceCents: 1999,
         description: nuvoraTee.description,
         stock: 10,
-        imageUrl: nuvoraTee.imageUrl,
       }),
     ).resolves.toEqual(nuvoraTee)
     expect(http.calls).toEqual([
@@ -26,7 +25,6 @@ describe('AdminCatalogHttpRepository', () => {
           priceCents: 1999,
           description: nuvoraTee.description,
           stock: 10,
-          imageUrl: nuvoraTee.imageUrl,
         },
       },
     ])

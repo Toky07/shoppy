@@ -1,11 +1,16 @@
 <script setup lang="ts">
 import { computed, inject, ref, watch } from 'vue'
-import { RouterLink, useRoute, useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
+import StatusNotice from '@/shared/ui/StatusNotice.vue'
 import { toApiError } from '@/shared/http/toApiError'
 import { centsToEuros, eurosToCents } from '@/shared/money/euros'
 import { adminCatalogRepositoryKey } from '@/modules/catalog/application/adminCatalogRepositoryKey'
 import { catalogRepositoryKey } from '@/modules/catalog/application/catalogRepositoryKey'
+import { usePendingAction } from '@/shared/async/usePendingAction'
 import AdminGate from './AdminGate.vue'
+import AdminPageHeader from './AdminPageHeader.vue'
+import AdminProductForm from './AdminProductForm.vue'
+import { emptyProductDraft } from './productDraft'
 
 const catalog = inject(catalogRepositoryKey)
 const adminCatalog = inject(adminCatalogRepositoryKey)
@@ -20,154 +25,90 @@ const router = useRouter()
 const route = useRoute()
 const isCreate = computed(() => route.name === 'admin-product-new')
 const productId = computed(() => String(route.params.id ?? ''))
-const name = ref('')
-const priceEuros = ref(0)
-const description = ref('')
-const stock = ref(0)
-const imageUrl = ref('')
-const pending = ref(false)
-const errorMessage = ref<string>()
+const draft = ref(emptyProductDraft())
 const loadError = ref<string>()
+const { pending, errorMessage, run } = usePendingAction(
+  (error) => error.violations[0]?.message ?? error.message,
+)
 
 watch(
   [isCreate, productId],
   async () => {
     loadError.value = undefined
     if (isCreate.value) {
-      name.value = ''
-      priceEuros.value = 0
-      description.value = ''
-      stock.value = 0
-      imageUrl.value = ''
+      draft.value = emptyProductDraft()
       return
     }
 
     try {
       const product = await catalogRepository.getById(productId.value)
-      name.value = product.name
-      priceEuros.value = centsToEuros(product.price.cents)
-      description.value = product.description ?? ''
-      stock.value = product.stock
-      imageUrl.value = product.imageUrl ?? ''
+      draft.value = {
+        name: product.name,
+        priceEuros: centsToEuros(product.price.cents),
+        description: product.description ?? '',
+        stock: product.stock,
+      }
     } catch (caught) {
       const error = toApiError(caught)
-      loadError.value = error.code === 'product_not_found' ? 'Ce produit est introuvable.' : error.message
+      loadError.value =
+        error.code === 'product_not_found' ? 'Ce produit est introuvable.' : error.message
     }
   },
   { immediate: true },
 )
 
-async function onSubmit() {
-  pending.value = true
-  errorMessage.value = undefined
-  try {
-    const descriptionValue = description.value.trim() === '' ? null : description.value.trim()
-    const imageValue = imageUrl.value.trim() === '' ? null : imageUrl.value.trim()
+function onSubmit() {
+  return run(async () => {
+    const descriptionValue = draft.value.description.trim() === '' ? null : draft.value.description.trim()
     if (isCreate.value) {
       await adminRepository.create({
-        name: name.value.trim(),
-        priceCents: eurosToCents(priceEuros.value),
+        name: draft.value.name.trim(),
+        priceCents: eurosToCents(draft.value.priceEuros),
         description: descriptionValue,
-        stock: stock.value,
-        imageUrl: imageValue,
+        stock: draft.value.stock,
       })
     } else {
       await adminRepository.update(productId.value, {
-        name: name.value.trim(),
-        priceCents: eurosToCents(priceEuros.value),
+        name: draft.value.name.trim(),
+        priceCents: eurosToCents(draft.value.priceEuros),
         description: descriptionValue,
       })
-      await adminRepository.setStock(productId.value, stock.value)
+      await adminRepository.setStock(productId.value, draft.value.stock)
     }
     await router.push('/admin/products')
-  } catch (caught) {
-    errorMessage.value = toApiError(caught).violations?.[0]?.message ?? toApiError(caught).message
-  } finally {
-    pending.value = false
-  }
+  })
 }
 
-async function onDelete() {
-  pending.value = true
-  errorMessage.value = undefined
-  try {
+function onDelete() {
+  return run(async () => {
     await adminRepository.delete(productId.value)
     await router.push('/admin/products')
-  } catch (caught) {
-    errorMessage.value = toApiError(caught).message
-  } finally {
-    pending.value = false
-  }
+  })
 }
 </script>
 
 <template>
-  <section>
-    <p class="mb-6 text-sm">
-      <RouterLink to="/admin/products" class="text-stone-600 hover:text-stone-900">Retour au catalogue</RouterLink>
-    </p>
-    <h1 class="text-2xl font-semibold tracking-tight">
-      {{ isCreate ? 'Nouveau produit' : 'Modifier le produit' }}
-    </h1>
+  <section class="animate-fade-in">
+    <AdminPageHeader
+      eyebrow="Catalogue"
+      :title="isCreate ? 'Nouveau produit' : 'Modifier le produit'"
+      :icon="isCreate ? 'plus' : 'settings'"
+      back-to="/admin/products"
+      back-label="Retour au catalogue"
+    />
+
     <AdminGate :redirect="route.path">
-      <p v-if="loadError" class="mt-6" role="alert">{{ loadError }}</p>
-      <form v-else class="mt-6 max-w-md space-y-4" @submit.prevent="onSubmit">
-        <p v-if="errorMessage" role="alert" class="rounded-md bg-red-50 px-3 py-2 text-sm text-red-800">
-          {{ errorMessage }}
-        </p>
-        <label class="block text-sm">
-          <span class="mb-1 block text-stone-600">Nom</span>
-          <input v-model="name" required class="w-full rounded-md border border-stone-300 px-3 py-2" />
-        </label>
-        <label class="block text-sm">
-          <span class="mb-1 block text-stone-600">Prix (€)</span>
-          <input
-            v-model.number="priceEuros"
-            type="number"
-            min="0"
-            step="0.01"
-            required
-            class="w-full rounded-md border border-stone-300 px-3 py-2"
-          />
-        </label>
-        <label class="block text-sm">
-          <span class="mb-1 block text-stone-600">Description</span>
-          <textarea v-model="description" rows="3" class="w-full rounded-md border border-stone-300 px-3 py-2" />
-        </label>
-        <label class="block text-sm">
-          <span class="mb-1 block text-stone-600">Stock</span>
-          <input
-            v-model.number="stock"
-            type="number"
-            min="0"
-            step="1"
-            required
-            class="w-full rounded-md border border-stone-300 px-3 py-2"
-          />
-        </label>
-        <label v-if="isCreate" class="block text-sm">
-          <span class="mb-1 block text-stone-600">Image (URL)</span>
-          <input v-model="imageUrl" class="w-full rounded-md border border-stone-300 px-3 py-2" />
-        </label>
-        <div class="flex flex-wrap gap-3">
-          <button
-            type="submit"
-            class="rounded-md bg-stone-900 px-4 py-2 text-sm text-white hover:bg-stone-800 disabled:opacity-50"
-            :disabled="pending"
-          >
-            {{ isCreate ? 'Créer' : 'Enregistrer' }}
-          </button>
-          <button
-            v-if="!isCreate"
-            type="button"
-            class="rounded-md border border-stone-300 px-4 py-2 text-sm hover:bg-stone-50 disabled:opacity-50"
-            :disabled="pending"
-            @click="onDelete"
-          >
-            Supprimer
-          </button>
-        </div>
-      </form>
+      <StatusNotice v-if="loadError" tone="danger" class="mt-10 max-w-xl">{{ loadError }}</StatusNotice>
+
+      <AdminProductForm
+        v-else
+        v-model="draft"
+        :is-create="isCreate"
+        :pending="pending"
+        :error-message="errorMessage"
+        @submit="onSubmit"
+        @delete="onDelete"
+      />
     </AdminGate>
   </section>
 </template>

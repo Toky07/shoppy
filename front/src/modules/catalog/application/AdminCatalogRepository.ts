@@ -5,7 +5,6 @@ export type CreateProductInput = {
   priceCents: number
   description: string | null
   stock: number
-  imageUrl: string | null
 }
 
 export type UpdateProductInput = {

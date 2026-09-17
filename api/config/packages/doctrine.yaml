@@ -54,6 +54,12 @@ doctrine:
                 dir: '%kernel.project_dir%/src/Payment/Infrastructure/Persistence/Doctrine/Entity'
                 prefix: 'App\Payment\Infrastructure\Persistence\Doctrine\Entity'
                 alias: Payment
+            Media:
+                type: attribute
+                is_bundle: false
+                dir: '%kernel.project_dir%/src/Media/Infrastructure/Persistence/Doctrine/Entity'
+                prefix: 'App\Media\Infrastructure\Persistence\Doctrine\Entity'
+                alias: Media
         controller_resolver:
             auto_mapping: false
 

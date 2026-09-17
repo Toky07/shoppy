@@ -4,34 +4,16 @@ declare(strict_types=1);
 
 namespace App\Product\Infrastructure\Image;
 
+use App\Product\Application\Image\GeneratedProductImage;
 use App\Product\Application\Image\ProductImageWriter;
-use RuntimeException;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 final class SvgProductImageWriter implements ProductImageWriter
 {
-    public function __construct(
-        #[Autowire('%kernel.project_dir%/public')]
-        private string $publicDir,
-    ) {
-    }
-
-    public function write(string $slug, string $label): string
+    public function generate(string $slug, string $label): GeneratedProductImage
     {
         $filename = $this->filename($slug);
-        $directory = $this->publicDir.'/media/products';
 
-        if (!is_dir($directory) && !mkdir($directory, 0777, true) && !is_dir($directory)) {
-            throw new RuntimeException('Unable to create product image directory.');
-        }
-
-        $path = $directory.'/'.$filename;
-
-        if (!is_file($path)) {
-            file_put_contents($path, $this->svg($label, $filename));
-        }
-
-        return '/media/products/'.$filename;
+        return new GeneratedProductImage($filename, 'image/svg+xml', $this->svg($label, $filename));
     }
 
     private function filename(string $slug): string

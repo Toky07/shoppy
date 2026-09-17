@@ -51,7 +51,7 @@ export function createFakeCatalogRepository(products: Product[]): CatalogReposit
       }
     },
     async getById(id: string): Promise<Product> {
-      const product = products.find((item) => item.id === id)
+      const product = products.find((item) => item.id === id || item.slug === id)
 
       if (!product) {
         throw new ApiError(404, 'product_not_found', 'Product not found.')

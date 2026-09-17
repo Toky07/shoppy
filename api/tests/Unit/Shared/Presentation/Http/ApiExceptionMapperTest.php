@@ -7,7 +7,6 @@ use App\Auth\Domain\Exception\InvalidCredentials;
 use App\Auth\Domain\Exception\Unauthenticated;
 use App\Product\Domain\Exception\InvalidProductName;
 use App\Product\Domain\Exception\ProductNotFound;
-use App\Product\Domain\ValueObject\ProductId;
 use App\Shared\Presentation\Exception\InvalidRequest;
 use App\Shared\Presentation\Http\ApiExceptionMapper;
 use App\User\Domain\Exception\EmailAlreadyRegistered;
@@ -18,7 +17,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 it('maps a not found domain exception without leaking internals', function () {
     $mapped = (new ApiExceptionMapper())->map(
-        new ProductNotFound(ProductId::fromString('550e8400-e29b-41d4-a716-446655440000')),
+        new ProductNotFound('550e8400-e29b-41d4-a716-446655440000'),
     );
 
     expect($mapped->status)->toBe(404)

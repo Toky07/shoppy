@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import type { OrderItem } from '../domain/OrderItem'
+import AppIcon from '@/shared/ui/AppIcon.vue'
 import ProductPrice from '@/modules/catalog/ui/ProductPrice.vue'
+import type { OrderItem } from '../domain/OrderItem'
 
 defineProps<{
   item: OrderItem
@@ -8,25 +9,22 @@ defineProps<{
 </script>
 
 <template>
-  <li class="flex items-center justify-between gap-4 py-4 group">
-    <div class="flex items-center gap-4">
-      <div class="h-16 w-16 bg-gray-50 rounded-xl flex items-center justify-center text-gray-300 flex-shrink-0 group-hover:bg-indigo-50 group-hover:text-indigo-300 transition-colors">
-        <i class="fa-solid fa-box text-xl"></i>
+  <li class="group flex items-center justify-between gap-4 py-4">
+    <div class="flex min-w-0 items-center gap-4">
+      <div
+        class="flex size-12 shrink-0 items-center justify-center rounded-2xl border border-line bg-surface-inset text-faint transition-colors group-hover:text-accent-strong"
+      >
+        <AppIcon name="box" :size="20" />
       </div>
-      <div>
-        <h3 class="font-bold text-gray-900">{{ item.name }}</h3>
-        <p class="text-sm font-medium text-gray-500 mt-0.5">
-          Quantité : <span class="text-gray-700 bg-gray-100 px-2 py-0.5 rounded-md ml-1">{{ item.quantity }}</span>
+      <div class="min-w-0">
+        <h3 class="truncate font-semibold text-strong">{{ item.name }}</h3>
+        <p class="numeric mt-0.5 text-xs text-muted">
+          <ProductPrice :price="item.unitPrice" /> × {{ item.quantity }}
         </p>
       </div>
     </div>
-    <div class="text-right">
-      <p class="font-black text-gray-900">
-        <ProductPrice :price="item.lineTotal" />
-      </p>
-      <p class="text-xs font-medium text-gray-400 mt-1">
-        <ProductPrice :price="item.unitPrice" /> / unité
-      </p>
-    </div>
+    <p class="numeric shrink-0 font-display font-bold text-strong">
+      <ProductPrice :price="item.lineTotal" />
+    </p>
   </li>
 </template>

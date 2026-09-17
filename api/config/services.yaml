@@ -7,6 +7,7 @@
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
+    app.media.upload_dir: '%kernel.project_dir%/public/uploads'
 
 services:
     # default configuration for services in *this* file
@@ -28,6 +29,10 @@ services:
             - '../src/*/Application/Response/'
             - '../src/*/Application/Event/'
             - '../src/*/Application/Csv/ProductCsvRow.php'
+            - '../src/*/Application/Port/'
+            - '../src/*/Application/Image/GeneratedProductImage.php'
+            - '../src/*/Application/Image/ProductImageLoader.php'
+            - '../src/*/Application/Image/HttpDownloader.php'
             - '../src/*/Presentation/Request/'
             - '../src/*/Presentation/Exception/'
             - '../src/*/Presentation/Http/ErrorResponse.php'
@@ -38,6 +43,10 @@ services:
             - '../src/Payment/Infrastructure/Gateway/Stripe/'
 
     App\Product\Domain\Repository\ProductRepository: '@App\Product\Infrastructure\Persistence\Doctrine\DoctrineProductRepository'
+
+    App\Media\Domain\Repository\MediaRepository: '@App\Media\Infrastructure\Persistence\Doctrine\DoctrineMediaRepository'
+
+    App\Media\Application\Port\MediaStorage: '@App\Media\Infrastructure\Storage\FilesystemMediaStorage'
 
     App\User\Domain\Repository\UserRepository: '@App\User\Infrastructure\Persistence\Doctrine\DoctrineUserRepository'
 
@@ -86,6 +95,10 @@ services:
             $defaultProvider: '%env(PAYMENT_PROVIDER)%'
 
     App\Product\Application\Csv\ProductCsvReader: '@App\Product\Infrastructure\Csv\FileProductCsvReader'
+
+    App\Product\Application\Image\ProductImageLoader: '@App\Product\Infrastructure\Image\CachedProductImageLoader'
+
+    App\Product\Application\Image\HttpDownloader: '@App\Product\Infrastructure\Image\StreamHttpDownloader'
 
     App\Product\Application\Image\ProductImageWriter: '@App\Product\Infrastructure\Image\SvgProductImageWriter'
 
