@@ -18,7 +18,7 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <form class="panel mt-10 max-w-xl space-y-6 p-6 sm:p-8" @submit.prevent="emit('submit')">
+  <form class="panel mt-6 max-w-xl space-y-5 p-6" @submit.prevent="emit('submit')">
     <StatusNotice v-if="errorMessage" tone="danger">{{ errorMessage }}</StatusNotice>
 
     <label class="block">

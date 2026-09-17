@@ -3,24 +3,25 @@ import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import { renderApp } from '@/shared/testing/renderApp'
 import { adminSession, visitorSession, visitorUser } from '@/modules/auth/testing/authFixtures'
+import { FakeAuthRepository } from '@/modules/auth/testing/FakeAuthRepository'
 import { FakeOrderRepository } from '@/modules/order/testing/FakeOrderRepository'
 import { pendingOrder } from '@/modules/order/testing/orderFixtures'
 import { FakeAdminCatalogRepository } from '@/modules/catalog/testing/FakeAdminCatalogRepository'
 import { createFakeCatalogRepository } from '@/modules/catalog/testing/fakeCatalogRepository'
 import { nuvoraTee } from '@/modules/catalog/testing/productFixtures'
 import { FakeUserDirectory } from '@/modules/auth/testing/FakeUserDirectory'
+import { ApiError } from '@/shared/http/ApiError'
 
 describe('Admin pages', () => {
-  it('asks a guest to log in', async () => {
-    await renderApp({ path: '/admin' })
+  it('redirects a guest to the console login', async () => {
+    const { router } = await renderApp({ path: '/admin' })
 
-    expect(screen.getByRole('heading', { name: 'Administration' })).toBeTruthy()
-    expect(screen.getByText("Connectez-vous pour accéder à l'administration.")).toBeTruthy()
-    expect(
-      screen
-        .getAllByRole('link', { name: 'Connexion' })
-        .some((link) => link.getAttribute('href') === '/login?redirect=/admin'),
-    ).toBe(true)
+    await waitFor(() => {
+      expect(router.currentRoute.value.path).toBe('/admin/login')
+    })
+    expect(screen.getByRole('heading', { name: 'Connexion administrateur' })).toBeTruthy()
+    expect(screen.getByRole('link', { name: 'Retour à la boutique' }).getAttribute('href')).toBe('/')
+    expect(router.currentRoute.value.query.redirect).toBe('/admin')
   })
 
   it('blocks a customer', async () => {
@@ -29,18 +30,69 @@ describe('Admin pages', () => {
     expect(screen.getByRole('alert').textContent).toContain(
       'Cette page est réservée aux administrateurs.',
     )
+    expect(screen.queryByRole('navigation', { name: 'Navigation administration' })).toBeNull()
   })
 
-  it('shows admin shortcuts', async () => {
+  it('shows the console chrome without the storefront header', async () => {
     await renderApp({ path: '/admin', session: adminSession })
 
+    expect(screen.getByRole('heading', { name: 'Tableau de bord' })).toBeTruthy()
+    expect(screen.queryByRole('link', { name: 'Shoppy' })).toBeNull()
+    expect(screen.getByRole('navigation', { name: 'Navigation administration' })).toBeTruthy()
     expect(
       screen.getAllByRole('link', { name: 'Commandes' }).some((link) => link.getAttribute('href') === '/admin/orders'),
     ).toBe(true)
     expect(
       screen.getAllByRole('link', { name: 'Catalogue' }).some((link) => link.getAttribute('href') === '/admin/products'),
     ).toBe(true)
-    expect(screen.getByRole('link', { name: 'Utilisateurs' }).getAttribute('href')).toBe('/admin/users')
+    expect(
+      screen.getAllByRole('link', { name: 'Utilisateurs' }).some((link) => link.getAttribute('href') === '/admin/users'),
+    ).toBe(true)
+  })
+
+  it('signs an admin into the console', async () => {
+    const authRepository = new FakeAuthRepository()
+    authRepository.loginResult = adminSession
+    const { router } = await renderApp({ authRepository, path: '/admin/login' })
+
+    await userEvent.type(screen.getByLabelText('Adresse email'), 'admin@shoppy.test')
+    await userEvent.type(screen.getByLabelText('Mot de passe'), 'password123')
+    await userEvent.click(screen.getByRole('button', { name: 'Entrer dans la console' }))
+
+    await waitFor(() => {
+      expect(router.currentRoute.value.path).toBe('/admin')
+      expect(screen.getByRole('heading', { name: 'Tableau de bord' })).toBeTruthy()
+    })
+  })
+
+  it('rejects a customer on the console login', async () => {
+    const authRepository = new FakeAuthRepository()
+    await renderApp({ authRepository, path: '/admin/login' })
+
+    await userEvent.type(screen.getByLabelText('Adresse email'), 'visitor@shoppy.test')
+    await userEvent.type(screen.getByLabelText('Mot de passe'), 'password123')
+    await userEvent.click(screen.getByRole('button', { name: 'Entrer dans la console' }))
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert').textContent).toContain(
+        'Cet espace est réservé aux administrateurs.',
+      )
+    })
+    expect(screen.getByRole('button', { name: 'Se déconnecter' })).toBeTruthy()
+  })
+
+  it('shows invalid credentials on the console login', async () => {
+    const authRepository = new FakeAuthRepository()
+    authRepository.loginError = new ApiError(401, 'invalid_credentials', 'Invalid credentials.')
+    await renderApp({ authRepository, path: '/admin/login' })
+
+    await userEvent.type(screen.getByLabelText('Adresse email'), 'admin@shoppy.test')
+    await userEvent.type(screen.getByLabelText('Mot de passe'), 'password123')
+    await userEvent.click(screen.getByRole('button', { name: 'Entrer dans la console' }))
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert').textContent).toContain('Identifiants invalides.')
+    })
   })
 
   it('lists all orders for an admin', async () => {

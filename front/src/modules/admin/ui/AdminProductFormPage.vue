@@ -7,7 +7,6 @@ import { centsToEuros, eurosToCents } from '@/shared/money/euros'
 import { adminCatalogRepositoryKey } from '@/modules/catalog/application/adminCatalogRepositoryKey'
 import { catalogRepositoryKey } from '@/modules/catalog/application/catalogRepositoryKey'
 import { usePendingAction } from '@/shared/async/usePendingAction'
-import AdminGate from './AdminGate.vue'
 import AdminPageHeader from './AdminPageHeader.vue'
 import AdminProductForm from './AdminProductForm.vue'
 import { emptyProductDraft } from './productDraft'
@@ -90,25 +89,22 @@ function onDelete() {
 <template>
   <section class="animate-fade-in">
     <AdminPageHeader
-      eyebrow="Catalogue"
       :title="isCreate ? 'Nouveau produit' : 'Modifier le produit'"
       :icon="isCreate ? 'plus' : 'settings'"
       back-to="/admin/products"
       back-label="Retour au catalogue"
     />
 
-    <AdminGate :redirect="route.path">
-      <StatusNotice v-if="loadError" tone="danger" class="mt-10 max-w-xl">{{ loadError }}</StatusNotice>
+    <StatusNotice v-if="loadError" tone="danger" class="mt-6 max-w-xl">{{ loadError }}</StatusNotice>
 
-      <AdminProductForm
-        v-else
-        v-model="draft"
-        :is-create="isCreate"
-        :pending="pending"
-        :error-message="errorMessage"
-        @submit="onSubmit"
-        @delete="onDelete"
-      />
-    </AdminGate>
+    <AdminProductForm
+      v-else
+      v-model="draft"
+      :is-create="isCreate"
+      :pending="pending"
+      :error-message="errorMessage"
+      @submit="onSubmit"
+      @delete="onDelete"
+    />
   </section>
 </template>

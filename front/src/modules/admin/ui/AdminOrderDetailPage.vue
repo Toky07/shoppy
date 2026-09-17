@@ -8,7 +8,6 @@ import { orderRepositoryKey } from '@/modules/order/application/orderRepositoryK
 import { useOrder } from '@/modules/order/application/useOrder'
 import OrderLine from '@/modules/order/ui/OrderLine.vue'
 import { orderErrorMessage } from '@/modules/order/ui/orderErrorMessage'
-import AdminGate from './AdminGate.vue'
 import AdminOrderSummary from './AdminOrderSummary.vue'
 import AdminPageHeader from './AdminPageHeader.vue'
 
@@ -41,33 +40,30 @@ function onMarkPaid() {
 <template>
   <section class="animate-fade-in">
     <AdminPageHeader
-      eyebrow="Console"
       title="Commande"
       icon="package"
       back-to="/admin/orders"
       back-label="Retour aux commandes"
     />
 
-    <AdminGate :redirect="route.path">
-      <div class="mt-10">
-        <PageStatus
-          :status="status === 'ready' ? 'ready' : status"
-          :error-message="loadError"
-          skeleton="rows"
-        >
-          <article v-if="order" class="panel mx-auto max-w-3xl overflow-hidden">
-            <AdminOrderSummary
-              :order="order"
-              :pending="pending"
-              :can-mark-paid="canMarkPaid"
-              :action-error="actionError"
-              @mark-paid="onMarkPaid"
-            >
-              <OrderLine v-for="item in order.items" :key="item.productId" :item="item" />
-            </AdminOrderSummary>
-          </article>
-        </PageStatus>
-      </div>
-    </AdminGate>
+    <div class="mt-6">
+      <PageStatus
+        :status="status === 'ready' ? 'ready' : status"
+        :error-message="loadError"
+        skeleton="rows"
+      >
+        <article v-if="order" class="panel mx-auto max-w-3xl overflow-hidden">
+          <AdminOrderSummary
+            :order="order"
+            :pending="pending"
+            :can-mark-paid="canMarkPaid"
+            :action-error="actionError"
+            @mark-paid="onMarkPaid"
+          >
+            <OrderLine v-for="item in order.items" :key="item.productId" :item="item" />
+          </AdminOrderSummary>
+        </article>
+      </PageStatus>
+    </div>
   </section>
 </template>
