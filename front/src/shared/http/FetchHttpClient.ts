@@ -40,7 +40,13 @@ export class FetchHttpClient implements HttpClient {
     })
 
     if (!response.ok) {
-      throw await this.toApiError(response)
+      const error = await this.toApiError(response)
+
+      if (error.code === 'unauthenticated') {
+        this.tokenProvider?.clear?.()
+      }
+
+      throw error
     }
 
     if (response.status === 204) {

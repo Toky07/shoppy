@@ -18,20 +18,9 @@ it('creates a product', function () {
         ->and($payload['price'])->toBe(['cents' => 1999, 'currency' => 'EUR'])
         ->and($payload['stock'])->toBe(0)
         ->and($payload['imageUrl'])->toBeNull()
-        ->and($response->headers->get('Location'))->toBe('/products/'.$payload['id']);
-});
-
-it('creates a product with an image', function () {
-    $this->client->jsonRequest('POST', '/products', [
-        'name' => 'Nuvora Tee',
-        'priceCents' => 1999,
-        'imageUrl' => '/media/products/nuvora-tee.svg',
-    ], catalogAdminHeaders());
-
-    $payload = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
-
-    expect($this->client->getResponse()->getStatusCode())->toBe(201)
-        ->and($payload['imageUrl'])->toBe('/media/products/nuvora-tee.svg');
+        ->and($payload['imageUrls'])->toBe([])
+        ->and($payload['slug'])->toBe('nuvora-tee')
+        ->and($response->headers->get('Location'))->toBe('/products/nuvora-tee');
 });
 
 it('rejects an invalid product payload', function () {
@@ -99,8 +88,48 @@ it('gets a created product', function () {
 
     expect($response->getStatusCode())->toBe(200)
         ->and($payload['id'])->toBe($created['id'])
+        ->and($payload['slug'])->toBe('nuvora-tee')
         ->and($payload['name'])->toBe('Nuvora Tee')
         ->and($payload['description'])->toBeNull();
+});
+
+it('gets a created product by slug', function () {
+    $this->client->jsonRequest('POST', '/products', [
+        'name' => 'Nuvora Tee',
+        'priceCents' => 1999,
+    ], catalogAdminHeaders());
+
+    $this->client->jsonRequest('GET', '/products/nuvora-tee');
+    $response = $this->client->getResponse();
+    $payload = json_decode((string) $response->getContent(), true, flags: JSON_THROW_ON_ERROR);
+
+    expect($response->getStatusCode())->toBe(200)
+        ->and($payload['slug'])->toBe('nuvora-tee')
+        ->and($payload['name'])->toBe('Nuvora Tee');
+});
+
+it('disambiguates products that share a name', function () {
+    $this->client->jsonRequest('POST', '/products', [
+        'name' => 'Coque Wave',
+        'priceCents' => 1999,
+    ], catalogAdminHeaders());
+    $first = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+
+    $this->client->jsonRequest('POST', '/products', [
+        'name' => 'Coque Wave',
+        'priceCents' => 2499,
+    ], catalogAdminHeaders());
+    $second = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+
+    expect($first['slug'])->toBe('coque-wave')
+        ->and($second['slug'])->toBe('coque-wave-2');
+
+    $this->client->jsonRequest('GET', '/products/coque-wave-2');
+    $payload = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+
+    expect($this->client->getResponse()->getStatusCode())->toBe(200)
+        ->and($payload['id'])->toBe($second['id'])
+        ->and($payload['price']['cents'])->toBe(2499);
 });
 
 it('returns not found for an unknown product', function () {
@@ -231,6 +260,7 @@ it('updates a product', function () {
 
     expect($response->getStatusCode())->toBe(200)
         ->and($payload['name'])->toBe('Nuvora Hoodie')
+        ->and($payload['slug'])->toBe('nuvora-hoodie')
         ->and($payload['price']['cents'])->toBe(4999)
         ->and($payload['description'])->toBe('Soft cotton t-shirt');
 });

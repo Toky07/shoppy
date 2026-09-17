@@ -22,7 +22,7 @@ final readonly class SetProductStockCommandHandler
         $product = $this->productRepository->findById($id);
 
         if ($product === null) {
-            throw new ProductNotFound($id);
+            throw new ProductNotFound($id->value());
         }
 
         $product->setStock(StockQuantity::fromInt($command->stock));

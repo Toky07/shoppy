@@ -9,8 +9,12 @@ use DateTimeInterface;
 
 final readonly class ProductResponse
 {
+    /**
+     * @param list<string> $imageUrls
+     */
     public function __construct(
         public string $id,
+        public string $slug,
         public string $name,
         public int $priceCents,
         public string $currency,
@@ -18,31 +22,39 @@ final readonly class ProductResponse
         public ?string $description,
         public int $stock,
         public ?string $imageUrl,
+        public array $imageUrls,
     ) {
     }
 
-    public static function fromProduct(Product $product): self
+    /**
+     * @param list<string> $imageUrls
+     */
+    public static function fromProduct(Product $product, array $imageUrls = []): self
     {
         return new self(
             $product->id()->value(),
+            $product->slug()->value(),
             $product->name()->value(),
             $product->price()->cents(),
             $product->price()->currency(),
             $product->createdAt()->format(DateTimeInterface::ATOM),
             $product->description()?->value(),
             $product->stock()->value(),
-            $product->image()?->value(),
+            $imageUrls[0] ?? null,
+            array_values($imageUrls),
         );
     }
 
     /**
      * @return array{
      *     id: string,
+     *     slug: string,
      *     name: string,
      *     description: string|null,
      *     price: array{cents: int, currency: string},
      *     stock: int,
      *     imageUrl: string|null,
+     *     imageUrls: list<string>,
      *     createdAt: string
      * }
      */
@@ -50,6 +62,7 @@ final readonly class ProductResponse
     {
         return [
             'id' => $this->id,
+            'slug' => $this->slug,
             'name' => $this->name,
             'description' => $this->description,
             'price' => [
@@ -58,6 +71,7 @@ final readonly class ProductResponse
             ],
             'stock' => $this->stock,
             'imageUrl' => $this->imageUrl,
+            'imageUrls' => $this->imageUrls,
             'createdAt' => $this->createdAt,
         ];
     }

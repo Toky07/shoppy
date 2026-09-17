@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, watch } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import AppIcon from './AppIcon.vue'
 import ThemeToggle from './ThemeToggle.vue'
+import { usePopupMenu } from './usePopupMenu'
 import type { IconName } from './icons'
+import { userInitials } from '@/shared/text/userInitials'
 
 const props = defineProps<{
   email: string
@@ -18,11 +20,8 @@ const emit = defineEmits<{
 }>()
 
 const route = useRoute()
-const open = ref(false)
-const triggerEl = ref<HTMLButtonElement>()
-const menuEl = ref<HTMLElement>()
-
-const initials = computed(() => props.email.slice(0, 2).toUpperCase())
+const { open, triggerEl, menuEl, close, onTriggerKeydown, onMenuKeydown } = usePopupMenu()
+const initials = computed(() => userInitials(props.email))
 
 type Entry = { to: string; label: string; icon: IconName; count?: number }
 
@@ -36,106 +35,10 @@ const entries = computed<Entry[]>(() => [
     : []),
 ])
 
-/** Éléments focusables du menu, dans l'ordre du DOM. */
-function items() {
-  return [...(menuEl.value?.querySelectorAll<HTMLElement>('[role="menuitem"]') ?? [])]
-}
-
-function focusItem(index: number) {
-  const all = items()
-
-  if (all.length === 0) {
-    return
-  }
-
-  all[(index + all.length) % all.length]?.focus()
-}
-
-function close(refocus = false) {
-  open.value = false
-
-  if (refocus) {
-    triggerEl.value?.focus()
-  }
-}
-
-async function openAt(edge: 'first' | 'last') {
-  open.value = true
-  await new Promise(requestAnimationFrame)
-  focusItem(edge === 'first' ? 0 : items().length - 1)
-}
-
-function onTriggerKeydown(event: KeyboardEvent) {
-  if (event.key === 'ArrowDown') {
-    event.preventDefault()
-    void openAt('first')
-  }
-
-  if (event.key === 'ArrowUp') {
-    event.preventDefault()
-    void openAt('last')
-  }
-}
-
-function onMenuKeydown(event: KeyboardEvent) {
-  const all = items()
-  const current = all.indexOf(document.activeElement as HTMLElement)
-
-  switch (event.key) {
-    case 'ArrowDown':
-      event.preventDefault()
-      focusItem(current + 1)
-      break
-    case 'ArrowUp':
-      event.preventDefault()
-      focusItem(current - 1)
-      break
-    case 'Home':
-      event.preventDefault()
-      focusItem(0)
-      break
-    case 'End':
-      event.preventDefault()
-      focusItem(all.length - 1)
-      break
-    case 'Tab':
-      close()
-      break
-  }
-}
-
-function onDocumentKeydown(event: KeyboardEvent) {
-  if (event.key === 'Escape') {
-    close(true)
-  }
-}
-
-function onDocumentPointerDown(event: PointerEvent) {
-  const target = event.target as Node
-
-  if (!triggerEl.value?.contains(target) && !menuEl.value?.contains(target)) {
-    close()
-  }
-}
-
-watch(open, (isOpen) => {
-  if (isOpen) {
-    document.addEventListener('keydown', onDocumentKeydown)
-    document.addEventListener('pointerdown', onDocumentPointerDown)
-
-    return
-  }
-
-  document.removeEventListener('keydown', onDocumentKeydown)
-  document.removeEventListener('pointerdown', onDocumentPointerDown)
-})
-
-watch(() => route.fullPath, () => close())
-
-onBeforeUnmount(() => {
-  document.removeEventListener('keydown', onDocumentKeydown)
-  document.removeEventListener('pointerdown', onDocumentPointerDown)
-})
+watch(
+  () => route.fullPath,
+  () => close(),
+)
 
 function onLogout() {
   close()
@@ -184,7 +87,6 @@ function onLogout() {
         v-if="open"
         class="panel absolute right-0 z-60 mt-2.5 w-72 origin-top-right overflow-hidden p-2 shadow-float"
       >
-        <!-- Identité -->
         <div class="mesh flex items-center gap-3 rounded-2xl px-3 py-3.5">
           <span
             class="relative z-1 flex size-10 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-fg"
@@ -193,7 +95,9 @@ function onLogout() {
           >
           <span class="relative z-1 min-w-0">
             <span class="block truncate text-sm font-semibold text-strong">{{ email }}</span>
-            <span class="mt-0.5 block text-[0.7rem] font-semibold tracking-[0.1em] text-muted uppercase">
+            <span
+              class="mt-0.5 block text-[0.7rem] font-semibold tracking-[0.1em] text-muted uppercase"
+            >
               {{ roleLabel }}
             </span>
           </span>
@@ -244,7 +148,9 @@ function onLogout() {
             >
               <AppIcon name="logout" :size="16" />
             </span>
-            <span class="text-sm font-semibold text-strong transition-colors group-hover:text-danger">
+            <span
+              class="text-sm font-semibold text-strong transition-colors group-hover:text-danger"
+            >
               Déconnexion
             </span>
           </button>

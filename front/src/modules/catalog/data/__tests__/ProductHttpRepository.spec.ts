@@ -41,12 +41,12 @@ describe('ProductHttpRepository', () => {
     ])
   })
 
-  it('gets a product from GET /products/:id', async () => {
+  it('gets a product from GET /products/:slug', async () => {
     const http = new FakeHttpClient(() => createProductJson())
     const repository = new ProductHttpRepository(http)
 
-    await expect(repository.getById(nuvoraTee.id)).resolves.toEqual(nuvoraTee)
-    expect(http.calls).toEqual([{ method: 'GET', path: `/products/${nuvoraTee.id}` }])
+    await expect(repository.getById(nuvoraTee.slug)).resolves.toEqual(nuvoraTee)
+    expect(http.calls).toEqual([{ method: 'GET', path: `/products/${nuvoraTee.slug}` }])
   })
 
   it('propagates API errors', async () => {

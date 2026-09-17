@@ -44,6 +44,7 @@ describe('ProductListPage', () => {
     const products = Array.from({ length: 21 }, (_, index) =>
       createProduct({
         id: `00000000-0000-4000-8000-${String(index + 1).padStart(12, '0')}`,
+        slug: `produit-${index + 1}`,
         name: `Produit ${index + 1}`,
         createdAt: new Date(Date.UTC(2026, 7, 20, 12, 0, 0) - index * 1000).toISOString(),
       }),
@@ -68,6 +69,7 @@ describe('ProductListPage', () => {
     const products = Array.from({ length: 21 }, (_, index) =>
       createProduct({
         id: `00000000-0000-4000-8000-${String(index + 1).padStart(12, '0')}`,
+        slug: `produit-${index + 1}`,
         name: `Produit ${index + 1}`,
         createdAt: new Date(Date.UTC(2026, 7, 20, 12, 0, 0) - index * 1000).toISOString(),
       }),

@@ -17,3 +17,5 @@
 
 /public/media/products/*
 !/public/media/products/.gitkeep
+/public/uploads/*
+!/public/uploads/.gitkeep

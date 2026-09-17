@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace App\Product\Application\CommandHandler;
 
 use App\Product\Application\Command\CreateProductCommand;
+use App\Product\Application\UniqueProductSlug;
 use App\Product\Domain\Entity\Product;
 use App\Product\Domain\Repository\ProductRepository;
 use App\Product\Domain\ValueObject\ProductDescription;
 use App\Product\Domain\ValueObject\ProductId;
-use App\Product\Domain\ValueObject\ProductImage;
 use App\Product\Domain\ValueObject\ProductName;
 use App\Product\Domain\ValueObject\ProductPrice;
 use App\Product\Domain\ValueObject\StockQuantity;
@@ -20,19 +20,21 @@ final readonly class CreateProductCommandHandler
     public function __construct(
         private ProductRepository $productRepository,
         private Clock $clock,
+        private UniqueProductSlug $uniqueProductSlug,
     ) {
     }
 
     public function handle(CreateProductCommand $command): ProductId
     {
+        $name = ProductName::fromString($command->name);
         $product = Product::create(
             ProductId::generate(),
-            ProductName::fromString($command->name),
+            $name,
             ProductPrice::fromCents($command->priceCents),
             $this->clock->now(),
             self::descriptionFrom($command->description),
             StockQuantity::fromInt($command->stock),
-            self::imageFrom($command->imageUrl),
+            $this->uniqueProductSlug->allocate($name),
         );
 
         $this->productRepository->save($product);
@@ -47,14 +49,5 @@ final readonly class CreateProductCommandHandler
         }
 
         return ProductDescription::fromString($description);
-    }
-
-    private static function imageFrom(?string $imageUrl): ?ProductImage
-    {
-        if ($imageUrl === null) {
-            return null;
-        }
-
-        return ProductImage::fromString($imageUrl);
     }
 }

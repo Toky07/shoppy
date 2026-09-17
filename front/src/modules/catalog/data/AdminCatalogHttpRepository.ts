@@ -13,7 +13,6 @@ export class AdminCatalogHttpRepository implements AdminCatalogRepository {
         priceCents: input.priceCents,
         description: input.description,
         stock: input.stock,
-        imageUrl: input.imageUrl,
       }),
     )
   }

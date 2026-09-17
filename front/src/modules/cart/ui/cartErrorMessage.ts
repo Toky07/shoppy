@@ -15,6 +15,10 @@ export function cartErrorMessage(error: {
     return "Cet article n'est plus dans le panier."
   }
 
+  if (error.code === 'unauthenticated') {
+    return 'Votre session a expiré. Reconnectez-vous pour continuer.'
+  }
+
   const firstViolation = error.violations?.[0]?.message
   if (firstViolation) {
     return firstViolation

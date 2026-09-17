@@ -9,6 +9,7 @@ use App\Product\Domain\Repository\ProductRepository;
 use App\Product\Domain\ValueObject\ProductId;
 use App\Product\Domain\ValueObject\ProductListCriteria;
 use App\Product\Domain\ValueObject\ProductName;
+use App\Product\Domain\ValueObject\ProductSlug;
 use App\Product\Domain\ValueObject\ProductSort;
 use App\Product\Infrastructure\Persistence\Doctrine\Entity\ProductRecord;
 use Doctrine\ORM\EntityManagerInterface;
@@ -44,6 +45,15 @@ final readonly class DoctrineProductRepository implements ProductRepository
     {
         $record = $this->entityManager->getRepository(ProductRecord::class)->findOneBy([
             'name' => $name->value(),
+        ]);
+
+        return $record?->toDomain();
+    }
+
+    public function findBySlug(ProductSlug $slug): ?Product
+    {
+        $record = $this->entityManager->getRepository(ProductRecord::class)->findOneBy([
+            'slug' => $slug->value(),
         ]);
 
         return $record?->toDomain();

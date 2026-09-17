@@ -7,9 +7,9 @@ namespace App\Product\Domain\Entity;
 use App\Product\Domain\Exception\InsufficientProductStock;
 use App\Product\Domain\ValueObject\ProductDescription;
 use App\Product\Domain\ValueObject\ProductId;
-use App\Product\Domain\ValueObject\ProductImage;
 use App\Product\Domain\ValueObject\ProductName;
 use App\Product\Domain\ValueObject\ProductPrice;
+use App\Product\Domain\ValueObject\ProductSlug;
 use App\Product\Domain\ValueObject\StockQuantity;
 use DateTimeImmutable;
 
@@ -22,7 +22,7 @@ final class Product
         private DateTimeImmutable $createdAt,
         private ?ProductDescription $description,
         private StockQuantity $stock,
-        private ?ProductImage $image,
+        private ProductSlug $slug,
     ) {
     }
 
@@ -33,9 +33,17 @@ final class Product
         DateTimeImmutable $createdAt,
         ?ProductDescription $description = null,
         ?StockQuantity $stock = null,
-        ?ProductImage $image = null,
+        ?ProductSlug $slug = null,
     ): self {
-        return new self($id, $name, $price, $createdAt, $description, $stock ?? StockQuantity::zero(), $image);
+        return new self(
+            $id,
+            $name,
+            $price,
+            $createdAt,
+            $description,
+            $stock ?? StockQuantity::zero(),
+            $slug ?? ProductSlug::fromName($name),
+        );
     }
 
     public function id(): ProductId
@@ -68,14 +76,19 @@ final class Product
         return $this->stock;
     }
 
-    public function image(): ?ProductImage
+    public function slug(): ProductSlug
     {
-        return $this->image;
+        return $this->slug;
     }
 
     public function rename(ProductName $name): void
     {
         $this->name = $name;
+    }
+
+    public function changeSlug(ProductSlug $slug): void
+    {
+        $this->slug = $slug;
     }
 
     public function changePrice(ProductPrice $price): void

@@ -23,6 +23,11 @@ final readonly class ProductId
         return new self($value);
     }
 
+    public static function isValid(string $value): bool
+    {
+        return preg_match(self::UUID_PATTERN, $value) === 1;
+    }
+
     public static function generate(): self
     {
         $bytes = random_bytes(16);

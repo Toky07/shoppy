@@ -6,5 +6,5 @@ namespace App\Product\Application\Image;
 
 interface ProductImageWriter
 {
-    public function write(string $slug, string $label): string;
+    public function generate(string $slug, string $label): GeneratedProductImage;
 }

@@ -43,7 +43,15 @@ async function onSubmit() {
     await state.addItem(props.productId, quantity.value)
     successMessage.value = 'Ajouté au panier.'
   } catch (caught) {
-    errorMessage.value = cartErrorMessage(toApiError(caught))
+    const error = toApiError(caught)
+
+    if (error.code === 'unauthenticated') {
+      authSession.clear()
+      await router.push({ path: '/login', query: { redirect: route.path } })
+      return
+    }
+
+    errorMessage.value = cartErrorMessage(error)
   } finally {
     pending.value = false
   }

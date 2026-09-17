@@ -3,6 +3,7 @@ import { inject, ref, watch } from 'vue'
 import { RouterLink } from 'vue-router'
 import AppIcon from '@/shared/ui/AppIcon.vue'
 import EmptyState from '@/shared/ui/EmptyState.vue'
+import PageHeader from '@/shared/ui/PageHeader.vue'
 import PageStatus from '@/shared/ui/PageStatus.vue'
 import { toApiError } from '@/shared/http/toApiError'
 import { catalogRepositoryKey } from '../application/catalogRepositoryKey'
@@ -50,19 +51,20 @@ watch(favorites, load, { immediate: true })
 
 <template>
   <section class="animate-fade-in">
-    <div class="flex flex-wrap items-end justify-between gap-6">
-      <div>
-        <span class="badge-accent"><AppIcon name="heart" :size="13" /> Envies</span>
-        <h1 class="display-tight mt-5 text-4xl text-strong sm:text-5xl">Ma liste d'envies</h1>
-        <p class="mt-3 max-w-lg text-sm text-muted">
-          Gardée sur cet appareil, sans compte ni e-mail. Ajoutez un produit en touchant le cœur.
-        </p>
-      </div>
-      <button v-if="count > 0" type="button" class="btn-outline" @click="clear">
-        <AppIcon name="trash" :size="16" />
-        Vider la liste
-      </button>
-    </div>
+    <PageHeader
+      eyebrow="Envies"
+      title="Ma liste d'envies"
+      icon="heart"
+      tone="accent"
+      description="Gardée sur cet appareil, sans compte ni e-mail. Ajoutez un produit en touchant le cœur."
+    >
+      <template #actions>
+        <button v-if="count > 0" type="button" class="btn-outline" @click="clear">
+          <AppIcon name="trash" :size="16" />
+          Vider la liste
+        </button>
+      </template>
+    </PageHeader>
 
     <div class="mt-10">
       <PageStatus :status="status" :error-message="errorMessage" skeleton="cards">

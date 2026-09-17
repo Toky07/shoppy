@@ -2,9 +2,9 @@
 import { computed } from 'vue'
 import { RouterLink } from 'vue-router'
 import AppIcon from '@/shared/ui/AppIcon.vue'
+import ImageCarousel from '@/shared/ui/ImageCarousel.vue'
 import type { Product } from '../domain/Product'
 import FavoriteButton from './FavoriteButton.vue'
-import ProductImage from './ProductImage.vue'
 import ProductPrice from './ProductPrice.vue'
 import { stockLabel } from './stockLabel'
 
@@ -16,7 +16,7 @@ const props = withDefaults(
   { variant: 'grid' },
 )
 
-const to = computed(() => ({ name: 'product', params: { id: props.product.id } }))
+const to = computed(() => ({ name: 'product', params: { slug: props.product.slug } }))
 const outOfStock = computed(() => props.product.stock <= 0)
 const lowStock = computed(() => props.product.stock > 0 && props.product.stock <= 3)
 </script>
@@ -27,11 +27,7 @@ const lowStock = computed(() => props.product.stock > 0 && props.product.stock <
     class="group panel-flat relative flex gap-4 p-4 transition-all duration-300 hover:border-line-strong hover:shadow-lifted sm:gap-6 sm:p-5"
   >
     <div class="relative size-24 shrink-0 overflow-hidden rounded-2xl sm:size-32">
-      <ProductImage
-        :src="product.imageUrl"
-        :alt="product.name"
-        class="transition-transform duration-700 group-hover:scale-105"
-      />
+      <ImageCarousel :images="product.imageUrls" :alt="product.name" :show-arrows="false" />
     </div>
 
     <div class="flex min-w-0 flex-1 flex-col">
@@ -76,16 +72,12 @@ const lowStock = computed(() => props.product.stock > 0 && props.product.stock <
     class="group panel-flat relative flex flex-col overflow-hidden transition-all duration-500 hover:-translate-y-1 hover:border-line-strong hover:shadow-float"
   >
     <div class="relative aspect-4/5 overflow-hidden">
-      <ProductImage
-        :src="product.imageUrl"
-        :alt="product.name"
-        class="transition-transform duration-[900ms] group-hover:scale-108"
-      />
+      <ImageCarousel :images="product.imageUrls" :alt="product.name" />
       <div
         class="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-linear-to-t from-black/30 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100"
       ></div>
 
-      <div class="absolute top-3 left-3 flex flex-col items-start gap-2">
+      <div class="absolute top-3 left-3 z-20 flex flex-col items-start gap-2">
         <span v-if="outOfStock" class="badge-danger">Rupture</span>
         <span v-else-if="lowStock" class="badge-warning">Derniers exemplaires</span>
       </div>

@@ -21,8 +21,8 @@ final class FileProductCsvReader implements ProductCsvReader
         try {
             $header = fgetcsv($handle);
 
-            if ($header === false || $header !== ['name', 'description', 'priceCents', 'stock', 'image']) {
-                throw new RuntimeException('Product CSV must start with name,description,priceCents,stock,image.');
+            if ($header === false || $header !== ['name', 'description', 'priceCents', 'stock', 'images']) {
+                throw new RuntimeException('Product CSV must start with name,description,priceCents,stock,images.');
             }
 
             $rows = [];
@@ -53,9 +53,17 @@ final class FileProductCsvReader implements ProductCsvReader
         $description = trim((string) $data[1]);
         $priceCents = filter_var($data[2], FILTER_VALIDATE_INT);
         $stock = filter_var($data[3], FILTER_VALIDATE_INT);
+        $images = array_values(array_filter(
+            array_map(static fn (string $value): string => trim($value), explode('|', (string) $data[4])),
+            static fn (string $value): bool => $value !== '',
+        ));
 
         if ($priceCents === false || $stock === false) {
             throw new RuntimeException('Product CSV priceCents and stock must be integers.');
+        }
+
+        if ($images === []) {
+            throw new RuntimeException('Product CSV row must list at least one image.');
         }
 
         return new ProductCsvRow(
@@ -63,7 +71,7 @@ final class FileProductCsvReader implements ProductCsvReader
             description: $description === '' ? null : $description,
             priceCents: $priceCents,
             stock: $stock,
-            image: trim((string) $data[4]),
+            images: $images,
         );
     }
 }

@@ -10,6 +10,9 @@ describe('cartErrorMessage', () => {
     expect(cartErrorMessage({ code: 'cart_item_not_found', message: 'x' })).toBe(
       "Cet article n'est plus dans le panier.",
     )
+    expect(cartErrorMessage({ code: 'unauthenticated', message: 'x' })).toBe(
+      'Votre session a expiré. Reconnectez-vous pour continuer.',
+    )
   })
 
   it('prefers the first validation violation', () => {

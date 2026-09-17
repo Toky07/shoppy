@@ -120,7 +120,6 @@ describe('Admin pages', () => {
           priceCents: 2999,
           description: null,
           stock: 5,
-          imageUrl: null,
         },
       ])
       expect(router.currentRoute.value.path).toBe('/admin/products')

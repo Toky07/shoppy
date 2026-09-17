@@ -16,7 +16,7 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 #[AsCommand(
     name: 'app:import-products',
-    description: 'Import products from a CSV file (name,description,priceCents,stock,image).',
+    description: 'Import products from a CSV file (name,description,priceCents,stock,images).',
 )]
 final class ImportProductsCommand extends Command
 {

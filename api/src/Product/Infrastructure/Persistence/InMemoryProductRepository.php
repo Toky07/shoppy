@@ -9,6 +9,7 @@ use App\Product\Domain\Repository\ProductRepository;
 use App\Product\Domain\ValueObject\ProductId;
 use App\Product\Domain\ValueObject\ProductListCriteria;
 use App\Product\Domain\ValueObject\ProductName;
+use App\Product\Domain\ValueObject\ProductSlug;
 use App\Product\Domain\ValueObject\ProductSort;
 
 final class InMemoryProductRepository implements ProductRepository
@@ -30,6 +31,17 @@ final class InMemoryProductRepository implements ProductRepository
     {
         foreach ($this->products as $product) {
             if ($product->name()->value() === $name->value()) {
+                return $product;
+            }
+        }
+
+        return null;
+    }
+
+    public function findBySlug(ProductSlug $slug): ?Product
+    {
+        foreach ($this->products as $product) {
+            if ($product->slug()->value() === $slug->value()) {
                 return $product;
             }
         }

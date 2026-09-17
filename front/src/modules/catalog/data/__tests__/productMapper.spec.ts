@@ -13,7 +13,30 @@ describe('mapProduct', () => {
   })
 
   it('maps a null image', () => {
-    expect(mapProduct(createProductJson({ imageUrl: null })).imageUrl).toBeNull()
+    expect(mapProduct(createProductJson({ imageUrl: null, imageUrls: [] }))).toMatchObject({
+      imageUrl: null,
+      imageUrls: [],
+    })
+  })
+
+  it('maps a gallery of image urls', () => {
+    expect(
+      mapProduct(
+        createProductJson({
+          imageUrl: '/uploads/one.jpg',
+          imageUrls: ['/uploads/one.jpg', '/uploads/two.jpg'],
+        }),
+      ),
+    ).toMatchObject({
+      imageUrl: '/uploads/one.jpg',
+      imageUrls: ['/uploads/one.jpg', '/uploads/two.jpg'],
+    })
+  })
+
+  it('falls back to a single imageUrl when imageUrls is omitted', () => {
+    const { imageUrls: _imageUrls, ...payload } = createProductJson()
+
+    expect(mapProduct(payload).imageUrls).toEqual([nuvoraTee.imageUrl])
   })
 
   it('rejects an invalid payload', () => {

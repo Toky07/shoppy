@@ -8,6 +8,7 @@ use App\Product\Domain\Entity\Product;
 use App\Product\Domain\ValueObject\ProductId;
 use App\Product\Domain\ValueObject\ProductListCriteria;
 use App\Product\Domain\ValueObject\ProductName;
+use App\Product\Domain\ValueObject\ProductSlug;
 
 interface ProductRepository
 {
@@ -16,6 +17,8 @@ interface ProductRepository
     public function findById(ProductId $id): ?Product;
 
     public function findByName(ProductName $name): ?Product;
+
+    public function findBySlug(ProductSlug $slug): ?Product;
 
     /**
      * @return list<Product>

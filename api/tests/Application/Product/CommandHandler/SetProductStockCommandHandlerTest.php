@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 use App\Product\Application\Command\CreateProductCommand;
 use App\Product\Application\Command\SetProductStockCommand;
-use App\Product\Application\CommandHandler\CreateProductCommandHandler;
 use App\Product\Application\CommandHandler\SetProductStockCommandHandler;
 use App\Product\Domain\Exception\InvalidProductStock;
 use App\Product\Domain\Exception\ProductNotFound;
@@ -13,10 +12,10 @@ use App\Tests\Doubles\FixedClock;
 
 it('sets product stock', function () {
     $repository = new InMemoryProductRepository();
-    $id = (new CreateProductCommandHandler(
+    $id = createProducts(
         $repository,
         new FixedClock(new DateTimeImmutable('2026-08-20T12:00:00+00:00')),
-    ))->handle(new CreateProductCommand(name: 'Nuvora Tee', priceCents: 1999));
+    )->handle(new CreateProductCommand(name: 'Nuvora Tee', priceCents: 1999));
 
     (new SetProductStockCommandHandler($repository))->handle(new SetProductStockCommand(
         id: $id->value(),
@@ -35,10 +34,10 @@ it('rejects a missing product', function () {
 
 it('rejects negative stock', function () {
     $repository = new InMemoryProductRepository();
-    $id = (new CreateProductCommandHandler(
+    $id = createProducts(
         $repository,
         new FixedClock(new DateTimeImmutable('2026-08-20T12:00:00+00:00')),
-    ))->handle(new CreateProductCommand(name: 'Nuvora Tee', priceCents: 1999));
+    )->handle(new CreateProductCommand(name: 'Nuvora Tee', priceCents: 1999));
 
     (new SetProductStockCommandHandler($repository))->handle(new SetProductStockCommand(
         id: $id->value(),

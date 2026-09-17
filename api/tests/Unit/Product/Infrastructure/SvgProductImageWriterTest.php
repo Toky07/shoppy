@@ -4,15 +4,11 @@ declare(strict_types=1);
 
 use App\Product\Infrastructure\Image\SvgProductImageWriter;
 
-it('writes a unique svg placeholder and returns its public path', function () {
-    $directory = sys_get_temp_dir().'/shoppy-images-'.bin2hex(random_bytes(4));
-    $writer = new SvgProductImageWriter($directory);
+it('generates an svg placeholder without writing to disk', function () {
+    $image = (new SvgProductImageWriter())->generate('001-tshirt-noir.svg', 'T-shirt Noir');
 
-    $path = $writer->write('001-tshirt-noir.svg', 'T-shirt Noir');
-    $file = $directory.'/media/products/001-tshirt-noir.svg';
-
-    expect($path)->toBe('/media/products/001-tshirt-noir.svg')
-        ->and($file)->toBeFile()
-        ->and((string) file_get_contents($file))->toContain('T-shirt Noir')
-        ->and((string) file_get_contents($file))->toContain('<svg');
+    expect($image->filename)->toBe('001-tshirt-noir.svg')
+        ->and($image->mimeType)->toBe('image/svg+xml')
+        ->and($image->contents)->toContain('T-shirt Noir')
+        ->and($image->contents)->toContain('<svg');
 });

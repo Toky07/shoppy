@@ -71,6 +71,36 @@ describe('FetchHttpClient', () => {
     expect(fetchFn).toHaveBeenCalledWith('/api/products?page=2&limit=20', expect.anything())
   })
 
+  it('clears a stale session on an unauthenticated response', async () => {
+    const clear = vi.fn()
+    const fetchFn = vi.fn().mockResolvedValue(
+      jsonResponse(401, {
+        error: { code: 'unauthenticated', message: 'The request is not authenticated.' },
+      }),
+    )
+    const client = new FetchHttpClient('/api', fetchFn, { current: () => 'stale-token', clear })
+
+    await expect(client.post('/cart/items', { productId: 'p1', quantity: 1 })).rejects.toMatchObject({
+      code: 'unauthenticated',
+    })
+    expect(clear).toHaveBeenCalledOnce()
+  })
+
+  it('does not clear the session on invalid credentials', async () => {
+    const clear = vi.fn()
+    const fetchFn = vi.fn().mockResolvedValue(
+      jsonResponse(401, {
+        error: { code: 'invalid_credentials', message: 'The provided credentials are invalid.' },
+      }),
+    )
+    const client = new FetchHttpClient('/api', fetchFn, { current: () => 'tok-en', clear })
+
+    await expect(client.post('/auth/login', { email: 'a@b.c', password: 'wrong' })).rejects.toMatchObject({
+      code: 'invalid_credentials',
+    })
+    expect(clear).not.toHaveBeenCalled()
+  })
+
   it('throws a parsed ApiError on failure', async () => {
     const fetchFn = vi.fn().mockResolvedValue(
       jsonResponse(404, {

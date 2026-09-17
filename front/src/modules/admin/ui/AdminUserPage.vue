@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { inject, ref } from 'vue'
 import AppIcon from '@/shared/ui/AppIcon.vue'
+import StatusNotice from '@/shared/ui/StatusNotice.vue'
 import { toApiError } from '@/shared/http/toApiError'
 import type { User, UserRole } from '@/modules/auth/domain/User'
 import { userDirectoryKey } from '@/modules/auth/application/userDirectoryKey'
+import { userInitials } from '@/shared/text/userInitials'
 import AdminGate from './AdminGate.vue'
 import AdminPageHeader from './AdminPageHeader.vue'
 
@@ -89,14 +91,8 @@ async function onSave() {
             Charger
           </button>
 
-          <p v-if="errorMessage" role="alert" class="notice-danger">
-            <AppIcon name="alert-circle" :size="17" class="mt-0.5" />
-            <span>{{ errorMessage }}</span>
-          </p>
-          <p v-if="successMessage" role="status" class="notice-positive">
-            <AppIcon name="check-circle" :size="17" class="mt-0.5" />
-            <span>{{ successMessage }}</span>
-          </p>
+          <StatusNotice v-if="errorMessage" tone="danger">{{ errorMessage }}</StatusNotice>
+          <StatusNotice v-if="successMessage" tone="positive">{{ successMessage }}</StatusNotice>
         </form>
 
         <form v-if="user" class="panel h-fit space-y-5 p-6 sm:p-7" @submit.prevent="onSave">
@@ -104,7 +100,7 @@ async function onSave() {
             <span
               class="flex size-10 items-center justify-center rounded-full bg-accent-soft text-xs font-bold text-accent-fg"
               aria-hidden="true"
-              >{{ user.email.slice(0, 2).toUpperCase() }}</span
+              >{{ userInitials(user.email) }}</span
             >
             <div class="min-w-0">
               <p class="truncate text-sm font-semibold text-strong">{{ user.email }}</p>

@@ -37,8 +37,27 @@ it('persists and retrieves a product', function () {
         ->and($found->price()->cents())->toBe(1999)
         ->and($found->price()->currency())->toBe('EUR')
         ->and($found->stock()->value())->toBe(0)
-        ->and($found->image())->toBeNull()
+        ->and($found->slug()->value())->toBe('nuvora-tee')
         ->and($found->createdAt()->format(DateTimeInterface::ATOM))->toBe('2026-08-20T12:00:00+00:00');
+});
+
+it('finds a product by slug', function () {
+    $repository = self::getContainer()->get(ProductRepository::class);
+    $entityManager = self::getContainer()->get(EntityManagerInterface::class);
+    $id = ProductId::fromString('550e8400-e29b-41d4-a716-446655440000');
+
+    $repository->save(Product::create(
+        $id,
+        ProductName::fromString('Nuvora Tee'),
+        ProductPrice::fromCents(1999),
+        new DateTimeImmutable('2026-08-20T12:00:00+00:00'),
+    ));
+    $entityManager->clear();
+
+    $found = $repository->findBySlug(\App\Product\Domain\ValueObject\ProductSlug::fromString('nuvora-tee'));
+
+    expect($found)->not->toBeNull()
+        ->and($found->id()->value())->toBe($id->value());
 });
 
 it('returns null when the product does not exist', function () {

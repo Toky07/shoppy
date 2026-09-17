@@ -4,7 +4,7 @@ import type { Product } from '../domain/Product'
 import { nuvoraTee } from './productFixtures'
 
 function cloneProduct(product: Product): Product {
-  return { ...product, price: { ...product.price } }
+  return { ...product, price: { ...product.price }, imageUrls: [...product.imageUrls] }
 }
 
 export class FakeAdminCatalogRepository implements AdminCatalogRepository {

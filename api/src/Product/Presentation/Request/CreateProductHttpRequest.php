@@ -13,7 +13,6 @@ final readonly class CreateProductHttpRequest
         public int $priceCents,
         public ?string $description,
         public int $stock,
-        public ?string $imageUrl,
     ) {
     }
 
@@ -40,11 +39,6 @@ final readonly class CreateProductHttpRequest
             throw InvalidRequest::of('This value must be an integer.', 'stock');
         }
 
-        $imageUrl = $payload['imageUrl'] ?? null;
-        if ($imageUrl !== null && !is_string($imageUrl)) {
-            throw InvalidRequest::of('This value must be a string.', 'imageUrl');
-        }
-
-        return new self($payload['name'], $payload['priceCents'], $description, $stock, $imageUrl);
+        return new self($payload['name'], $payload['priceCents'], $description, $stock);
     }
 }
