@@ -1,8 +1,8 @@
 import { screen, waitFor } from '@testing-library/vue'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { renderApp } from '@/shared/testing/renderApp'
-import { adminSession, visitorSession, visitorUser } from '@/modules/auth/testing/authFixtures'
+import { adminSession, adminUser, visitorSession, visitorUser } from '@/modules/auth/testing/authFixtures'
 import { FakeAuthRepository } from '@/modules/auth/testing/FakeAuthRepository'
 import { FakeOrderRepository } from '@/modules/order/testing/FakeOrderRepository'
 import { pendingOrder } from '@/modules/order/testing/orderFixtures'
@@ -145,9 +145,31 @@ describe('Admin pages', () => {
         `/admin/products/${nuvoraTee.id}`,
       )
     })
-    expect(screen.getByRole('link', { name: 'Nouveau produit' }).getAttribute('href')).toBe(
-      '/admin/products/new',
-    )
+    expect(
+      screen.getByRole('link', { name: 'Nouveau produit' }).getAttribute('href'),
+    ).toBe('/admin/products/new')
+  })
+
+  it('deletes a product from the catalog list', async () => {
+    const adminCatalogRepository = new FakeAdminCatalogRepository([nuvoraTee])
+    await renderApp({
+      path: '/admin/products',
+      session: adminSession,
+      repository: createFakeCatalogRepository([nuvoraTee]),
+      adminCatalogRepository,
+    })
+
+    vi.spyOn(window, 'confirm').mockReturnValue(true)
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Supprimer Nuvora Tee' })).toBeTruthy()
+    })
+
+    await userEvent.click(screen.getByRole('button', { name: 'Supprimer Nuvora Tee' }))
+
+    await waitFor(() => {
+      expect(adminCatalogRepository.deleted).toEqual([nuvoraTee.id])
+    })
   })
 
   it('creates a product', async () => {
@@ -211,6 +233,8 @@ describe('Admin pages', () => {
       adminCatalogRepository,
     })
 
+    vi.spyOn(window, 'confirm').mockReturnValue(true)
+
     await waitFor(() => {
       expect(screen.getByRole('button', { name: 'Supprimer' })).toBeTruthy()
     })
@@ -221,27 +245,25 @@ describe('Admin pages', () => {
     })
   })
 
-  it('loads a user and assigns a role', async () => {
-    const userDirectory = new FakeUserDirectory([visitorUser])
+  it('lists users and assigns a role', async () => {
+    const userDirectory = new FakeUserDirectory([visitorUser, adminUser])
     await renderApp({
       path: '/admin/users',
       session: adminSession,
       userDirectory,
     })
 
-    await userEvent.type(screen.getByLabelText('Identifiant'), visitorUser.id)
-    await userEvent.click(screen.getByRole('button', { name: 'Charger' }))
-
     await waitFor(() => {
-      expect(screen.getByText(visitorUser.email)).toBeTruthy()
+      expect(screen.getByLabelText(`Rôle de ${visitorUser.email}`)).toBeTruthy()
+      expect(screen.getByLabelText(`Rôle de ${adminUser.email}`)).toBeTruthy()
     })
+    expect(userDirectory.listCount).toBeGreaterThan(0)
 
-    await userEvent.selectOptions(screen.getByLabelText('Rôle'), 'admin')
-    await userEvent.click(screen.getByRole('button', { name: 'Enregistrer' }))
+    await userEvent.selectOptions(screen.getByLabelText(`Rôle de ${visitorUser.email}`), 'admin')
 
     await waitFor(() => {
       expect(userDirectory.assigned).toEqual([{ id: visitorUser.id, role: 'admin' }])
-      expect(screen.getByRole('status').textContent).toContain('Rôle mis à jour.')
+      expect(screen.getByRole('status').textContent).toContain('Rôle mis à jour')
     })
   })
 })

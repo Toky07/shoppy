@@ -27,7 +27,7 @@ const sections: { to: string; label: string; icon: IconName; description: string
     to: '/admin/users',
     label: 'Utilisateurs',
     icon: 'users',
-    description: 'Consulter un compte et attribuer un rôle client ou administrateur.',
+    description: 'Lister les comptes, rechercher un email et attribuer un rôle.',
     action: 'Gérer les accès',
   },
 ]

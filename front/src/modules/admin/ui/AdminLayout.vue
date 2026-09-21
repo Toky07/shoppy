@@ -89,7 +89,7 @@ async function onLogout() {
     ></div>
 
     <aside
-      class="admin-sidebar fixed inset-y-0 left-0 z-50 flex w-72 shrink-0 flex-col border-r border-transparent transition-transform duration-200 lg:static lg:translate-x-0"
+      class="admin-sidebar fixed inset-y-0 left-0 z-50 flex h-dvh w-72 flex-col border-r border-transparent transition-transform duration-200"
       :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'"
     >
       <div class="flex items-center gap-3 px-5 py-5">
@@ -104,7 +104,7 @@ async function onLogout() {
         </div>
       </div>
 
-      <nav class="mt-2 flex-1 space-y-1 px-3" aria-label="Navigation administration">
+      <nav class="mt-2 flex-1 space-y-1 overflow-y-auto px-3" aria-label="Navigation administration">
         <RouterLink
           v-for="item in ADMIN_NAV"
           :key="item.to"
@@ -125,9 +125,9 @@ async function onLogout() {
       </div>
     </aside>
 
-    <div class="flex min-w-0 flex-1 flex-col">
+    <div class="flex min-w-0 flex-1 flex-col lg:ml-72">
       <header
-        class="sticky top-0 z-50 flex h-16 items-center gap-3 border-b border-line bg-canvas/90 px-4 backdrop-blur-xl sm:px-6"
+        class="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-line bg-canvas/90 px-4 backdrop-blur-xl sm:px-6"
       >
         <button
           type="button"

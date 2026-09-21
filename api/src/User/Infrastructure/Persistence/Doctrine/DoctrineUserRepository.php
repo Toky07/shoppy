@@ -10,6 +10,7 @@ use App\User\Domain\ValueObject\Email;
 use App\User\Domain\ValueObject\UserId;
 use App\User\Infrastructure\Persistence\Doctrine\Entity\UserRecord;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\QueryBuilder;
 
 final readonly class DoctrineUserRepository implements UserRepository
 {
@@ -44,5 +45,45 @@ final readonly class DoctrineUserRepository implements UserRepository
         ]);
 
         return $record?->toDomain();
+    }
+
+    public function findPage(int $offset, int $limit, ?string $search = null): array
+    {
+        $query = $this->entityManager->createQueryBuilder()
+            ->select('u')
+            ->from(UserRecord::class, 'u')
+            ->orderBy('u.createdAt', 'DESC')
+            ->addOrderBy('u.id', 'DESC')
+            ->setFirstResult($offset)
+            ->setMaxResults($limit);
+
+        $this->applySearch($query, $search);
+
+        return array_map(
+            static fn (UserRecord $record): User => $record->toDomain(),
+            $query->getQuery()->getResult(),
+        );
+    }
+
+    public function countAll(?string $search = null): int
+    {
+        $query = $this->entityManager->createQueryBuilder()
+            ->select('COUNT(u.id)')
+            ->from(UserRecord::class, 'u');
+
+        $this->applySearch($query, $search);
+
+        return (int) $query->getQuery()->getSingleScalarResult();
+    }
+
+    private function applySearch(QueryBuilder $query, ?string $search): void
+    {
+        if ($search === null) {
+            return;
+        }
+
+        $query
+            ->andWhere('LOWER(u.email) LIKE :search')
+            ->setParameter('search', '%'.mb_strtolower($search).'%');
     }
 }

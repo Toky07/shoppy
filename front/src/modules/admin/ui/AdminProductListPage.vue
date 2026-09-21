@@ -1,27 +1,32 @@
 <script setup lang="ts">
-import { computed, inject } from 'vue'
+import { computed, inject, ref } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import AppIcon from '@/shared/ui/AppIcon.vue'
-import AppImage from '@/shared/ui/AppImage.vue'
 import EmptyState from '@/shared/ui/EmptyState.vue'
 import PageStatus from '@/shared/ui/PageStatus.vue'
 import Pagination from '@/shared/ui/Pagination.vue'
-import ProductPrice from '@/modules/catalog/ui/ProductPrice.vue'
+import StatusNotice from '@/shared/ui/StatusNotice.vue'
 import { parsePageQuery } from '@/shared/routing/parsePageQuery'
 import { parseSearchQuery } from '@/shared/routing/parseSearchQuery'
+import { usePendingAction } from '@/shared/async/usePendingAction'
+import { adminCatalogRepositoryKey } from '@/modules/catalog/application/adminCatalogRepositoryKey'
 import { catalogRepositoryKey } from '@/modules/catalog/application/catalogRepositoryKey'
 import { DEFAULT_PRODUCT_LIMIT } from '@/modules/catalog/application/defaultProductLimit'
 import { parseProductSort } from '@/modules/catalog/application/productSort'
 import { useProductList } from '@/modules/catalog/application/useProductList'
 import CatalogToolbar from '@/modules/catalog/ui/CatalogToolbar.vue'
 import AdminPageHeader from './AdminPageHeader.vue'
+import AdminProductCard from './AdminProductCard.vue'
 
-const repository = inject(catalogRepositoryKey)
+const catalog = inject(catalogRepositoryKey)
+const adminCatalog = inject(adminCatalogRepositoryKey)
 
-if (!repository) {
+if (!catalog || !adminCatalog) {
   throw new Error('Admin catalog dependencies are not provided.')
 }
 
+const catalogRepository = catalog
+const adminRepository = adminCatalog
 const route = useRoute()
 const search = computed(() => parseSearchQuery(route.query.q))
 const query = computed(() => ({
@@ -30,7 +35,25 @@ const query = computed(() => ({
   search: search.value || undefined,
   sort: parseProductSort(route.query.sort),
 }))
-const { status, page, error } = useProductList(repository, query)
+const { status, page, error, reload } = useProductList(catalogRepository, query)
+const pendingId = ref<string>()
+const { pending, errorMessage, run } = usePendingAction((caught) => caught.message)
+
+function onDelete(id: string, name: string) {
+  if (!window.confirm(`Supprimer « ${name} » du catalogue ? Cette action est définitive.`)) {
+    return
+  }
+
+  return run(async () => {
+    pendingId.value = id
+    try {
+      await adminRepository.delete(id)
+      await reload()
+    } finally {
+      pendingId.value = undefined
+    }
+  })
+}
 </script>
 
 <template>
@@ -38,7 +61,7 @@ const { status, page, error } = useProductList(repository, query)
     <AdminPageHeader
       title="Catalogue"
       icon="tag"
-      description="Les produits en vente, leurs prix et leurs stocks."
+      description="Les produits en vente, leurs visuels, prix et stocks."
     >
       <template #actions>
         <RouterLink to="/admin/products/new" class="btn-primary">
@@ -50,6 +73,7 @@ const { status, page, error } = useProductList(repository, query)
 
     <div class="mt-6 space-y-5">
       <CatalogToolbar :total="page?.total" :show-view="false" />
+      <StatusNotice v-if="errorMessage" tone="danger">{{ errorMessage }}</StatusNotice>
 
       <PageStatus :status="status" :error-message="error?.message" skeleton="rows">
         <template #empty>
@@ -64,47 +88,20 @@ const { status, page, error } = useProductList(repository, query)
           />
         </template>
 
-        <div v-if="page" class="admin-table-wrap">
-          <table class="admin-table">
-            <thead>
-              <tr>
-                <th>Produit</th>
-                <th>Prix</th>
-                <th>Stock</th>
-                <th class="w-36"><span class="sr-only">Actions</span></th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="product in page.items" :key="product.id">
-                <td>
-                  <div class="flex items-center gap-3">
-                    <div class="size-11 overflow-hidden rounded-lg border border-line">
-                      <AppImage :src="product.imageUrl" :alt="product.name" />
-                    </div>
-                    <span class="font-semibold text-strong">{{ product.name }}</span>
-                  </div>
-                </td>
-                <td class="numeric text-muted">
-                  <ProductPrice :price="product.price" />
-                </td>
-                <td>
-                  <span :class="product.stock > 0 ? 'badge-neutral' : 'badge-danger'">
-                    <AppIcon name="box" :size="12" />
-                    Stock {{ product.stock }}
-                  </span>
-                </td>
-                <td class="text-right">
-                  <RouterLink
-                    :to="{ name: 'admin-product-edit', params: { id: product.id } }"
-                    class="btn-outline btn-sm"
-                  >
-                    <AppIcon name="settings" :size="14" />
-                    Modifier <span class="sr-only">{{ product.name }}</span>
-                  </RouterLink>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+        <div v-if="page" class="admin-product-list">
+          <div class="admin-product-list-head" aria-hidden="true">
+            <span>Produit</span>
+            <span class="text-right">Prix</span>
+            <span>Stock</span>
+            <span class="text-right">Actions</span>
+          </div>
+          <AdminProductCard
+            v-for="product in page.items"
+            :key="product.id"
+            :product="product"
+            :pending="pending && pendingId === product.id"
+            @delete="onDelete(product.id, product.name)"
+          />
         </div>
 
         <div v-if="page" class="mt-8 flex justify-center">
