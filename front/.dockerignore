@@ -1,0 +1,10 @@
+.git
+.gitignore
+node_modules
+dist
+coverage
+test-results
+playwright-report
+.eslintcache
+*.tsbuildinfo
+e2e

@@ -22,7 +22,7 @@ Liste de ce qui reste à faire, des optimisations, et des points de sécurité. 
 
 ### Technique
 - [ ] Retirer `SvgProductImageWriter` s’il n’est plus utilisé (remplacé par Media + import CSV)
-- [ ] README racine (lancer API + front, seed, variables d’env Stripe / `PAYMENT_PROVIDER`)
+- [x] README racine (lancer API + front, seed, variables d’env Stripe / `PAYMENT_PROVIDER`)
 - [ ] Étendre les owner types Media au-delà de `product` si d’autres entités en ont besoin
 
 ## Optimisations

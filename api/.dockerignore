@@ -1,0 +1,9 @@
+.git
+.gitattributes
+.gitignore
+var
+vendor
+public/uploads
+public/bundles
+.phpunit.cache
+tests

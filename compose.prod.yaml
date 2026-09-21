@@ -1,0 +1,51 @@
+name: shoppy-prod
+
+services:
+  api:
+    build:
+      context: ./api
+      dockerfile: docker/Dockerfile
+      target: production
+    restart: unless-stopped
+    init: true
+    environment:
+      APP_ENV: prod
+      APP_DEBUG: "0"
+      APP_SECRET: ${APP_SECRET:-change-me-in-production}
+      DATABASE_URL: sqlite:////app/var/data.db
+      DEFAULT_URI: ${DEFAULT_URI:-http://localhost}
+      PAYMENT_PROVIDER: ${PAYMENT_PROVIDER:-local}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+      SYMFONY_TRUSTED_PROXIES: ${SYMFONY_TRUSTED_PROXIES:-127.0.0.1,REMOTE_ADDR}
+      SYMFONY_TRUSTED_HEADERS: x-forwarded-for,x-forwarded-proto,x-forwarded-port,x-forwarded-host
+    volumes:
+      - api_uploads:/app/public/uploads
+      - api_var:/app/var
+    expose:
+      - "80"
+    healthcheck:
+      test: ["CMD", "php", "-r", "exit(@file_get_contents('http://127.0.0.1/products') === false ? 1 : 0);"]
+      interval: 10s
+      timeout: 5s
+      start_period: 40s
+      retries: 8
+
+  front:
+    build:
+      context: ./front
+      dockerfile: docker/Dockerfile
+      target: production
+      network: host
+      args:
+        VITE_API_URL: /api
+    restart: unless-stopped
+    ports:
+      - "${HTTP_PORT:-80}:80"
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  api_uploads:
+  api_var:
