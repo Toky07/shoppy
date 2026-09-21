@@ -5,6 +5,7 @@ services:
     build:
       context: ./api
       dockerfile: docker/Dockerfile
+      target: development
     restart: unless-stopped
     init: true
     environment:
@@ -34,6 +35,7 @@ services:
     build:
       context: ./front
       dockerfile: docker/Dockerfile
+      target: development
       network: host
     restart: unless-stopped
     init: true

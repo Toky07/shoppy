@@ -6,13 +6,15 @@ cd /app
 if [ "${1:-}" = 'frankenphp' ] || [ "${1:-}" = 'php' ] || [ "${1:-}" = 'bin/console' ]; then
 	mkdir -p var/cache var/log var/fixture-images public/uploads
 
-	lock_hash="$(sha256sum composer.lock | awk '{print $1}')"
-	installed_hash="$(cat vendor/.lock-hash 2>/dev/null || true)"
+	if [ "${APP_ENV:-dev}" != 'prod' ]; then
+		lock_hash="$(sha256sum composer.lock | awk '{print $1}')"
+		installed_hash="$(cat vendor/.lock-hash 2>/dev/null || true)"
 
-	if [ ! -d vendor/bin ] || [ "$lock_hash" != "$installed_hash" ]; then
-		echo 'Installing PHP dependencies...'
-		composer install --prefer-dist --no-progress --no-interaction --no-ansi
-		echo "$lock_hash" > vendor/.lock-hash
+		if [ ! -d vendor/bin ] || [ "$lock_hash" != "$installed_hash" ]; then
+			echo 'Installing PHP dependencies...'
+			composer install --prefer-dist --no-progress --no-interaction --no-ansi
+			echo "$lock_hash" > vendor/.lock-hash
+		fi
 	fi
 
 	if [ -n "${DATABASE_URL:-}" ]; then
