@@ -7,5 +7,4 @@ test-results
 playwright-report
 .eslintcache
 *.tsbuildinfo
-compose.yaml
 e2e
