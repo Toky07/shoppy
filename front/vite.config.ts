@@ -43,12 +43,12 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
+  clearScreen: !inDocker,
   server: {
     host: true,
     port: vitePort,
     strictPort: inDocker,
     allowedHosts: true,
-    clearScreen: !inDocker,
     watch: {
       usePolling,
       ...(usePolling ? { interval: 400 } : {}),
