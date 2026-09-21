@@ -1,0 +1,41 @@
+services:
+  front:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+      network: host
+    restart: unless-stopped
+    init: true
+    environment:
+      API_PROXY_TARGET: ${API_PROXY_TARGET:-http://host.docker.internal:8000}
+      VITE_API_URL: /api
+      VITE_IN_DOCKER: "1"
+      VITE_USE_POLLING: ${VITE_USE_POLLING:-true}
+      VITE_HMR_HOST: ${VITE_HMR_HOST:-localhost}
+      VITE_HMR_CLIENT_PORT: ${VITE_PORT:-5173}
+      VITE_PORT: ${VITE_PORT:-5173}
+      npm_config_cache: /root/.npm
+    volumes:
+      - ./:/app
+      - front_node_modules:/app/node_modules
+      - npm_cache:/root/.npm
+    ports:
+      - "${VITE_PORT:-5173}:5173"
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:5173').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      start_period: 120s
+      retries: 12
+
+volumes:
+  front_node_modules:
+  npm_cache:
