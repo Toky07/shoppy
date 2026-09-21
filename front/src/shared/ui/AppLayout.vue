@@ -18,7 +18,7 @@ import BackToTop from './BackToTop.vue'
     <AppHeader />
 
     <main id="main" class="mx-auto w-full max-w-7xl flex-1 px-5 py-10 lg:px-6 lg:py-14">
-      <slot />
+      <RouterView />
     </main>
 
     <AppFooter />

@@ -15,7 +15,6 @@ import { useOrderList } from '@/modules/order/application/useOrderList'
 import { orderErrorMessage } from '@/modules/order/ui/orderErrorMessage'
 import { orderStatusLabel } from '@/modules/order/ui/orderStatusLabel'
 import { orderStatusStyle } from '@/modules/order/ui/orderStatusStyle'
-import AdminGate from './AdminGate.vue'
 import AdminPageHeader from './AdminPageHeader.vue'
 
 const session = inject(authSessionKey)
@@ -43,63 +42,63 @@ const loadError = computed(() => (error.value ? orderErrorMessage(error.value) :
 <template>
   <section class="animate-fade-in">
     <AdminPageHeader
-      eyebrow="Console"
       title="Commandes"
       icon="package"
       description="Toutes les commandes de la boutique, de la plus récente à la plus ancienne."
-      back-to="/admin"
-      back-label="Retour à l'administration"
     />
 
-    <AdminGate redirect="/admin/orders">
-      <div class="mt-10">
-        <PageStatus :status="status" :error-message="loadError" skeleton="rows">
-          <template #empty>
-            <EmptyState
-              icon="package"
-              title="Aucune commande"
-              description="Les commandes apparaîtront ici dès le premier achat."
-            />
-          </template>
+    <div class="mt-6">
+      <PageStatus :status="status" :error-message="loadError" skeleton="rows">
+        <template #empty>
+          <EmptyState
+            icon="package"
+            title="Aucune commande"
+            description="Les commandes apparaîtront ici dès le premier achat."
+          />
+        </template>
 
-          <ul v-if="page" class="space-y-3">
-            <li
-              v-for="order in page.items"
-              :key="order.id"
-              class="panel flex flex-wrap items-center justify-between gap-5 p-5"
-            >
-              <div class="min-w-48 flex-1">
-                <p class="flex items-center gap-2 text-sm font-semibold text-strong">
-                  <AppIcon name="calendar" :size="14" />
-                  {{ formatDate(order.createdAt) }}
-                </p>
-                <p class="numeric mt-1.5 truncate text-xs text-faint">Client {{ order.customerId }}</p>
-              </div>
+        <div v-if="page" class="admin-table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Client</th>
+                <th>Statut</th>
+                <th class="text-right">Total</th>
+                <th class="w-32"><span class="sr-only">Actions</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="order in page.items" :key="order.id">
+                <td class="font-semibold text-strong">{{ formatDate(order.createdAt) }}</td>
+                <td class="numeric text-xs text-muted">Client {{ order.customerId }}</td>
+                <td>
+                  <span :class="orderStatusStyle(order.status).badge">
+                    <AppIcon :name="orderStatusStyle(order.status).icon" :size="12" />
+                    {{ orderStatusLabel(order.status) }}
+                  </span>
+                </td>
+                <td class="numeric text-right font-semibold text-strong">
+                  <ProductPrice :price="order.total" />
+                </td>
+                <td class="text-right">
+                  <RouterLink
+                    :to="{ name: 'admin-order', params: { id: order.id } }"
+                    class="btn-outline btn-sm"
+                  >
+                    Voir <span class="sr-only">la commande du {{ formatDate(order.createdAt) }}</span>
+                    <AppIcon name="arrow-right" :size="14" />
+                  </RouterLink>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
 
-              <span :class="orderStatusStyle(order.status).badge">
-                <AppIcon :name="orderStatusStyle(order.status).icon" :size="12" />
-                {{ orderStatusLabel(order.status) }}
-              </span>
-
-              <p class="numeric font-display text-lg font-extrabold text-strong">
-                <ProductPrice :price="order.total" />
-              </p>
-
-              <RouterLink
-                :to="{ name: 'admin-order', params: { id: order.id } }"
-                class="btn-outline btn-sm"
-              >
-                Voir <span class="sr-only">la commande du {{ formatDate(order.createdAt) }}</span>
-                <AppIcon name="arrow-right" :size="14" />
-              </RouterLink>
-            </li>
-          </ul>
-
-          <div v-if="page" class="mt-10 flex justify-center">
-            <Pagination :page="page.page" :limit="page.limit" :total="page.total" />
-          </div>
-        </PageStatus>
-      </div>
-    </AdminGate>
+        <div v-if="page" class="mt-8 flex justify-center">
+          <Pagination :page="page.page" :limit="page.limit" :total="page.total" />
+        </div>
+      </PageStatus>
+    </div>
   </section>
 </template>

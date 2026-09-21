@@ -7,7 +7,6 @@ import { centsToEuros, eurosToCents } from '@/shared/money/euros'
 import { adminCatalogRepositoryKey } from '@/modules/catalog/application/adminCatalogRepositoryKey'
 import { catalogRepositoryKey } from '@/modules/catalog/application/catalogRepositoryKey'
 import { usePendingAction } from '@/shared/async/usePendingAction'
-import AdminGate from './AdminGate.vue'
 import AdminPageHeader from './AdminPageHeader.vue'
 import AdminProductForm from './AdminProductForm.vue'
 import { emptyProductDraft } from './productDraft'
@@ -26,6 +25,8 @@ const route = useRoute()
 const isCreate = computed(() => route.name === 'admin-product-new')
 const productId = computed(() => String(route.params.id ?? ''))
 const draft = ref(emptyProductDraft())
+const previewImages = ref<string[]>([])
+const slug = ref<string | null>(null)
 const loadError = ref<string>()
 const { pending, errorMessage, run } = usePendingAction(
   (error) => error.violations[0]?.message ?? error.message,
@@ -37,6 +38,8 @@ watch(
     loadError.value = undefined
     if (isCreate.value) {
       draft.value = emptyProductDraft()
+      previewImages.value = []
+      slug.value = null
       return
     }
 
@@ -48,6 +51,8 @@ watch(
         description: product.description ?? '',
         stock: product.stock,
       }
+      previewImages.value = product.imageUrls
+      slug.value = product.slug
     } catch (caught) {
       const error = toApiError(caught)
       loadError.value =
@@ -80,6 +85,11 @@ function onSubmit() {
 }
 
 function onDelete() {
+  const name = draft.value.name.trim() || 'ce produit'
+  if (!window.confirm(`Supprimer « ${name} » du catalogue ? Cette action est définitive.`)) {
+    return
+  }
+
   return run(async () => {
     await adminRepository.delete(productId.value)
     await router.push('/admin/products')
@@ -90,25 +100,29 @@ function onDelete() {
 <template>
   <section class="animate-fade-in">
     <AdminPageHeader
-      eyebrow="Catalogue"
-      :title="isCreate ? 'Nouveau produit' : 'Modifier le produit'"
+      :title="isCreate ? 'Nouveau produit' : draft.name.trim() || 'Modifier le produit'"
       :icon="isCreate ? 'plus' : 'settings'"
+      :description="
+        isCreate
+          ? 'Composez la fiche, le prix et le stock. L’aperçu boutique se met à jour en direct.'
+          : 'Ajustez la fiche, le prix et le stock. L’aperçu boutique reflète vos changements.'
+      "
       back-to="/admin/products"
       back-label="Retour au catalogue"
     />
 
-    <AdminGate :redirect="route.path">
-      <StatusNotice v-if="loadError" tone="danger" class="mt-10 max-w-xl">{{ loadError }}</StatusNotice>
+    <StatusNotice v-if="loadError" tone="danger" class="mt-6 max-w-xl">{{ loadError }}</StatusNotice>
 
-      <AdminProductForm
-        v-else
-        v-model="draft"
-        :is-create="isCreate"
-        :pending="pending"
-        :error-message="errorMessage"
-        @submit="onSubmit"
-        @delete="onDelete"
-      />
-    </AdminGate>
+    <AdminProductForm
+      v-else
+      v-model="draft"
+      :is-create="isCreate"
+      :pending="pending"
+      :error-message="errorMessage"
+      :preview-images="previewImages"
+      :slug="slug"
+      @submit="onSubmit"
+      @delete="onDelete"
+    />
   </section>
 </template>

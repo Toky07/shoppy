@@ -34,4 +34,40 @@ final class InMemoryUserRepository implements UserRepository
 
         return null;
     }
+
+    public function findPage(int $offset, int $limit, ?string $search = null): array
+    {
+        $users = $this->filtered($search);
+
+        usort(
+            $users,
+            static fn (User $left, User $right): int => [$right->createdAt(), $right->id()->value()]
+                <=> [$left->createdAt(), $left->id()->value()],
+        );
+
+        return array_values(array_slice($users, $offset, $limit));
+    }
+
+    public function countAll(?string $search = null): int
+    {
+        return count($this->filtered($search));
+    }
+
+    /**
+     * @return list<User>
+     */
+    private function filtered(?string $search): array
+    {
+        $users = array_values($this->users);
+        if ($search === null) {
+            return $users;
+        }
+
+        $needle = mb_strtolower($search);
+
+        return array_values(array_filter(
+            $users,
+            static fn (User $user): bool => str_contains($user->email()->value(), $needle),
+        ));
+    }
 }

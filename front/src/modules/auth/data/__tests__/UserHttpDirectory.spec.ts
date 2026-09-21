@@ -21,4 +21,24 @@ describe('UserHttpDirectory', () => {
       { method: 'PATCH', path: `/users/${visitorUser.id}`, body: { role: 'admin' } },
     ])
   })
+
+  it('lists users from GET /admin/users', async () => {
+    const http = new FakeHttpClient(() => ({
+      items: [createUserJson()],
+      page: 1,
+      limit: 20,
+      total: 1,
+    }))
+    const directory = new UserHttpDirectory(http)
+
+    await expect(directory.list({ page: 1, limit: 20, search: 'visitor' })).resolves.toEqual({
+      items: [visitorUser],
+      page: 1,
+      limit: 20,
+      total: 1,
+    })
+    expect(http.calls).toEqual([
+      { method: 'GET', path: '/admin/users', query: { page: 1, limit: 20, q: 'visitor' } },
+    ])
+  })
 })

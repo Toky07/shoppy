@@ -77,3 +77,31 @@ it('returns null when the user does not exist', function () {
         UserId::fromString('11111111-1111-4111-8111-111111111111'),
     ))->toBeNull();
 });
+
+it('pages users newest first', function () {
+    $repository = self::getContainer()->get(UserRepository::class);
+    $entityManager = self::getContainer()->get(EntityManagerInterface::class);
+
+    $older = User::register(
+        UserId::fromString('11111111-1111-4111-8111-111111111111'),
+        Email::fromString('old@nuvora.test'),
+        new DateTimeImmutable('2026-08-19T12:00:00+00:00'),
+    );
+    $newer = User::register(
+        UserId::fromString('22222222-2222-4222-8222-222222222222'),
+        Email::fromString('new@nuvora.test'),
+        new DateTimeImmutable('2026-08-21T12:00:00+00:00'),
+        Role::admin(),
+    );
+    $repository->save($older);
+    $repository->save($newer);
+    $entityManager->clear();
+
+    $page = $repository->findPage(0, 10);
+
+    expect($repository->countAll())->toBe(2)
+        ->and($page[0]->email()->value())->toBe('new@nuvora.test')
+        ->and($page[1]->email()->value())->toBe('old@nuvora.test')
+        ->and($repository->countAll('new@'))->toBe(1)
+        ->and($repository->findPage(0, 10, 'new@')[0]->email()->value())->toBe('new@nuvora.test');
+});
