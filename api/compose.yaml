@@ -1,5 +1,25 @@
-
 services:
+  api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    restart: unless-stopped
+    init: true
+    environment:
+      APP_ENV: dev
+      DATABASE_URL: sqlite:////app/var/data.db
+      DEFAULT_URI: http://localhost:${API_PORT:-8000}
+      PAYMENT_PROVIDER: ${PAYMENT_PROVIDER:-local}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+      COMPOSER_HOME: /tmp/composer
+    healthcheck:
+      test: ["CMD", "php", "-r", "exit(@file_get_contents('http://127.0.0.1/products') === false ? 1 : 0);"]
+      interval: 10s
+      timeout: 5s
+      start_period: 180s
+      retries: 12
+
 ###> doctrine/doctrine-bundle ###
   database:
     image: postgres:${POSTGRES_VERSION:-16}-alpine
@@ -20,6 +40,10 @@ services:
 ###< doctrine/doctrine-bundle ###
 
 volumes:
+  api_vendor:
+  api_var:
+  api_uploads:
+  composer_cache:
 ###> doctrine/doctrine-bundle ###
   database_data:
 ###< doctrine/doctrine-bundle ###

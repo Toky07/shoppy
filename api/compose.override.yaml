@@ -1,7 +1,20 @@
-
 services:
+  api:
+    volumes:
+      - ./:/app
+      - api_vendor:/app/vendor
+      - api_var:/app/var
+      - api_uploads:/app/public/uploads
+      - composer_cache:/tmp/composer
+    ports:
+      - "${API_PORT:-8000}:80"
+    extra_hosts:
+      - host.docker.internal:host-gateway
+
 ###> doctrine/doctrine-bundle ###
   database:
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-shoppy}
     ports:
       - "5432"
 ###< doctrine/doctrine-bundle ###
