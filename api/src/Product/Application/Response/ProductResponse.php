@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Product\Application\Response;
 
+use App\Product\Domain\Entity\Category;
 use App\Product\Domain\Entity\Product;
 use DateTimeInterface;
 
@@ -23,13 +24,14 @@ final readonly class ProductResponse
         public int $stock,
         public ?string $imageUrl,
         public array $imageUrls,
+        public ?CategoryResponse $category,
     ) {
     }
 
     /**
      * @param list<string> $imageUrls
      */
-    public static function fromProduct(Product $product, array $imageUrls = []): self
+    public static function fromProduct(Product $product, array $imageUrls = [], ?Category $category = null): self
     {
         return new self(
             $product->id()->value(),
@@ -42,6 +44,7 @@ final readonly class ProductResponse
             $product->stock()->value(),
             $imageUrls[0] ?? null,
             array_values($imageUrls),
+            $category === null ? null : CategoryResponse::fromCategory($category),
         );
     }
 
@@ -55,7 +58,8 @@ final readonly class ProductResponse
      *     stock: int,
      *     imageUrl: string|null,
      *     imageUrls: list<string>,
-     *     createdAt: string
+     *     createdAt: string,
+     *     category: array{id: string, name: string, slug: string}|null
      * }
      */
     public function toArray(): array
@@ -73,6 +77,7 @@ final readonly class ProductResponse
             'imageUrl' => $this->imageUrl,
             'imageUrls' => $this->imageUrls,
             'createdAt' => $this->createdAt,
+            'category' => $this->category?->toArray(),
         ];
     }
 }

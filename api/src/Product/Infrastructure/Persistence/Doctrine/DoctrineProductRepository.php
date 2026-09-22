@@ -59,6 +59,40 @@ final readonly class DoctrineProductRepository implements ProductRepository
         return $record?->toDomain();
     }
 
+    public function findByIds(array $ids): array
+    {
+        if ($ids === []) {
+            return [];
+        }
+
+        $values = array_map(static fn (ProductId $id): string => $id->value(), $ids);
+        /** @var list<ProductRecord> $records */
+        $records = $this->entityManager->createQueryBuilder()
+            ->select('product')
+            ->from(ProductRecord::class, 'product')
+            ->where('product.id IN (:ids)')
+            ->setParameter('ids', $values)
+            ->getQuery()
+            ->getResult();
+
+        $indexed = [];
+
+        foreach ($records as $record) {
+            $product = $record->toDomain();
+            $indexed[$product->id()->value()] = $product;
+        }
+
+        $ordered = [];
+
+        foreach ($values as $value) {
+            if (isset($indexed[$value])) {
+                $ordered[] = $indexed[$value];
+            }
+        }
+
+        return $ordered;
+    }
+
     public function findPage(int $offset, int $limit, ?ProductListCriteria $criteria = null): array
     {
         $criteria ??= ProductListCriteria::default();
@@ -96,6 +130,28 @@ final readonly class DoctrineProductRepository implements ProductRepository
             $queryBuilder
                 ->andWhere('LOWER(product.name) LIKE :search OR LOWER(COALESCE(product.description, \'\')) LIKE :search')
                 ->setParameter('search', $this->toLikePattern($criteria->search));
+        }
+
+        if ($criteria->minPriceCents !== null) {
+            $queryBuilder
+                ->andWhere('product.priceCents >= :minPrice')
+                ->setParameter('minPrice', $criteria->minPriceCents);
+        }
+
+        if ($criteria->maxPriceCents !== null) {
+            $queryBuilder
+                ->andWhere('product.priceCents <= :maxPrice')
+                ->setParameter('maxPrice', $criteria->maxPriceCents);
+        }
+
+        if ($criteria->inStockOnly) {
+            $queryBuilder->andWhere('product.stock > 0');
+        }
+
+        if ($criteria->categoryId !== null) {
+            $queryBuilder
+                ->andWhere('product.categoryId = :categoryId')
+                ->setParameter('categoryId', $criteria->categoryId->value());
         }
 
         return $queryBuilder;

@@ -6,14 +6,20 @@ use App\Media\Infrastructure\Persistence\InMemoryMediaRepository;
 use App\Product\Application\ProductResponseFactory;
 use App\Product\Application\Query\ListProductsQuery;
 use App\Product\Application\QueryHandler\ListProductsQueryHandler;
+use App\Product\Domain\Entity\Category;
 use App\Product\Domain\Entity\Product;
 use App\Product\Domain\Exception\InvalidProductPagination;
 use App\Product\Domain\Exception\InvalidProductSearch;
 use App\Product\Domain\Exception\InvalidProductSort;
+use App\Product\Domain\Repository\CategoryRepository;
+use App\Product\Domain\ValueObject\CategoryId;
+use App\Product\Domain\ValueObject\CategoryName;
 use App\Product\Domain\ValueObject\ProductDescription;
 use App\Product\Domain\ValueObject\ProductId;
 use App\Product\Domain\ValueObject\ProductName;
 use App\Product\Domain\ValueObject\ProductPrice;
+use App\Product\Domain\ValueObject\StockQuantity;
+use App\Product\Infrastructure\Persistence\InMemoryCategoryRepository;
 use App\Product\Infrastructure\Persistence\InMemoryProductRepository;
 
 function saveProduct(
@@ -23,6 +29,7 @@ function saveProduct(
     DateTimeImmutable $createdAt,
     int $priceCents = 1999,
     ?string $description = null,
+    int $stock = 0,
 ): void {
     $repository->save(Product::create(
         ProductId::fromString($id),
@@ -30,12 +37,21 @@ function saveProduct(
         ProductPrice::fromCents($priceCents),
         $createdAt,
         $description === null ? null : ProductDescription::fromString($description),
+        StockQuantity::fromInt($stock),
     ));
 }
 
-function listProductsHandler(InMemoryProductRepository $repository): ListProductsQueryHandler
-{
-    return new ListProductsQueryHandler($repository, new ProductResponseFactory(new InMemoryMediaRepository()));
+function listProductsHandler(
+    InMemoryProductRepository $repository,
+    ?CategoryRepository $categories = null,
+): ListProductsQueryHandler {
+    $categories ??= new InMemoryCategoryRepository();
+
+    return new ListProductsQueryHandler(
+        $repository,
+        new ProductResponseFactory(new InMemoryMediaRepository(), $categories),
+        $categories,
+    );
 }
 
 it('lists products newest first', function () {
@@ -107,3 +123,95 @@ it('rejects a search that is too long', function () {
         new ListProductsQuery(search: str_repeat('a', 101)),
     );
 })->throws(InvalidProductSearch::class);
+
+it('filters by price and available stock', function () {
+    $repository = new InMemoryProductRepository();
+    saveProduct($repository, '550e8400-e29b-41d4-a716-446655440001', 'Mug', new DateTimeImmutable('2026-08-18T12:00:00+00:00'), 1299, stock: 0);
+    saveProduct($repository, '550e8400-e29b-41d4-a716-446655440002', 'Tee', new DateTimeImmutable('2026-08-19T12:00:00+00:00'), 1999, stock: 4);
+    saveProduct($repository, '550e8400-e29b-41d4-a716-446655440003', 'Hoodie', new DateTimeImmutable('2026-08-20T12:00:00+00:00'), 4999, stock: 2);
+
+    $response = (listProductsHandler($repository))->handle(new ListProductsQuery(
+        minPriceCents: 1500,
+        maxPriceCents: 3000,
+        inStockOnly: true,
+    ));
+
+    expect(array_column($response->toArray()['items'], 'name'))->toBe(['Tee'])
+        ->and($response->total)->toBe(1);
+});
+
+it('loads images for a page in one media lookup', function () {
+    $repository = new InMemoryProductRepository();
+    $inner = new InMemoryMediaRepository();
+    $media = new class($inner) implements \App\Media\Domain\Repository\MediaRepository {
+        public int $batchedLookups = 0;
+
+        public function __construct(private InMemoryMediaRepository $inner)
+        {
+        }
+
+        public function save(\App\Media\Domain\Entity\Media $media): void
+        {
+            $this->inner->save($media);
+        }
+
+        public function findById(\App\Media\Domain\ValueObject\MediaId $id): ?\App\Media\Domain\Entity\Media
+        {
+            return $this->inner->findById($id);
+        }
+
+        public function findByOwner(\App\Media\Domain\ValueObject\MediaOwnerType $ownerType, \App\Media\Domain\ValueObject\MediaOwnerId $ownerId): array
+        {
+            return $this->inner->findByOwner($ownerType, $ownerId);
+        }
+
+        public function findByOwners(\App\Media\Domain\ValueObject\MediaOwnerType $ownerType, array $ownerIds): array
+        {
+            ++$this->batchedLookups;
+
+            return $this->inner->findByOwners($ownerType, $ownerIds);
+        }
+
+        public function delete(\App\Media\Domain\Entity\Media $media): void
+        {
+            $this->inner->delete($media);
+        }
+    };
+    saveProduct($repository, '550e8400-e29b-41d4-a716-446655440001', 'Tee', new DateTimeImmutable('2026-08-19T12:00:00+00:00'));
+    saveProduct($repository, '550e8400-e29b-41d4-a716-446655440002', 'Mug', new DateTimeImmutable('2026-08-20T12:00:00+00:00'));
+
+    (new ListProductsQueryHandler(
+        $repository,
+        new ProductResponseFactory($media, new InMemoryCategoryRepository()),
+        new InMemoryCategoryRepository(),
+    ))->handle(new ListProductsQuery());
+
+    expect($media->batchedLookups)->toBe(1);
+});
+
+it('filters products by category and ignores an unknown slug', function () {
+    $products = new InMemoryProductRepository();
+    $categories = new InMemoryCategoryRepository();
+    $category = Category::create(
+        CategoryId::fromString('550e8400-e29b-41d4-a716-446655440010'),
+        CategoryName::fromString('Textile'),
+    );
+    $categories->save($category);
+    saveProduct($products, '550e8400-e29b-41d4-a716-446655440001', 'Tee', new DateTimeImmutable('2026-08-19T12:00:00+00:00'));
+    saveProduct($products, '550e8400-e29b-41d4-a716-446655440002', 'Mug', new DateTimeImmutable('2026-08-20T12:00:00+00:00'));
+    $tee = $products->findById(ProductId::fromString('550e8400-e29b-41d4-a716-446655440001'));
+    $tee->assignCategory($category->id());
+    $products->save($tee);
+
+    $filtered = (listProductsHandler($products, $categories))->handle(new ListProductsQuery(categorySlug: 'textile'));
+    $missing = (listProductsHandler($products, $categories))->handle(new ListProductsQuery(categorySlug: 'missing'));
+
+    expect(array_column($filtered->toArray()['items'], 'name'))->toBe(['Tee'])
+        ->and($filtered->toArray()['items'][0]['category'])->toBe([
+            'id' => '550e8400-e29b-41d4-a716-446655440010',
+            'name' => 'Textile',
+            'slug' => 'textile',
+        ])
+        ->and($missing->toArray()['items'])->toBe([])
+        ->and($missing->total)->toBe(0);
+});

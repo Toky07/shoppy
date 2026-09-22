@@ -1,4 +1,5 @@
 import type { Money } from '@/shared/money/Money'
+import type { Category } from './Category'
 
 export type Product = {
   id: string
@@ -10,4 +11,5 @@ export type Product = {
   imageUrl: string | null
   imageUrls: string[]
   createdAt: string
+  category: Category | null
 }

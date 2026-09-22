@@ -15,6 +15,10 @@ final readonly class ListProductsQuery
         public int $limit = self::DEFAULT_LIMIT,
         public ?string $search = null,
         public ?string $sort = null,
+        public ?int $minPriceCents = null,
+        public ?int $maxPriceCents = null,
+        public bool $inStockOnly = false,
+        public ?string $categorySlug = null,
     ) {
     }
 }

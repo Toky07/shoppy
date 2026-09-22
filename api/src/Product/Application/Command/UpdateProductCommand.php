@@ -12,6 +12,8 @@ final readonly class UpdateProductCommand
         public ?int $priceCents = null,
         public bool $descriptionProvided = false,
         public ?string $description = null,
+        public bool $categoryProvided = false,
+        public ?string $categoryId = null,
     ) {
     }
 }

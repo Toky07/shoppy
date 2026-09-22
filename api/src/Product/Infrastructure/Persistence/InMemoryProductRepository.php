@@ -49,6 +49,21 @@ final class InMemoryProductRepository implements ProductRepository
         return null;
     }
 
+    public function findByIds(array $ids): array
+    {
+        $products = [];
+
+        foreach ($ids as $id) {
+            $product = $this->findById($id);
+
+            if ($product !== null) {
+                $products[] = $product;
+            }
+        }
+
+        return $products;
+    }
+
     public function findPage(int $offset, int $limit, ?ProductListCriteria $criteria = null): array
     {
         $criteria ??= ProductListCriteria::default();
@@ -74,22 +89,33 @@ final class InMemoryProductRepository implements ProductRepository
     {
         $products = array_values($this->products);
 
-        if ($criteria->search === null) {
-            return $products;
-        }
-
-        $needle = strtolower($criteria->search);
-
         return array_values(array_filter(
             $products,
-            static function (Product $product) use ($needle): bool {
-                if (str_contains(strtolower($product->name()->value()), $needle)) {
-                    return true;
+            static function (Product $product) use ($criteria): bool {
+                if ($criteria->search !== null) {
+                    $needle = strtolower($criteria->search);
+                    $description = $product->description()?->value();
+                    $matchesSearch = str_contains(strtolower($product->name()->value()), $needle)
+                        || ($description !== null && str_contains(strtolower($description), $needle));
+
+                    if (!$matchesSearch) {
+                        return false;
+                    }
                 }
 
-                $description = $product->description()?->value();
+                if ($criteria->minPriceCents !== null && $product->price()->cents() < $criteria->minPriceCents) {
+                    return false;
+                }
 
-                return $description !== null && str_contains(strtolower($description), $needle);
+                if ($criteria->maxPriceCents !== null && $product->price()->cents() > $criteria->maxPriceCents) {
+                    return false;
+                }
+
+                if ($criteria->categoryId !== null && $product->categoryId()?->value() !== $criteria->categoryId->value()) {
+                    return false;
+                }
+
+                return !$criteria->inStockOnly || $product->stock()->value() > 0;
             },
         ));
     }

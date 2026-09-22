@@ -3,6 +3,7 @@ export type ProductDraft = {
   priceEuros: number
   description: string
   stock: number
+  categoryId: string
 }
 
 export function emptyProductDraft(): ProductDraft {
@@ -11,5 +12,6 @@ export function emptyProductDraft(): ProductDraft {
     priceEuros: 0,
     description: '',
     stock: 0,
+    categoryId: '',
   }
 }

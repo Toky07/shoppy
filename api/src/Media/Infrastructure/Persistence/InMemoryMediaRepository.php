@@ -49,6 +49,17 @@ final class InMemoryMediaRepository implements MediaRepository
         return $matches;
     }
 
+    public function findByOwners(MediaOwnerType $ownerType, array $ownerIds): array
+    {
+        $grouped = [];
+
+        foreach ($ownerIds as $ownerId) {
+            $grouped[$ownerId->value()] = $this->findByOwner($ownerType, $ownerId);
+        }
+
+        return $grouped;
+    }
+
     public function delete(Media $media): void
     {
         unset($this->items[$media->id()->value()]);

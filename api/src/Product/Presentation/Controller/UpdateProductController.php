@@ -40,6 +40,8 @@ final readonly class UpdateProductController
             priceCents: $httpRequest->priceCents,
             descriptionProvided: $httpRequest->descriptionProvided,
             description: $httpRequest->description,
+            categoryProvided: $httpRequest->categoryProvided,
+            categoryId: $httpRequest->categoryId,
         ));
 
         $product = $this->getProduct->handle(new GetProductQuery($id));

@@ -35,10 +35,7 @@ async function load() {
   status.value = 'loading'
 
   try {
-    const loaded = await Promise.all(
-      favorites.value.map((id) => catalog.getById(id).catch(() => null)),
-    )
-    products.value = loaded.filter((product): product is Product => product !== null)
+    products.value = await catalog.listByIds(favorites.value)
     status.value = products.value.length === 0 ? 'empty' : 'ready'
   } catch (caught) {
     errorMessage.value = toApiError(caught).message

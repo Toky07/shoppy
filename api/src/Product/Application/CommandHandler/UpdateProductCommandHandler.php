@@ -6,8 +6,11 @@ namespace App\Product\Application\CommandHandler;
 
 use App\Product\Application\Command\UpdateProductCommand;
 use App\Product\Application\UniqueProductSlug;
+use App\Product\Domain\Exception\CategoryNotFound;
 use App\Product\Domain\Exception\ProductNotFound;
+use App\Product\Domain\Repository\CategoryRepository;
 use App\Product\Domain\Repository\ProductRepository;
+use App\Product\Domain\ValueObject\CategoryId;
 use App\Product\Domain\ValueObject\ProductDescription;
 use App\Product\Domain\ValueObject\ProductId;
 use App\Product\Domain\ValueObject\ProductName;
@@ -18,6 +21,7 @@ final readonly class UpdateProductCommandHandler
     public function __construct(
         private ProductRepository $productRepository,
         private UniqueProductSlug $uniqueProductSlug,
+        private CategoryRepository $categoryRepository,
     ) {
     }
 
@@ -46,6 +50,25 @@ final readonly class UpdateProductCommandHandler
             );
         }
 
+        if ($command->categoryProvided) {
+            $product->assignCategory($this->categoryFrom($command->categoryId));
+        }
+
         $this->productRepository->save($product);
+    }
+
+    private function categoryFrom(?string $categoryId): ?CategoryId
+    {
+        if ($categoryId === null) {
+            return null;
+        }
+
+        $id = CategoryId::fromString($categoryId);
+
+        if ($this->categoryRepository->findById($id) === null) {
+            throw new CategoryNotFound($id->value());
+        }
+
+        return $id;
     }
 }

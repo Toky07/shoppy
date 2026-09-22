@@ -10,6 +10,7 @@ import { usePendingAction } from '@/shared/async/usePendingAction'
 import AdminPageHeader from './AdminPageHeader.vue'
 import AdminProductForm from './AdminProductForm.vue'
 import { emptyProductDraft } from './productDraft'
+import type { Category } from '@/modules/catalog/domain/Category'
 
 const catalog = inject(catalogRepositoryKey)
 const adminCatalog = inject(adminCatalogRepositoryKey)
@@ -25,6 +26,7 @@ const route = useRoute()
 const isCreate = computed(() => route.name === 'admin-product-new')
 const productId = computed(() => String(route.params.id ?? ''))
 const draft = ref(emptyProductDraft())
+const categories = ref<Category[]>([])
 const previewImages = ref<string[]>([])
 const slug = ref<string | null>(null)
 const loadError = ref<string>()
@@ -40,16 +42,19 @@ watch(
       draft.value = emptyProductDraft()
       previewImages.value = []
       slug.value = null
+      categories.value = await catalogRepository.listCategories()
       return
     }
 
     try {
+      categories.value = await catalogRepository.listCategories()
       const product = await catalogRepository.getById(productId.value)
       draft.value = {
         name: product.name,
         priceEuros: centsToEuros(product.price.cents),
         description: product.description ?? '',
         stock: product.stock,
+        categoryId: product.category?.id ?? '',
       }
       previewImages.value = product.imageUrls
       slug.value = product.slug
@@ -65,18 +70,21 @@ watch(
 function onSubmit() {
   return run(async () => {
     const descriptionValue = draft.value.description.trim() === '' ? null : draft.value.description.trim()
+    const categoryId = draft.value.categoryId === '' ? null : draft.value.categoryId
     if (isCreate.value) {
       await adminRepository.create({
         name: draft.value.name.trim(),
         priceCents: eurosToCents(draft.value.priceEuros),
         description: descriptionValue,
         stock: draft.value.stock,
+        categoryId,
       })
     } else {
       await adminRepository.update(productId.value, {
         name: draft.value.name.trim(),
         priceCents: eurosToCents(draft.value.priceEuros),
         description: descriptionValue,
+        categoryId,
       })
       await adminRepository.setStock(productId.value, draft.value.stock)
     }
@@ -121,6 +129,7 @@ function onDelete() {
       :error-message="errorMessage"
       :preview-images="previewImages"
       :slug="slug"
+      :categories="categories"
       @submit="onSubmit"
       @delete="onDelete"
     />

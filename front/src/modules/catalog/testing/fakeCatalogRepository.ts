@@ -1,5 +1,6 @@
 import { ApiError } from '@/shared/http/ApiError'
 import type { CatalogRepository, ListProductsQuery } from '../application/CatalogRepository'
+import type { Category } from '../domain/Category'
 import type { Product } from '../domain/Product'
 import type { ProductPage } from '../domain/ProductPage'
 import { DEFAULT_PRODUCT_SORT } from '../application/productSort'
@@ -33,11 +34,32 @@ function compareProducts(left: Product, right: Product, sort: ListProductsQuery[
   }
 }
 
-export function createFakeCatalogRepository(products: Product[]): CatalogRepository {
+export function createFakeCatalogRepository(
+  products: Product[],
+  categories: Category[] = [],
+): CatalogRepository {
   return {
     async list(query: ListProductsQuery): Promise<ProductPage> {
       const search = query.search?.trim() ?? ''
-      const filtered = products.filter((product) => matchesSearch(product, search))
+      const filtered = products.filter((product) => {
+        if (!matchesSearch(product, search)) {
+          return false
+        }
+
+        if (query.minPriceCents !== undefined && product.price.cents < query.minPriceCents) {
+          return false
+        }
+
+        if (query.maxPriceCents !== undefined && product.price.cents > query.maxPriceCents) {
+          return false
+        }
+
+        if (query.categorySlug !== undefined && product.category?.slug !== query.categorySlug) {
+          return false
+        }
+
+        return !query.inStockOnly || product.stock > 0
+      })
       const sorted = [...filtered].sort((left, right) =>
         compareProducts(left, right, query.sort ?? DEFAULT_PRODUCT_SORT),
       )
@@ -49,6 +71,15 @@ export function createFakeCatalogRepository(products: Product[]): CatalogReposit
         limit: query.limit,
         total: sorted.length,
       }
+    },
+    async listByIds(ids: string[]): Promise<Product[]> {
+      return ids.flatMap((id) => {
+        const product = products.find((item) => item.id === id)
+        return product ? [product] : []
+      })
+    },
+    async listCategories(): Promise<Category[]> {
+      return categories
     },
     async getById(id: string): Promise<Product> {
       const product = products.find((item) => item.id === id || item.slug === id)
@@ -65,6 +96,12 @@ export function createFakeCatalogRepository(products: Product[]): CatalogReposit
 export function createFailingCatalogRepository(error: ApiError): CatalogRepository {
   return {
     async list(): Promise<ProductPage> {
+      throw error
+    },
+    async listByIds(): Promise<Product[]> {
+      throw error
+    },
+    async listCategories(): Promise<Category[]> {
       throw error
     },
     async getById(): Promise<Product> {

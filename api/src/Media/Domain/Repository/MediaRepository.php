@@ -20,5 +20,12 @@ interface MediaRepository
      */
     public function findByOwner(MediaOwnerType $ownerType, MediaOwnerId $ownerId): array;
 
+    /**
+     * @param list<MediaOwnerId> $ownerIds
+     *
+     * @return array<string, list<Media>>
+     */
+    public function findByOwners(MediaOwnerType $ownerType, array $ownerIds): array;
+
     public function delete(Media $media): void;
 }

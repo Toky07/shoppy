@@ -38,7 +38,7 @@ it('returns a product by id', function () {
 
     $response = (new GetProductQueryHandler(
         $repository,
-        new ProductResponseFactory(new InMemoryMediaRepository()),
+        new ProductResponseFactory(new InMemoryMediaRepository(), new \App\Product\Infrastructure\Persistence\InMemoryCategoryRepository()),
     ))->handle(new GetProductQuery($id->value()));
 
     expect($response->toArray())->toBe([
@@ -54,6 +54,7 @@ it('returns a product by id', function () {
         'imageUrl' => null,
         'imageUrls' => [],
         'createdAt' => '2026-08-20T12:00:00+00:00',
+        'category' => null,
     ]);
 });
 
@@ -70,7 +71,7 @@ it('returns a product by slug', function () {
 
     $response = (new GetProductQueryHandler(
         $repository,
-        new ProductResponseFactory(new InMemoryMediaRepository()),
+        new ProductResponseFactory(new InMemoryMediaRepository(), new \App\Product\Infrastructure\Persistence\InMemoryCategoryRepository()),
     ))->handle(new GetProductQuery('nuvora-tee'));
 
     expect($response->id)->toBe($id->value())
@@ -114,7 +115,7 @@ it('composes product images from the media module', function () {
 
     $response = (new GetProductQueryHandler(
         $repository,
-        new ProductResponseFactory($media),
+        new ProductResponseFactory($media, new \App\Product\Infrastructure\Persistence\InMemoryCategoryRepository()),
     ))->handle(new GetProductQuery($id->value()));
 
     expect($response->imageUrl)->toBe('/uploads/2026/09/one.png')
@@ -127,7 +128,7 @@ it('composes product images from the media module', function () {
 it('fails when the product does not exist', function () {
     $handler = new GetProductQueryHandler(
         new InMemoryProductRepository(),
-        new ProductResponseFactory(new InMemoryMediaRepository()),
+        new ProductResponseFactory(new InMemoryMediaRepository(), new \App\Product\Infrastructure\Persistence\InMemoryCategoryRepository()),
     );
 
     $handler->handle(new GetProductQuery('550e8400-e29b-41d4-a716-446655440000'));

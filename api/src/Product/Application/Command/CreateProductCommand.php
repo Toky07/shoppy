@@ -11,6 +11,7 @@ final readonly class CreateProductCommand
         public int $priceCents,
         public ?string $description = null,
         public int $stock = 0,
+        public ?string $categoryId = null,
     ) {
     }
 }

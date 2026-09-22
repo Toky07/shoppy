@@ -5,6 +5,7 @@ import ImageCarousel from '@/shared/ui/ImageCarousel.vue'
 import StatusNotice from '@/shared/ui/StatusNotice.vue'
 import { formatMoney } from '@/shared/money/formatMoney'
 import { stockLabel } from '@/modules/catalog/ui/stockLabel'
+import type { Category } from '@/modules/catalog/domain/Category'
 import type { ProductDraft } from './productDraft'
 
 const props = defineProps<{
@@ -13,6 +14,7 @@ const props = defineProps<{
   errorMessage?: string
   previewImages?: string[]
   slug?: string | null
+  categories?: Category[]
 }>()
 
 const draft = defineModel<ProductDraft>({ required: true })
@@ -60,6 +62,15 @@ const stockTone = computed(() => (Number(draft.value.stock) > 0 ? 'badge-positiv
               class="field resize-y leading-relaxed"
               placeholder="Ce qui rend ce produit utile, en deux phrases."
             />
+          </label>
+          <label v-if="(props.categories ?? []).length > 0" class="mt-5 block">
+            <span class="field-label">Catégorie</span>
+            <select v-model="draft.categoryId" class="field">
+              <option value="">Aucune</option>
+              <option v-for="category in props.categories" :key="category.id" :value="category.id">
+                {{ category.name }}
+              </option>
+            </select>
           </label>
         </section>
 

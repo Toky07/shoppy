@@ -1,8 +1,30 @@
 import { mapMoney } from '@/shared/money/mapMoney'
 import { InvalidResponseError } from '@/shared/http/InvalidResponseError'
 import { isRecord } from '@/shared/types/isRecord'
+import type { Category } from '../domain/Category'
 import type { Product } from '../domain/Product'
 import type { ProductPage } from '../domain/ProductPage'
+
+function mapCategory(payload: Record<string, unknown>): Category | null {
+  if (payload.category === undefined || payload.category === null) {
+    return null
+  }
+
+  if (
+    !isRecord(payload.category) ||
+    typeof payload.category.id !== 'string' ||
+    typeof payload.category.name !== 'string' ||
+    typeof payload.category.slug !== 'string'
+  ) {
+    throw new InvalidResponseError('Invalid product payload.')
+  }
+
+  return {
+    id: payload.category.id,
+    name: payload.category.name,
+    slug: payload.category.slug,
+  }
+}
 
 function mapImageUrls(payload: Record<string, unknown>): string[] {
   if (payload.imageUrls === undefined) {
@@ -42,7 +64,27 @@ export function mapProduct(payload: unknown): Product {
     imageUrl: imageUrls[0] ?? null,
     imageUrls,
     createdAt: payload.createdAt,
+    category: mapCategory(payload),
   }
+}
+
+export function mapCategoryList(payload: unknown): Category[] {
+  if (!isRecord(payload) || !Array.isArray(payload.items)) {
+    throw new InvalidResponseError('Invalid category list payload.')
+  }
+
+  return payload.items.map((item) => {
+    if (
+      !isRecord(item) ||
+      typeof item.id !== 'string' ||
+      typeof item.name !== 'string' ||
+      typeof item.slug !== 'string'
+    ) {
+      throw new InvalidResponseError('Invalid category list payload.')
+    }
+
+    return { id: item.id, name: item.name, slug: item.slug }
+  })
 }
 
 export function mapProductPage(payload: unknown): ProductPage {

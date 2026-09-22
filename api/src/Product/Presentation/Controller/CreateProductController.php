@@ -40,6 +40,7 @@ final readonly class CreateProductController
             priceCents: $httpRequest->priceCents,
             description: $httpRequest->description,
             stock: $httpRequest->stock,
+            categoryId: $httpRequest->categoryId,
         ));
 
         $product = $this->getProduct->handle(new GetProductQuery($id->value()));

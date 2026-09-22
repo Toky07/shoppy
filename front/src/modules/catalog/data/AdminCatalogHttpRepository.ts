@@ -13,6 +13,7 @@ export class AdminCatalogHttpRepository implements AdminCatalogRepository {
         priceCents: input.priceCents,
         description: input.description,
         stock: input.stock,
+        ...(input.categoryId !== undefined ? { categoryId: input.categoryId } : {}),
       }),
     )
   }
@@ -27,6 +28,9 @@ export class AdminCatalogHttpRepository implements AdminCatalogRepository {
     }
     if (input.description !== undefined) {
       body.description = input.description
+    }
+    if (input.categoryId !== undefined) {
+      body.categoryId = input.categoryId
     }
     return mapProduct(await this.http.patch(`/products/${encodeURIComponent(id)}`, body))
   }

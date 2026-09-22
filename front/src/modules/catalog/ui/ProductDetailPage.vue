@@ -57,6 +57,14 @@ watch(product, (current) => {
 
         <div class="flex flex-col">
           <p class="text-xs font-semibold tracking-[0.12em] text-muted uppercase">
+            <RouterLink
+              v-if="product.category"
+              :to="{ path: '/', query: { category: product.category.slug } }"
+              class="link-quiet"
+            >
+              {{ product.category.name }}
+            </RouterLink>
+            <span v-if="product.category" class="mx-2 text-faint" aria-hidden="true">·</span>
             <span>{{ stockLabel(product.stock) }}</span>
           </p>
 

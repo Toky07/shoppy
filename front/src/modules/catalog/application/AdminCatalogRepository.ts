@@ -5,12 +5,14 @@ export type CreateProductInput = {
   priceCents: number
   description: string | null
   stock: number
+  categoryId?: string | null
 }
 
 export type UpdateProductInput = {
   name?: string
   priceCents?: number
   description?: string | null
+  categoryId?: string | null
 }
 
 export interface AdminCatalogRepository {

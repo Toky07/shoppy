@@ -21,6 +21,13 @@ interface ProductRepository
     public function findBySlug(ProductSlug $slug): ?Product;
 
     /**
+     * @param list<ProductId> $ids
+     *
+     * @return list<Product>
+     */
+    public function findByIds(array $ids): array;
+
+    /**
      * @return list<Product>
      */
     public function findPage(int $offset, int $limit, ?ProductListCriteria $criteria = null): array;

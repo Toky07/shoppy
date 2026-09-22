@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Product\Domain\Entity;
 
 use App\Product\Domain\Exception\InsufficientProductStock;
+use App\Product\Domain\ValueObject\CategoryId;
 use App\Product\Domain\ValueObject\ProductDescription;
 use App\Product\Domain\ValueObject\ProductId;
 use App\Product\Domain\ValueObject\ProductName;
@@ -23,6 +24,7 @@ final class Product
         private ?ProductDescription $description,
         private StockQuantity $stock,
         private ProductSlug $slug,
+        private ?CategoryId $categoryId,
     ) {
     }
 
@@ -34,6 +36,7 @@ final class Product
         ?ProductDescription $description = null,
         ?StockQuantity $stock = null,
         ?ProductSlug $slug = null,
+        ?CategoryId $categoryId = null,
     ): self {
         return new self(
             $id,
@@ -43,6 +46,7 @@ final class Product
             $description,
             $stock ?? StockQuantity::zero(),
             $slug ?? ProductSlug::fromName($name),
+            $categoryId,
         );
     }
 
@@ -79,6 +83,16 @@ final class Product
     public function slug(): ProductSlug
     {
         return $this->slug;
+    }
+
+    public function categoryId(): ?CategoryId
+    {
+        return $this->categoryId;
+    }
+
+    public function assignCategory(?CategoryId $categoryId): void
+    {
+        $this->categoryId = $categoryId;
     }
 
     public function rename(ProductName $name): void

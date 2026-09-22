@@ -2,7 +2,7 @@
 
 Audit du 22 septembre 2026. Cocher au fur et à mesure.
 
-Déjà en place : inscription / connexion / rôles, sécurité du compte (réinitialisation, vérification d’email, changement de mot de passe et d’email, déconnexion de toutes les sessions, suppression anonymisée, refus de supprimer le dernier admin), catalogue paginé (recherche, tri, slug, stock, favoris locaux), panier authentifié, commande avec prix serveur, annulation qui restaure le stock, Stripe (session + webhook signé), admin produits / commandes / utilisateurs, emails transactionnels, tests Pest et Vitest.
+Déjà en place : inscription / connexion / rôles, sécurité du compte (réinitialisation, vérification d’email, changement de mot de passe et d’email, déconnexion de toutes les sessions, suppression anonymisée, refus de supprimer le dernier admin), catalogue paginé (recherche, tri, slug, stock, catégories, filtres prix et « en stock seulement », favoris locaux), panier authentifié, commande avec prix serveur, annulation qui restaure le stock, Stripe (session + webhook signé), admin produits / commandes / utilisateurs, emails transactionnels, tests Pest et Vitest.
 
 ## Fonctionnalités manquantes
 
@@ -17,9 +17,9 @@ Déjà en place : inscription / connexion / rôles, sécurité du compte (réini
 
 ### Catalogue
 
-- [ ] Catégories (navigation, filtre, rattachement produit)
+- [x] Catégories (navigation, filtre, rattachement produit)
 - [ ] Variantes (taille, couleur) et SKU métier (l’UI affiche un UUID tronqué)
-- [ ] Filtres prix et « en stock seulement »
+- [x] Filtres prix et « en stock seulement »
 - [ ] Produits associés sur la fiche
 - [ ] Statut publié / brouillon (tout produit créé est visible)
 - [ ] Upload, ordre et suppression d’images dans le formulaire admin — l’API `POST/DELETE /media` existe, l’UI ne l’appelle pas
@@ -76,11 +76,11 @@ Déjà en place : inscription / connexion / rôles, sécurité du compte (réini
 
 ## Optimisations
 
-- [ ] Batcher les médias du catalogue : `ProductResponseFactory` fait une requête par produit (N+1 sur `GET /products`)
-- [ ] Charger les favoris en une requête (aujourd’hui un `GET /products/:id` par id)
+- [x] Batcher les médias du catalogue : `ProductResponseFactory` charge les images d’une page en une requête
+- [x] Charger les favoris en une requête (`GET /products?ids=`)
 - [ ] Dérivés d’images (vignette, carte, fiche) au lieu du fichier original ; `srcset` côté front
 - [ ] Cache court ou ETag sur `GET /products` et `GET /products/:slug`
-- [ ] Index sur `products.price_cents`, `created_at`, `name` ; la recherche `LIKE %…%` ne peut pas utiliser un index B-tree
+- [x] Index sur `products.price_cents`, `created_at`, `name` et `category_id` (la recherche `LIKE %…%` ne peut toujours pas utiliser un index B-tree)
 - [ ] Remplacer SQLite en production (un fichier, pas de concurrence réelle ni de réplication)
 - [ ] Redis pour le cache applicatif (commenté dans `cache.yaml`, non déployé)
 - [ ] TTL de token plus court + refresh, et purge des tokens expirés (`access_tokens` n’a pas d’index sur `user_id`)

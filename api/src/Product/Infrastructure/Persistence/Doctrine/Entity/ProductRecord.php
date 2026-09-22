@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Product\Infrastructure\Persistence\Doctrine\Entity;
 
 use App\Product\Domain\Entity\Product;
+use App\Product\Domain\ValueObject\CategoryId;
 use App\Product\Domain\ValueObject\ProductDescription;
 use App\Product\Domain\ValueObject\ProductId;
 use App\Product\Domain\ValueObject\ProductName;
@@ -18,6 +19,10 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity]
 #[ORM\Table(name: 'products')]
 #[ORM\UniqueConstraint(name: 'uniq_products_slug', columns: ['slug'])]
+#[ORM\Index(name: 'idx_products_price_cents', columns: ['price_cents'])]
+#[ORM\Index(name: 'idx_products_created_at', columns: ['created_at'])]
+#[ORM\Index(name: 'idx_products_name', columns: ['name'])]
+#[ORM\Index(name: 'idx_products_category_id', columns: ['category_id'])]
 class ProductRecord
 {
     #[ORM\Id]
@@ -45,6 +50,9 @@ class ProductRecord
     #[ORM\Column(name: 'created_at')]
     private DateTimeImmutable $createdAt;
 
+    #[ORM\Column(name: 'category_id', length: 36, nullable: true)]
+    private ?string $categoryId = null;
+
     public static function fromDomain(Product $product): self
     {
         $record = new self();
@@ -70,6 +78,7 @@ class ProductRecord
             $this->description === null ? null : ProductDescription::fromString($this->description),
             StockQuantity::fromInt($this->stock),
             ProductSlug::fromString($this->slug),
+            $this->categoryId === null ? null : CategoryId::fromString($this->categoryId),
         );
     }
 
@@ -81,5 +90,6 @@ class ProductRecord
         $this->priceCents = $product->price()->cents();
         $this->currency = $product->price()->currency();
         $this->stock = $product->stock()->value();
+        $this->categoryId = $product->categoryId()?->value();
     }
 }
