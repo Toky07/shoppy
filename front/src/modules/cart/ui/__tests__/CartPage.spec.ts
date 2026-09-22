@@ -5,10 +5,16 @@ import { ApiError } from '@/shared/http/ApiError'
 import { renderApp } from '@/shared/testing/renderApp'
 import { visitorSession } from '@/modules/auth/testing/authFixtures'
 import { FakeCartRepository } from '../../testing/FakeCartRepository'
-import { emptyCart, filledCart, pendingCheckout } from '../../testing/cartFixtures'
+import { emptyCart, filledCart, parisCheckout, pendingCheckout } from '../../testing/cartFixtures'
 import { nuvoraTee } from '@/modules/catalog/testing/productFixtures'
 
 describe('CartPage', () => {
+  async function fillDeliveryAddress() {
+    await userEvent.type(screen.getByLabelText('Destinataire'), 'Ada Lovelace')
+    await userEvent.type(screen.getByLabelText('Adresse'), '10 rue de la Paix')
+    await userEvent.type(screen.getByLabelText('Code postal'), '75002')
+    await userEvent.type(screen.getByLabelText('Ville'), 'Paris')
+  }
   it('asks a guest to log in', async () => {
     await renderApp({ path: '/cart' })
 
@@ -98,10 +104,12 @@ describe('CartPage', () => {
       expect(screen.getByRole('button', { name: /Payer ma commande/ })).toBeTruthy()
     })
 
+    await fillDeliveryAddress()
     await userEvent.click(screen.getByRole('button', { name: /Payer ma commande/ }))
 
     await waitFor(() => {
       expect(cartRepository.checkoutCount).toBe(1)
+      expect(cartRepository.checkouts).toEqual([parisCheckout])
       expect(screen.getByRole('status').textContent).toContain(
         `Votre commande n°${pendingCheckout.id} a été créée avec succès.`,
       )
@@ -125,6 +133,7 @@ describe('CartPage', () => {
       expect(screen.getByRole('button', { name: /Payer ma commande/ })).toBeTruthy()
     })
 
+    await fillDeliveryAddress()
     await userEvent.click(screen.getByRole('button', { name: /Payer ma commande/ }))
 
     await waitFor(() => {

@@ -39,6 +39,7 @@ describe('OrderDetailPage', () => {
       expect(screen.getByRole('heading', { name: /Commande/ })).toBeTruthy()
       expect(screen.getByText('En attente')).toBeTruthy()
       expect(screen.getByText('Nuvora Tee')).toBeTruthy()
+      expect(screen.getAllByText('Ada Lovelace').length).toBe(2)
       expect(screen.getByText('Paiement : En attente de paiement')).toBeTruthy()
     })
     expect(payButton()).toBeTruthy()

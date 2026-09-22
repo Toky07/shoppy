@@ -45,6 +45,8 @@ final readonly class PlaceOrderController
                 ),
                 $httpRequest->items,
             ),
+            shippingAddress: $httpRequest->delivery->shippingAddress,
+            billingAddress: $httpRequest->delivery->billingAddress,
         ));
 
         $order = $this->getOrder->handle(new GetOrderQuery($id->value()));

@@ -34,7 +34,7 @@ it('places an order as pending with a customer and line snapshots', function () 
     $createdAt = new DateTimeImmutable('2026-08-20T12:00:00+00:00');
     $item = orderLine(quantity: 2);
 
-    $order = Order::place($id, $customerId, [$item], $createdAt);
+    $order = Order::place($id, $customerId, [$item], $createdAt, samplePostalAddress(), samplePostalAddress());
 
     expect($order->id())->toBe($id)
         ->and($order->customerId())->toBe($customerId)
@@ -58,7 +58,7 @@ it('sums line totals across items', function () {
             ),
         ],
         new DateTimeImmutable('2026-08-20T12:00:00+00:00'),
-    );
+    samplePostalAddress(), samplePostalAddress());
 
     expect($order->totalCents())->toBe(8997);
 });
@@ -69,7 +69,7 @@ it('rejects an order without items', function () {
         CustomerId::fromString('11111111-1111-4111-8111-111111111111'),
         [],
         new DateTimeImmutable('2026-08-20T12:00:00+00:00'),
-    );
+    samplePostalAddress(), samplePostalAddress());
 })->throws(EmptyOrder::class);
 
 it('cancels a pending order', function () {
@@ -78,7 +78,7 @@ it('cancels a pending order', function () {
         CustomerId::fromString('11111111-1111-4111-8111-111111111111'),
         [orderLine()],
         new DateTimeImmutable('2026-08-20T12:00:00+00:00'),
-    );
+    samplePostalAddress(), samplePostalAddress());
 
     $order->cancel();
 
@@ -91,7 +91,7 @@ it('marks a pending order as paid', function () {
         CustomerId::fromString('11111111-1111-4111-8111-111111111111'),
         [orderLine()],
         new DateTimeImmutable('2026-08-20T12:00:00+00:00'),
-    );
+    samplePostalAddress(), samplePostalAddress());
 
     $order->markPaid();
 

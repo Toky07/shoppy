@@ -7,6 +7,7 @@ import { authSessionKey } from '@/modules/auth/application/authSessionKey'
 import { orderRepositoryKey } from '@/modules/order/application/orderRepositoryKey'
 import { useOrder } from '@/modules/order/application/useOrder'
 import OrderLine from '@/modules/order/ui/OrderLine.vue'
+import OrderAddresses from '@/modules/order/ui/OrderAddresses.vue'
 import { orderErrorMessage } from '@/modules/order/ui/orderErrorMessage'
 import AdminOrderSummary from './AdminOrderSummary.vue'
 import AdminPageHeader from './AdminPageHeader.vue'
@@ -53,6 +54,7 @@ function onMarkPaid() {
         skeleton="rows"
       >
         <article v-if="order" class="panel mx-auto max-w-3xl overflow-hidden">
+          <OrderAddresses :shipping="order.shippingAddress" :billing="order.billingAddress" />
           <AdminOrderSummary
             :order="order"
             :pending="pending"

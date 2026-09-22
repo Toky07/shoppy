@@ -1,6 +1,7 @@
 import type { Cart } from '../domain/Cart'
 import type { CartItem } from '../domain/CartItem'
 import type { CheckoutResult } from '../domain/CheckoutResult'
+import type { CheckoutAddresses } from '../domain/CheckoutAddresses'
 import { visitorUser } from '@/modules/auth/testing/authFixtures'
 import { nuvoraTee } from '@/modules/catalog/testing/productFixtures'
 
@@ -35,6 +36,18 @@ export const filledCart: Cart = {
 export const pendingCheckout: CheckoutResult = {
   id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
   status: 'pending',
+}
+
+export const parisCheckout: CheckoutAddresses = {
+  shippingAddress: {
+    recipient: 'Ada Lovelace',
+    line1: '10 rue de la Paix',
+    line2: null,
+    postalCode: '75002',
+    city: 'Paris',
+    country: 'FR',
+  },
+  billingSameAsShipping: true,
 }
 
 export function createCartItemJson(overrides: Record<string, unknown> = {}) {

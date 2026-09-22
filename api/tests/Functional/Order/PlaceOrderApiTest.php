@@ -27,6 +27,7 @@ it('places an order as the authenticated customer with catalog snapshots', funct
     $customerId = authenticatedOrderCustomerId();
 
     $this->client->jsonRequest('POST', '/orders', [
+        ...deliveryFields(),
         'items' => [
             [
                 'productId' => $product['id'],
@@ -68,6 +69,7 @@ it('ignores a client-supplied customer id and prices', function () {
     $customerId = authenticatedOrderCustomerId();
 
     $this->client->jsonRequest('POST', '/orders', [
+        ...deliveryFields(),
         'customerId' => '11111111-1111-4111-8111-111111111111',
         'items' => [
             [
@@ -91,6 +93,7 @@ it('ignores a client-supplied customer id and prices', function () {
 
 it('rejects unauthenticated order placement', function () {
     $this->client->jsonRequest('POST', '/orders', [
+        ...deliveryFields(),
         'items' => [
             [
                 'productId' => '550e8400-e29b-41d4-a716-446655440000',
@@ -125,6 +128,7 @@ it('rejects a missing items field', function () {
 
 it('rejects an empty items list', function () {
     $this->client->jsonRequest('POST', '/orders', [
+        ...deliveryFields(),
         'items' => [],
     ], catalogCustomerHeaders());
 
@@ -140,6 +144,7 @@ it('rejects an empty items list', function () {
 
 it('rejects an unknown catalog product', function () {
     $this->client->jsonRequest('POST', '/orders', [
+        ...deliveryFields(),
         'items' => [
             [
                 'productId' => '550e8400-e29b-41d4-a716-446655440000',
@@ -163,6 +168,7 @@ it('rejects a quantity below one', function () {
     $product = createOrderCatalogProduct();
 
     $this->client->jsonRequest('POST', '/orders', [
+        ...deliveryFields(),
         'items' => [
             [
                 'productId' => $product['id'],
@@ -190,6 +196,7 @@ it('rejects an order when stock is insufficient', function () {
     $product = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
 
     $this->client->jsonRequest('POST', '/orders', [
+        ...deliveryFields(),
         'items' => [
             [
                 'productId' => $product['id'],
@@ -219,6 +226,7 @@ it('decrements stock when an order is placed and restores it on cancel', functio
     $product = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
 
     $this->client->jsonRequest('POST', '/orders', [
+        ...deliveryFields(),
         'items' => [
             [
                 'productId' => $product['id'],

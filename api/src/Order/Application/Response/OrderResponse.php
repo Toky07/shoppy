@@ -6,6 +6,7 @@ namespace App\Order\Application\Response;
 
 use App\Order\Domain\Entity\Order;
 use App\Order\Domain\ValueObject\OrderItem;
+use App\Order\Domain\ValueObject\PostalAddress;
 use DateTimeInterface;
 
 final readonly class OrderResponse
@@ -19,6 +20,8 @@ final readonly class OrderResponse
      *     lineTotal: array{cents: int, currency: string}
      * }> $items
      * @param array{cents: int, currency: string} $total
+     * @param array{recipient: string, line1: string, line2: string|null, postalCode: string, city: string, country: string}|null $shippingAddress
+     * @param array{recipient: string, line1: string, line2: string|null, postalCode: string, city: string, country: string}|null $billingAddress
      */
     public function __construct(
         public string $id,
@@ -27,6 +30,8 @@ final readonly class OrderResponse
         public array $items,
         public array $total,
         public string $createdAt,
+        public ?array $shippingAddress,
+        public ?array $billingAddress,
     ) {
     }
 
@@ -59,6 +64,8 @@ final readonly class OrderResponse
                 'currency' => $order->items()[0]->unitPrice()->currency(),
             ],
             $order->createdAt()->format(DateTimeInterface::ATOM),
+            self::address($order->shippingAddress()),
+            self::address($order->billingAddress()),
         );
     }
 
@@ -75,7 +82,9 @@ final readonly class OrderResponse
      *         lineTotal: array{cents: int, currency: string}
      *     }>,
      *     total: array{cents: int, currency: string},
-     *     createdAt: string
+     *     createdAt: string,
+     *     shippingAddress: array{recipient: string, line1: string, line2: string|null, postalCode: string, city: string, country: string}|null,
+     *     billingAddress: array{recipient: string, line1: string, line2: string|null, postalCode: string, city: string, country: string}|null
      * }
      */
     public function toArray(): array
@@ -87,6 +96,16 @@ final readonly class OrderResponse
             'items' => $this->items,
             'total' => $this->total,
             'createdAt' => $this->createdAt,
+            'shippingAddress' => $this->shippingAddress,
+            'billingAddress' => $this->billingAddress,
         ];
+    }
+
+    /**
+     * @return array{recipient: string, line1: string, line2: string|null, postalCode: string, city: string, country: string}|null
+     */
+    private static function address(?PostalAddress $address): ?array
+    {
+        return $address?->toArray();
     }
 }

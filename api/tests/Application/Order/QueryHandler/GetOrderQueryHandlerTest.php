@@ -30,7 +30,7 @@ it('returns an order by id', function () {
             Quantity::fromInt(2),
         )],
         $createdAt,
-    ));
+    samplePostalAddress(), samplePostalAddress()));
 
     $response = (new GetOrderQueryHandler($repository))->handle(
         new GetOrderQuery($id->value()),
@@ -60,6 +60,22 @@ it('returns an order by id', function () {
             'currency' => 'EUR',
         ],
         'createdAt' => '2026-08-20T12:00:00+00:00',
+        'shippingAddress' => [
+            'recipient' => 'Ada Lovelace',
+            'line1' => '10 rue de la Paix',
+            'line2' => null,
+            'postalCode' => '75002',
+            'city' => 'Paris',
+            'country' => 'FR',
+        ],
+        'billingAddress' => [
+            'recipient' => 'Ada Lovelace',
+            'line1' => '10 rue de la Paix',
+            'line2' => null,
+            'postalCode' => '75002',
+            'city' => 'Paris',
+            'country' => 'FR',
+        ],
     ]);
 });
 

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Order\Application\CommandHandler;
 
 use App\Order\Application\Catalog;
+use App\Order\Application\Command\PlaceOrderAddress;
 use App\Order\Application\Command\PlaceOrderCommand;
 use App\Order\Application\Command\PlaceOrderLine;
 use App\Order\Domain\Entity\Order;
@@ -15,6 +16,7 @@ use App\Order\Domain\ValueObject\CustomerId;
 use App\Order\Domain\ValueObject\OrderId;
 use App\Order\Domain\ValueObject\OrderItem;
 use App\Order\Domain\ValueObject\OrderedProductName;
+use App\Order\Domain\ValueObject\PostalAddress;
 use App\Order\Domain\ValueObject\Quantity;
 use App\Order\Domain\ValueObject\UnitPrice;
 use App\Shared\Application\Event\OrderPlaced;
@@ -33,6 +35,9 @@ final readonly class PlaceOrderCommandHandler
 
     public function handle(PlaceOrderCommand $command): OrderId
     {
+        $shippingAddress = $this->address($command->shippingAddress, 'shippingAddress');
+        $billingAddress = $this->address($command->billingAddress, 'billingAddress');
+
         $items = array_map(
             fn (PlaceOrderLine $line): OrderItem => $this->snapshot($line),
             $command->items,
@@ -51,6 +56,8 @@ final readonly class PlaceOrderCommandHandler
             CustomerId::fromString($command->customerId),
             $items,
             $this->clock->now(),
+            $shippingAddress,
+            $billingAddress,
         );
 
         $this->orderRepository->save($order);
@@ -62,6 +69,19 @@ final readonly class PlaceOrderCommandHandler
         ));
 
         return $order->id();
+    }
+
+    private function address(PlaceOrderAddress $address, string $prefix): PostalAddress
+    {
+        return PostalAddress::fromInput(
+            $address->recipient,
+            $address->line1,
+            $address->line2,
+            $address->postalCode,
+            $address->city,
+            $address->country,
+            $prefix,
+        );
     }
 
     private function snapshot(PlaceOrderLine $line): OrderItem

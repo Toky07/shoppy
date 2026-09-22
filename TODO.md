@@ -28,7 +28,7 @@ Déjà en place : inscription / connexion / rôles, sécurité du compte (réini
 
 ### Achat, livraison, commande
 
-- [ ] Adresses de livraison et de facturation
+- [x] Adresses de livraison et de facturation (saisies au checkout, figées sur la commande ; la facturation peut reprendre la livraison)
 - [ ] Modes de livraison et frais (le libellé « Livraison : Offerte » est en dur)
 - [ ] TVA / taxes (le total est une somme de lignes, affiché « TTC » sans calcul)
 - [ ] Codes promo

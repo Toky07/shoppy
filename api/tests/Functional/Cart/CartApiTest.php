@@ -80,7 +80,9 @@ it('checks out the cart into an order and empties the cart', function () {
         'quantity' => 2,
     ], catalogCustomerHeaders());
 
-    $this->client->jsonRequest('POST', '/cart/checkout', [], catalogCustomerHeaders());
+    $this->client->jsonRequest('POST', '/cart/checkout', [
+        ...deliveryFields(),
+    ], catalogCustomerHeaders());
 
     $response = $this->client->getResponse();
     $order = json_decode((string) $response->getContent(), true, flags: JSON_THROW_ON_ERROR);
@@ -89,6 +91,8 @@ it('checks out the cart into an order and empties the cart', function () {
         ->and($order['status'])->toBe('pending')
         ->and($order['items'][0]['quantity'])->toBe(2)
         ->and($order['total'])->toBe(['cents' => 3998, 'currency' => 'EUR'])
+        ->and($order['shippingAddress']['city'])->toBe('Paris')
+        ->and($order['billingAddress']['recipient'])->toBe('Ada Lovelace')
         ->and($response->headers->get('Location'))->toBe('/orders/'.$order['id']);
 
     $this->client->jsonRequest('GET', '/cart', [], catalogCustomerHeaders());

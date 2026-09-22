@@ -32,7 +32,7 @@ function saveAllOrdersFixture(
             Quantity::fromInt(1),
         )],
         $createdAt,
-    ));
+    samplePostalAddress(), samplePostalAddress()));
 }
 
 it('lists all orders newest first across customers', function () {

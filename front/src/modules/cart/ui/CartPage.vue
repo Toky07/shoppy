@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, inject, ref } from 'vue'
+import { computed, inject, reactive, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import AppIcon from '@/shared/ui/AppIcon.vue'
 import EmptyState from '@/shared/ui/EmptyState.vue'
@@ -12,7 +12,9 @@ import { authSessionKey } from '@/modules/auth/application/authSessionKey'
 import { cartStateKey } from '../application/cartStateKey'
 import CartLine from './CartLine.vue'
 import CartSummary from './CartSummary.vue'
+import CheckoutAddressForm from './CheckoutAddressForm.vue'
 import { cartErrorMessage } from './cartErrorMessage'
+import { emptyAddressDraft, toPostalAddress, type AddressDraft } from '@/modules/order/domain/PostalAddress'
 
 const session = inject(authSessionKey)
 const cartState = inject(cartStateKey)
@@ -27,6 +29,10 @@ const { pending, errorMessage: actionError, run } = usePendingAction((error) =>
   cartErrorMessage(error),
 )
 const checkoutOrderId = ref<string>()
+const addressError = ref<string>()
+let shipping = reactive<AddressDraft>(emptyAddressDraft())
+let billing = reactive<AddressDraft>(emptyAddressDraft())
+const billingSameAsShipping = ref(true)
 const isAuthenticated = computed(() => authSession.isAuthenticated.value)
 const cart = computed(() => state.cart.value)
 const itemCount = computed(() =>
@@ -65,9 +71,29 @@ function onClear() {
   return runCart(() => state.clear())
 }
 
+function addressReady(draft: AddressDraft): boolean {
+  return (
+    draft.recipient.trim() !== '' &&
+    draft.line1.trim() !== '' &&
+    draft.postalCode.trim() !== '' &&
+    draft.city.trim() !== '' &&
+    draft.country.trim() !== ''
+  )
+}
+
 async function onCheckout() {
+  if (!addressReady(shipping) || (!billingSameAsShipping.value && !addressReady(billing))) {
+    addressError.value = 'Renseignez l’adresse de livraison et de facturation.'
+    return
+  }
+
+  addressError.value = undefined
   await runCart(async () => {
-    const result = await state.checkout()
+    const result = await state.checkout({
+      shippingAddress: toPostalAddress(shipping),
+      billingSameAsShipping: billingSameAsShipping.value,
+      billingAddress: billingSameAsShipping.value ? undefined : toPostalAddress(billing),
+    })
     checkoutOrderId.value = result.id
   })
 }
@@ -108,6 +134,7 @@ async function onCheckout() {
         </RouterLink>
       </StatusNotice>
 
+      <StatusNotice v-if="addressError" tone="danger" class="mt-10">{{ addressError }}</StatusNotice>
       <StatusNotice v-if="actionError" tone="danger" class="mt-10">{{ actionError }}</StatusNotice>
 
       <div class="mt-10">
@@ -134,6 +161,13 @@ async function onCheckout() {
                 @update-quantity="onUpdateQuantity(item.productId, $event, item.variantId)"
                 @remove="onRemove(item.productId, item.variantId)"
               />
+              <li>
+                <CheckoutAddressForm
+                  v-model:shipping="shipping"
+                  v-model:billing="billing"
+                  v-model:billing-same-as-shipping="billingSameAsShipping"
+                />
+              </li>
             </ul>
 
             <CartSummary

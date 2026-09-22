@@ -12,6 +12,8 @@ final readonly class PlaceOrderCommand
     public function __construct(
         public string $customerId,
         public array $items,
+        public PlaceOrderAddress $shippingAddress,
+        public PlaceOrderAddress $billingAddress,
     ) {
     }
 }

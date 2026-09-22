@@ -1,6 +1,7 @@
 import type { CartRepository } from '../application/CartRepository'
 import type { Cart } from '../domain/Cart'
 import type { CartItem } from '../domain/CartItem'
+import type { CheckoutAddresses } from '../domain/CheckoutAddresses'
 import type { CheckoutResult } from '../domain/CheckoutResult'
 import { emptyCart, pendingCheckout } from './cartFixtures'
 
@@ -42,6 +43,7 @@ export class FakeCartRepository implements CartRepository {
   public removed: string[] = []
   public clearCount = 0
   public checkoutCount = 0
+  public checkouts: CheckoutAddresses[] = []
   public getCount = 0
   public addError: Error | null = null
   public updateError: Error | null = null
@@ -113,8 +115,9 @@ export class FakeCartRepository implements CartRepository {
     return cloneCart(this.cart)
   }
 
-  async checkout(): Promise<CheckoutResult> {
+  async checkout(addresses: CheckoutAddresses): Promise<CheckoutResult> {
     this.checkoutCount += 1
+    this.checkouts.push(addresses)
     if (this.checkoutError) {
       throw this.checkoutError
     }

@@ -14,6 +14,7 @@ use App\Order\Domain\Entity\Order;
 use App\Order\Domain\Repository\OrderRepository;
 use App\Order\Domain\ValueObject\CustomerId;
 use App\Order\Domain\ValueObject\OrderId;
+use App\Order\Domain\ValueObject\PostalAddress;
 use App\Shared\Application\Event\OrderCancelled;
 use App\Shared\Application\Event\OrderPlaced;
 use App\Shared\Domain\Event\EventBus;
@@ -98,8 +99,32 @@ final readonly class EmailCustomerAboutOrder implements EventSubscriberInterface
         }
 
         $lines[] = 'Total : '.self::euro($order->totalCents());
+        $shipping = $order->shippingAddress();
+        $billing = $order->billingAddress();
+
+        if ($shipping !== null) {
+            $lines[] = 'Livraison : '.self::formatAddress($shipping);
+        }
+
+        if ($billing !== null) {
+            $lines[] = 'Facturation : '.self::formatAddress($billing);
+        }
 
         return implode("\n", $lines);
+    }
+
+    private static function formatAddress(PostalAddress $address): string
+    {
+        $parts = [$address->recipient(), $address->line1()];
+
+        if ($address->line2() !== null) {
+            $parts[] = $address->line2();
+        }
+
+        $parts[] = $address->postalCode().' '.$address->city();
+        $parts[] = $address->country();
+
+        return implode(', ', $parts);
     }
 
     private static function euro(int $cents): string

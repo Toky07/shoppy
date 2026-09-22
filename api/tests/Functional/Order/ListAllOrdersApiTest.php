@@ -33,6 +33,7 @@ function adminListOrdersLogin(string $email): array
 function adminListOrdersPlace(array $headers, string $productId, int $quantity = 1): array
 {
     test()->client->jsonRequest('POST', '/orders', [
+        ...deliveryFields(),
         'items' => [[
             'productId' => $productId,
             'quantity' => $quantity,

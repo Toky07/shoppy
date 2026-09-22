@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Order\Presentation\Request;
 
+use App\Order\Domain\Exception\EmptyOrder;
+use App\Order\Presentation\Request\OrderDeliveryHttpRequest;
 use App\Shared\Presentation\Exception\InvalidRequest;
 
 final readonly class PlaceOrderHttpRequest
@@ -11,8 +13,10 @@ final readonly class PlaceOrderHttpRequest
     /**
      * @param list<array{productId: string, quantity: int}> $items
      */
-    public function __construct(public array $items)
-    {
+    public function __construct(
+        public array $items,
+        public OrderDeliveryHttpRequest $delivery,
+    ) {
     }
 
     /**
@@ -45,6 +49,10 @@ final readonly class PlaceOrderHttpRequest
             ];
         }
 
-        return new self($items);
+        if ($items === []) {
+            throw new EmptyOrder();
+        }
+
+        return new self($items, OrderDeliveryHttpRequest::fromPayload($payload));
     }
 }

@@ -5,6 +5,7 @@ import type { Order } from '../domain/Order'
 import type { OrderItem } from '../domain/OrderItem'
 import type { OrderPage } from '../domain/OrderPage'
 import type { OrderStatus } from '../domain/OrderStatus'
+import type { PostalAddress } from '../domain/PostalAddress'
 
 const ORDER_STATUSES: OrderStatus[] = ['pending', 'cancelled', 'paid']
 
@@ -31,6 +32,29 @@ export function mapOrderItem(payload: unknown): OrderItem {
   }
 }
 
+function mapPostalAddress(payload: unknown): PostalAddress {
+  if (
+    !isRecord(payload) ||
+    typeof payload.recipient !== 'string' ||
+    typeof payload.line1 !== 'string' ||
+    (payload.line2 !== null && typeof payload.line2 !== 'string') ||
+    typeof payload.postalCode !== 'string' ||
+    typeof payload.city !== 'string' ||
+    typeof payload.country !== 'string'
+  ) {
+    throw new InvalidResponseError('Invalid postal address payload.')
+  }
+
+  return {
+    recipient: payload.recipient,
+    line1: payload.line1,
+    line2: payload.line2,
+    postalCode: payload.postalCode,
+    city: payload.city,
+    country: payload.country,
+  }
+}
+
 export function mapOrder(payload: unknown): Order {
   if (
     !isRecord(payload) ||
@@ -38,7 +62,9 @@ export function mapOrder(payload: unknown): Order {
     typeof payload.customerId !== 'string' ||
     !isOrderStatus(payload.status) ||
     !Array.isArray(payload.items) ||
-    typeof payload.createdAt !== 'string'
+    typeof payload.createdAt !== 'string' ||
+    (payload.shippingAddress !== null && !isRecord(payload.shippingAddress)) ||
+    (payload.billingAddress !== null && !isRecord(payload.billingAddress))
   ) {
     throw new InvalidResponseError('Invalid order payload.')
   }
@@ -50,6 +76,8 @@ export function mapOrder(payload: unknown): Order {
     items: payload.items.map(mapOrderItem),
     total: mapMoney(payload.total, 'Invalid order total.'),
     createdAt: payload.createdAt,
+    shippingAddress: payload.shippingAddress === null ? null : mapPostalAddress(payload.shippingAddress),
+    billingAddress: payload.billingAddress === null ? null : mapPostalAddress(payload.billingAddress),
   }
 }
 

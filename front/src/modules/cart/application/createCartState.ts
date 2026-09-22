@@ -2,6 +2,7 @@ import { computed, readonly, ref, toValue, watch, type MaybeRefOrGetter } from '
 import { ApiError } from '@/shared/http/ApiError'
 import { toApiError } from '@/shared/http/toApiError'
 import type { Cart } from '../domain/Cart'
+import type { CheckoutAddresses } from '../domain/CheckoutAddresses'
 import type { CheckoutResult } from '../domain/CheckoutResult'
 import type { CartRepository } from './CartRepository'
 
@@ -42,8 +43,8 @@ export function createCartState(
     return next
   }
 
-  async function checkout(): Promise<CheckoutResult> {
-    const result = await repository.checkout()
+  async function checkout(addresses: CheckoutAddresses): Promise<CheckoutResult> {
+    const result = await repository.checkout(addresses)
     cart.value = await repository.get()
     return result
   }

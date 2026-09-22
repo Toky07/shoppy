@@ -35,7 +35,7 @@ it('persists an order and its line snapshots', function () {
             ),
         ],
         $createdAt,
-    );
+    samplePostalAddress(), samplePostalAddress());
 
     $repository = self::getContainer()->get(OrderRepository::class);
     $entityManager = self::getContainer()->get(EntityManagerInterface::class);
@@ -82,7 +82,7 @@ it('persists and reloads a cancelled order status', function () {
             ),
         ],
         new DateTimeImmutable('2026-08-20T12:00:00+00:00'),
-    );
+    samplePostalAddress(), samplePostalAddress());
 
     $repository = self::getContainer()->get(OrderRepository::class);
     $entityManager = self::getContainer()->get(EntityManagerInterface::class);
@@ -118,7 +118,7 @@ it('lists a customer orders newest first', function () {
             ),
         ],
         new DateTimeImmutable('2026-08-19T12:00:00+00:00'),
-    ));
+    samplePostalAddress(), samplePostalAddress()));
     $repository->save(Order::place(
         OrderId::fromString('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa2'),
         CustomerId::fromString('11111111-1111-4111-8111-111111111111'),
@@ -131,7 +131,7 @@ it('lists a customer orders newest first', function () {
             ),
         ],
         new DateTimeImmutable('2026-08-20T12:00:00+00:00'),
-    ));
+    samplePostalAddress(), samplePostalAddress()));
     $repository->save(Order::place(
         OrderId::fromString('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa3'),
         CustomerId::fromString('22222222-2222-4222-8222-222222222222'),
@@ -144,7 +144,7 @@ it('lists a customer orders newest first', function () {
             ),
         ],
         new DateTimeImmutable('2026-08-21T12:00:00+00:00'),
-    ));
+    samplePostalAddress(), samplePostalAddress()));
 
     $entityManager->clear();
 
@@ -178,7 +178,7 @@ it('lists all orders newest first across customers', function () {
             ),
         ],
         new DateTimeImmutable('2026-08-19T12:00:00+00:00'),
-    ));
+    samplePostalAddress(), samplePostalAddress()));
     $repository->save(Order::place(
         OrderId::fromString('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa2'),
         CustomerId::fromString('22222222-2222-4222-8222-222222222222'),
@@ -191,7 +191,7 @@ it('lists all orders newest first across customers', function () {
             ),
         ],
         new DateTimeImmutable('2026-08-20T12:00:00+00:00'),
-    ));
+    samplePostalAddress(), samplePostalAddress()));
     $repository->save(Order::place(
         OrderId::fromString('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa3'),
         CustomerId::fromString('11111111-1111-4111-8111-111111111111'),
@@ -204,7 +204,7 @@ it('lists all orders newest first across customers', function () {
             ),
         ],
         new DateTimeImmutable('2026-08-21T12:00:00+00:00'),
-    ));
+    samplePostalAddress(), samplePostalAddress()));
 
     $entityManager->clear();
 

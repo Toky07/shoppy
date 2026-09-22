@@ -33,6 +33,7 @@ function cancelLifecycleLogin(string $email): array
 function cancelLifecyclePlaceOrder(array $headers, string $productId): array
 {
     test()->client->jsonRequest('POST', '/orders', [
+        ...deliveryFields(),
         'items' => [[
             'productId' => $productId,
             'quantity' => 1,

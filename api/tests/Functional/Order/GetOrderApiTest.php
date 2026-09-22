@@ -33,6 +33,7 @@ function loginOrderUser(string $email): array
 function placeOrderForCurrentUser(array $headers, string $productId, int $quantity = 2): array
 {
     test()->client->jsonRequest('POST', '/orders', [
+        ...deliveryFields(),
         'items' => [[
             'productId' => $productId,
             'quantity' => $quantity,

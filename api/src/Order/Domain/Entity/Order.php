@@ -10,6 +10,7 @@ use App\Order\Domain\ValueObject\CustomerId;
 use App\Order\Domain\ValueObject\OrderId;
 use App\Order\Domain\ValueObject\OrderItem;
 use App\Order\Domain\ValueObject\OrderStatus;
+use App\Order\Domain\ValueObject\PostalAddress;
 use DateTimeImmutable;
 
 final class Order
@@ -23,6 +24,8 @@ final class Order
         private array $items,
         private OrderStatus $status,
         private DateTimeImmutable $createdAt,
+        private ?PostalAddress $shippingAddress,
+        private ?PostalAddress $billingAddress,
     ) {
     }
 
@@ -34,12 +37,14 @@ final class Order
         CustomerId $customerId,
         array $items,
         DateTimeImmutable $createdAt,
+        PostalAddress $shippingAddress,
+        PostalAddress $billingAddress,
     ): self {
         if ($items === []) {
             throw new EmptyOrder();
         }
 
-        return new self($id, $customerId, $items, OrderStatus::pending(), $createdAt);
+        return new self($id, $customerId, $items, OrderStatus::pending(), $createdAt, $shippingAddress, $billingAddress);
     }
 
     /**
@@ -51,12 +56,14 @@ final class Order
         array $items,
         OrderStatus $status,
         DateTimeImmutable $createdAt,
+        ?PostalAddress $shippingAddress = null,
+        ?PostalAddress $billingAddress = null,
     ): self {
         if ($items === []) {
             throw new EmptyOrder();
         }
 
-        return new self($id, $customerId, $items, $status, $createdAt);
+        return new self($id, $customerId, $items, $status, $createdAt, $shippingAddress, $billingAddress);
     }
 
     public function id(): OrderId
@@ -85,6 +92,16 @@ final class Order
     public function createdAt(): DateTimeImmutable
     {
         return $this->createdAt;
+    }
+
+    public function shippingAddress(): ?PostalAddress
+    {
+        return $this->shippingAddress;
+    }
+
+    public function billingAddress(): ?PostalAddress
+    {
+        return $this->billingAddress;
     }
 
     public function totalCents(): int
