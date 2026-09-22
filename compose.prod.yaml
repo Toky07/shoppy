@@ -15,6 +15,8 @@ services:
       DATABASE_URL: sqlite:////app/var/data.db
       DEFAULT_URI: ${DEFAULT_URI:-http://localhost}
       PAYMENT_PROVIDER: ${PAYMENT_PROVIDER:-local}
+      MAILER_DSN: ${MAILER_DSN:-null://null}
+      MAILER_FROM: ${MAILER_FROM:-noreply@shoppy.test}
       STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
       STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
       SYMFONY_TRUSTED_PROXIES: ${SYMFONY_TRUSTED_PROXIES:-127.0.0.1,REMOTE_ADDR}

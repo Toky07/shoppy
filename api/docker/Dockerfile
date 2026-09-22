@@ -45,6 +45,8 @@ ENV APP_ENV=prod \
     PAYMENT_PROVIDER=local \
     STRIPE_SECRET_KEY="" \
     STRIPE_WEBHOOK_SECRET="" \
+    MAILER_DSN=null://null \
+    MAILER_FROM=noreply@shoppy.test \
     DEFAULT_URI=http://localhost
 
 RUN cp "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
