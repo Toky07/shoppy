@@ -16,6 +16,10 @@ export const routes: RouteRecordRaw[] = [
       { path: 'account', name: 'account', component: () => import('@/modules/auth/ui/AccountPage.vue') },
       { path: 'login', name: 'login', component: () => import('@/modules/auth/ui/LoginPage.vue') },
       { path: 'register', name: 'register', component: () => import('@/modules/auth/ui/RegisterPage.vue') },
+      { path: 'forgot-password', name: 'forgot-password', component: () => import('@/modules/auth/ui/ForgotPasswordPage.vue') },
+      { path: 'reset-password', name: 'reset-password', component: () => import('@/modules/auth/ui/ResetPasswordPage.vue') },
+      { path: 'verify-email', name: 'verify-email', component: () => import('@/modules/auth/ui/VerifyEmailPage.vue') },
+      { path: 'confirm-email', name: 'confirm-email', component: () => import('@/modules/auth/ui/ConfirmEmailPage.vue') },
     ],
   },
   {

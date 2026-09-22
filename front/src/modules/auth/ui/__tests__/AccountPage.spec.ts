@@ -53,4 +53,30 @@ describe('AccountPage', () => {
       expect(authRepository.logoutCount).toBe(1)
     })
   })
+
+  it('changes the password and leaves the account', async () => {
+    const authRepository = new FakeAuthRepository()
+    const { router } = await renderApp({ authRepository, session: visitorSession, path: '/account' })
+
+    await userEvent.type(page().getByLabelText('Mot de passe actuel'), 'secret-secret')
+    await userEvent.type(page().getByLabelText('Nouveau mot de passe'), 'brand-new-secret')
+    await userEvent.click(page().getByRole('button', { name: 'Mettre à jour le mot de passe' }))
+
+    await waitFor(() => {
+      expect(router.currentRoute.value.path).toBe('/login')
+    })
+    expect(authRepository.passwordChanges).toEqual([
+      { currentPassword: 'secret-secret', newPassword: 'brand-new-secret' },
+    ])
+  })
+
+  it('asks to confirm an unverified email', async () => {
+    await renderApp({
+      session: { ...visitorSession, user: { ...visitorSession.user, emailVerified: false } },
+      path: '/account',
+    })
+
+    expect(page().getByText('Email à confirmer')).toBeTruthy()
+    expect(page().getByRole('button', { name: "Renvoyer l'email" })).toBeTruthy()
+  })
 })

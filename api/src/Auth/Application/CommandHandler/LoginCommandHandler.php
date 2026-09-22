@@ -46,6 +46,7 @@ final readonly class LoginCommandHandler
 
         if (
             $user === null
+            || $user->isDeleted()
             || $credentials === null
             || !$this->passwordHasher->verify($credentials->hashedPassword(), $password)
         ) {

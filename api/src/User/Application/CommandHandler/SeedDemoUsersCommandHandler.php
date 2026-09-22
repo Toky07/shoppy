@@ -47,6 +47,7 @@ final readonly class SeedDemoUsersCommandHandler
         }
 
         $user = User::register(UserId::generate(), $email, $this->clock->now(), $role);
+        $user->markEmailVerified($this->clock->now());
         $this->userRepository->save($user);
         $this->credentialsRepository->save(Credentials::create(
             $user->id(),

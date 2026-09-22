@@ -42,4 +42,9 @@ class CredentialRecord
         $this->userId = $credentials->userId()->value();
         $this->passwordHash = $credentials->hashedPassword()->value();
     }
+
+    public function updateFromDomain(Credentials $credentials): void
+    {
+        $this->passwordHash = $credentials->hashedPassword()->value();
+    }
 }

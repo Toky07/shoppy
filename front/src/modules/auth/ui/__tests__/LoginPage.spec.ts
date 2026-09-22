@@ -12,6 +12,9 @@ describe('LoginPage', () => {
 
     await userEvent.type(screen.getByLabelText('Adresse email'), 'visitor@shoppy.test')
     await userEvent.type(screen.getByLabelText('Mot de passe'), 'password123')
+    expect(screen.getByRole('link', { name: 'Mot de passe oublié' }).getAttribute('href')).toBe(
+      '/forgot-password',
+    )
     await userEvent.click(screen.getByRole('button', { name: 'Se connecter' }))
 
     await waitFor(() => {

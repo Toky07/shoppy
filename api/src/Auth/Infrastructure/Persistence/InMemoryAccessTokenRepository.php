@@ -7,6 +7,7 @@ namespace App\Auth\Infrastructure\Persistence;
 use App\Auth\Domain\Entity\AccessToken;
 use App\Auth\Domain\Repository\AccessTokenRepository;
 use App\Auth\Domain\ValueObject\TokenHash;
+use App\User\Domain\ValueObject\UserId;
 
 final class InMemoryAccessTokenRepository implements AccessTokenRepository
 {
@@ -26,5 +27,14 @@ final class InMemoryAccessTokenRepository implements AccessTokenRepository
     public function delete(AccessToken $token): void
     {
         unset($this->tokens[$token->hash()->value()]);
+    }
+
+    public function deleteByUserId(UserId $userId): void
+    {
+        foreach ($this->tokens as $hash => $token) {
+            if ($token->userId()->value() === $userId->value()) {
+                unset($this->tokens[$hash]);
+            }
+        }
     }
 }

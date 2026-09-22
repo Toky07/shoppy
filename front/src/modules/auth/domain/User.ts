@@ -5,4 +5,5 @@ export type User = {
   email: string
   role: UserRole
   createdAt: string
+  emailVerified: boolean
 }

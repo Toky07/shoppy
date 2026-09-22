@@ -7,6 +7,7 @@ namespace App\Auth\Infrastructure\Persistence\Doctrine;
 use App\Auth\Domain\Entity\AccessToken;
 use App\Auth\Domain\Repository\AccessTokenRepository;
 use App\Auth\Domain\ValueObject\TokenHash;
+use App\User\Domain\ValueObject\UserId;
 use App\Auth\Infrastructure\Persistence\Doctrine\Entity\AccessTokenRecord;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -44,5 +45,14 @@ final readonly class DoctrineAccessTokenRepository implements AccessTokenReposit
 
         $this->entityManager->remove($record);
         $this->entityManager->flush();
+    }
+
+    public function deleteByUserId(UserId $userId): void
+    {
+        $this->entityManager->createQuery(
+            'DELETE FROM App\Auth\Infrastructure\Persistence\Doctrine\Entity\AccessTokenRecord token WHERE token.userId = :userId',
+        )
+            ->setParameter('userId', $userId->value())
+            ->execute();
     }
 }

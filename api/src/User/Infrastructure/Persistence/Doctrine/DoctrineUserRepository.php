@@ -7,6 +7,7 @@ namespace App\User\Infrastructure\Persistence\Doctrine;
 use App\User\Domain\Entity\User;
 use App\User\Domain\Repository\UserRepository;
 use App\User\Domain\ValueObject\Email;
+use App\User\Domain\ValueObject\Role;
 use App\User\Domain\ValueObject\UserId;
 use App\User\Infrastructure\Persistence\Doctrine\Entity\UserRecord;
 use Doctrine\ORM\EntityManagerInterface;
@@ -52,6 +53,7 @@ final readonly class DoctrineUserRepository implements UserRepository
         $query = $this->entityManager->createQueryBuilder()
             ->select('u')
             ->from(UserRecord::class, 'u')
+            ->andWhere('u.deletedAt IS NULL')
             ->orderBy('u.createdAt', 'DESC')
             ->addOrderBy('u.id', 'DESC')
             ->setFirstResult($offset)
@@ -69,11 +71,24 @@ final readonly class DoctrineUserRepository implements UserRepository
     {
         $query = $this->entityManager->createQueryBuilder()
             ->select('COUNT(u.id)')
-            ->from(UserRecord::class, 'u');
+            ->from(UserRecord::class, 'u')
+            ->andWhere('u.deletedAt IS NULL');
 
         $this->applySearch($query, $search);
 
         return (int) $query->getQuery()->getSingleScalarResult();
+    }
+
+    public function countWithRole(Role $role): int
+    {
+        return (int) $this->entityManager->createQueryBuilder()
+            ->select('COUNT(u.id)')
+            ->from(UserRecord::class, 'u')
+            ->andWhere('u.role = :role')
+            ->andWhere('u.deletedAt IS NULL')
+            ->setParameter('role', $role->value())
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 
     private function applySearch(QueryBuilder $query, ?string $search): void

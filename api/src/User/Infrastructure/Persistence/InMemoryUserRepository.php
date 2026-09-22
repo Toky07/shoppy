@@ -7,6 +7,7 @@ namespace App\User\Infrastructure\Persistence;
 use App\User\Domain\Entity\User;
 use App\User\Domain\Repository\UserRepository;
 use App\User\Domain\ValueObject\Email;
+use App\User\Domain\ValueObject\Role;
 use App\User\Domain\ValueObject\UserId;
 
 final class InMemoryUserRepository implements UserRepository
@@ -53,12 +54,23 @@ final class InMemoryUserRepository implements UserRepository
         return count($this->filtered($search));
     }
 
+    public function countWithRole(Role $role): int
+    {
+        return count(array_filter(
+            $this->users,
+            static fn (User $user): bool => !$user->isDeleted() && $user->role()->value() === $role->value(),
+        ));
+    }
+
     /**
      * @return list<User>
      */
     private function filtered(?string $search): array
     {
-        $users = array_values($this->users);
+        $users = array_values(array_filter(
+            $this->users,
+            static fn (User $user): bool => !$user->isDeleted(),
+        ));
         if ($search === null) {
             return $users;
         }

@@ -29,4 +29,9 @@ final class Credentials
     {
         return $this->hashedPassword;
     }
+
+    public function changePassword(HashedPassword $hashedPassword): void
+    {
+        $this->hashedPassword = $hashedPassword;
+    }
 }

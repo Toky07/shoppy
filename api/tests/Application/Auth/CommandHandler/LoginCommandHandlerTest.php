@@ -2,17 +2,21 @@
 
 declare(strict_types=1);
 
+use App\Auth\Application\AccountNotifier;
 use App\Auth\Application\Command\LoginCommand;
 use App\Auth\Application\Command\RegisterAccountCommand;
 use App\Auth\Application\CommandHandler\LoginCommandHandler;
 use App\Auth\Application\CommandHandler\RegisterAccountCommandHandler;
+use App\Auth\Application\IssueAccountToken;
 use App\Auth\Domain\Exception\InvalidCredentials;
 use App\Auth\Domain\ValueObject\TokenHash;
 use App\Auth\Infrastructure\Persistence\InMemoryAccessTokenRepository;
+use App\Auth\Infrastructure\Persistence\InMemoryAccountTokenRepository;
 use App\Auth\Infrastructure\Persistence\InMemoryCredentialsRepository;
 use App\Tests\Doubles\FakePasswordHasher;
 use App\Tests\Doubles\FakeTokenGenerator;
 use App\Tests\Doubles\FixedClock;
+use App\Tests\Doubles\RecordingEventBus;
 use App\User\Application\CommandHandler\RegisterUserCommandHandler;
 use App\User\Infrastructure\Persistence\InMemoryUserRepository;
 
@@ -45,6 +49,13 @@ function registeredAccount(
         ),
         $credentials,
         new FakePasswordHasher(),
+        $users,
+        new IssueAccountToken(
+            new InMemoryAccountTokenRepository(),
+            new FakeTokenGenerator('verification-token'),
+            new FixedClock(new DateTimeImmutable('2026-08-20T12:00:00+00:00')),
+        ),
+        new AccountNotifier(new RecordingEventBus(), 'http://localhost:5173'),
     );
 
     $register->handle(new RegisterAccountCommand($email, $password));

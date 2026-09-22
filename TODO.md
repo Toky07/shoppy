@@ -2,17 +2,17 @@
 
 Audit du 22 septembre 2026. Cocher au fur et à mesure.
 
-Déjà en place : inscription / connexion / rôles, catalogue paginé (recherche, tri, slug, stock, favoris locaux), panier authentifié, commande avec prix serveur, annulation qui restaure le stock, Stripe (session + webhook signé), admin produits / commandes / utilisateurs, tests Pest et Vitest.
+Déjà en place : inscription / connexion / rôles, sécurité du compte (réinitialisation, vérification d’email, changement de mot de passe et d’email, déconnexion de toutes les sessions, suppression anonymisée, refus de supprimer le dernier admin), catalogue paginé (recherche, tri, slug, stock, favoris locaux), panier authentifié, commande avec prix serveur, annulation qui restaure le stock, Stripe (session + webhook signé), admin produits / commandes / utilisateurs, emails transactionnels, tests Pest et Vitest.
 
 ## Fonctionnalités manquantes
 
 ### Compte
 
-- [ ] Réinitialisation du mot de passe (demande, email, token à usage unique, expiration)
-- [ ] Vérification de l’adresse email à l’inscription
-- [ ] Changement de mot de passe et d’email depuis le compte
-- [ ] Suppression / anonymisation du compte
-- [ ] Déconnexion de toutes les sessions (aujourd’hui le logout ne révoque qu’un token)
+- [x] Réinitialisation du mot de passe (demande, email, token à usage unique, expiration)
+- [x] Vérification de l’adresse email à l’inscription
+- [x] Changement de mot de passe et d’email depuis le compte
+- [x] Suppression / anonymisation du compte
+- [x] Déconnexion de toutes les sessions (le logout d’un seul appareil ne révoque toujours qu’un token)
 - [ ] Favoris rattachés au compte (aujourd’hui `localStorage`, perdus en changeant d’appareil)
 
 ### Catalogue
@@ -59,7 +59,7 @@ Déjà en place : inscription / connexion / rôles, catalogue paginé (recherche
 
 - [ ] Tableau de bord (CA, commandes du jour, stock bas) — l’accueil admin ne fait que des liens
 - [ ] Journal d’audit (qui a changé un rôle, un prix, un stock, un paiement)
-- [ ] Garde-fou « dernier admin » (un admin peut se rétrograder)
+- [ ] Garde-fou « dernier admin » à la rétrogradation (la suppression du dernier admin est déjà refusée)
 - [ ] Guards router `auth` / `admin` (aujourd’hui `AuthRequiredPanel` et `AdminLayout` seulement)
 - [ ] SEO par produit (title, meta, Open Graph, `sitemap.xml`, `robots.txt`)
 - [ ] Pages légales (CGV, confidentialité, mentions, retours) — le footer a des libellés non cliquables
@@ -106,7 +106,8 @@ Déjà en place : inscription / connexion / rôles, catalogue paginé (recherche
 - [ ] Politique de mot de passe au-delà de 8 caractères
 - [ ] Même temps de réponse login si l’email n’existe pas (`password_verify` n’est pas appelé)
 - [ ] Ne pas répondre `409 email_already_registered` de façon énumérable, ou l’assumer explicitement
-- [ ] Révoquer les tokens au changement de mot de passe et de rôle
+- [x] Révoquer les tokens au changement de mot de passe, à la réinitialisation et à la confirmation d’un nouvel email
+- [ ] Révoquer les tokens au changement de rôle
 - [ ] Plafonner le nombre de sessions par utilisateur
 - [ ] Revalider `/auth/me` au chargement (rôle et expiration viennent du `localStorage`)
 - [ ] Centraliser l’authentification (subscriber) : chaque contrôleur appelle Bearer / `RequireAdmin` à la main

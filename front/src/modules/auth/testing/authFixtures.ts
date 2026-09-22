@@ -6,6 +6,7 @@ export const visitorUser: User = {
   email: 'visitor@shoppy.test',
   role: 'customer',
   createdAt: '2026-08-20T12:00:00+00:00',
+  emailVerified: true,
 }
 
 export const visitorSession: Session = {
@@ -18,6 +19,7 @@ export const adminUser: User = {
   email: 'admin@shoppy.test',
   role: 'admin',
   createdAt: '2026-08-20T12:00:00+00:00',
+  emailVerified: true,
 }
 
 export const adminSession: Session = {
@@ -31,6 +33,7 @@ export function createUserJson(overrides: Record<string, unknown> = {}) {
     email: visitorUser.email,
     role: visitorUser.role,
     createdAt: visitorUser.createdAt,
+    emailVerified: visitorUser.emailVerified,
     ...overrides,
   }
 }

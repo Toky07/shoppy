@@ -56,6 +56,7 @@ async function onLogout() {
             <AppIcon :name="user.role === 'admin' ? 'shield' : 'user'" :size="12" />
             {{ userRoleLabel(user.role) }}
           </span>
+          <span v-if="!user.emailVerified" class="badge-accent">Email à confirmer</span>
         </span>
       </span>
     </div>

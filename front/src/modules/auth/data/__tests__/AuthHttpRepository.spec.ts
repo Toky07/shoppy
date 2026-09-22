@@ -41,4 +41,39 @@ describe('AuthHttpRepository', () => {
 
     expect(http.calls).toEqual([{ method: 'POST', path: '/auth/logout' }])
   })
+
+  it('calls the account security endpoints', async () => {
+    const http = new FakeHttpClient(() => undefined)
+    const repository = new AuthHttpRepository(http)
+
+    await repository.requestPasswordReset('ada@shoppy.test')
+    await repository.resetPassword('token', 'brand-new-secret')
+    await repository.verifyEmail('token')
+    await repository.requestEmailVerification()
+    await repository.changePassword('secret-secret', 'brand-new-secret')
+    await repository.requestEmailChange('ada.new@shoppy.test', 'secret-secret')
+    await repository.confirmEmailChange('token')
+    await repository.logoutAll()
+    await repository.deleteAccount('secret-secret')
+
+    expect(http.calls).toEqual([
+      { method: 'POST', path: '/auth/password-resets', body: { email: 'ada@shoppy.test' } },
+      { method: 'POST', path: '/auth/password-resets/confirm', body: { token: 'token', password: 'brand-new-secret' } },
+      { method: 'POST', path: '/auth/email-verifications', body: { token: 'token' } },
+      { method: 'POST', path: '/auth/email-verifications/request' },
+      {
+        method: 'POST',
+        path: '/auth/password',
+        body: { currentPassword: 'secret-secret', newPassword: 'brand-new-secret' },
+      },
+      {
+        method: 'POST',
+        path: '/auth/email-changes',
+        body: { email: 'ada.new@shoppy.test', currentPassword: 'secret-secret' },
+      },
+      { method: 'POST', path: '/auth/email-changes/confirm', body: { token: 'token' } },
+      { method: 'POST', path: '/auth/logout-all' },
+      { method: 'POST', path: '/auth/account/deletion', body: { password: 'secret-secret' } },
+    ])
+  })
 })
