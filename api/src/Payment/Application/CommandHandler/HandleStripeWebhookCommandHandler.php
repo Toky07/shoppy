@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Payment\Application\CommandHandler;
 
 use App\Payment\Application\Command\HandleStripeWebhookCommand;
+use App\Payment\Domain\Exception\PaymentAmountMismatch;
 use App\Payment\Domain\Repository\PaymentRepository;
 use App\Shared\Application\Event\PaymentCompleted;
 use App\Shared\Domain\Clock;
@@ -31,6 +32,10 @@ final readonly class HandleStripeWebhookCommandHandler
 
         if ($payment === null || !$payment->status()->isPending()) {
             return;
+        }
+
+        if ($command->amountCents !== $payment->amount()->cents()) {
+            throw new PaymentAmountMismatch();
         }
 
         $payment->complete($this->clock->now());

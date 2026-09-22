@@ -32,4 +32,8 @@ final class LocalPaymentGateway implements PaymentGateway
     {
         return PaymentCheckoutResult::immediate(self::NAME);
     }
+
+    public function expireCheckout(Payment $payment): void
+    {
+    }
 }

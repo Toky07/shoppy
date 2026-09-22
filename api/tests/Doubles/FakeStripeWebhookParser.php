@@ -29,6 +29,15 @@ final class FakeStripeWebhookParser implements StripeWebhookParser
             throw new InvalidPaymentWebhook();
         }
 
-        return new StripeWebhookEvent($decoded['type'], $decoded['data']['object']['id']);
+        $amountCents = $decoded['data']['object']['amount_total'] ?? null;
+        if ($decoded['type'] === 'checkout.session.completed' && !is_int($amountCents)) {
+            throw new InvalidPaymentWebhook();
+        }
+
+        return new StripeWebhookEvent(
+            $decoded['type'],
+            $decoded['data']['object']['id'],
+            is_int($amountCents) ? $amountCents : null,
+        );
     }
 }

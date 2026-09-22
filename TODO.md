@@ -49,11 +49,11 @@ Déjà en place : inscription / connexion / rôles, sécurité du compte (réini
 
 ### Paiement
 
-- [ ] Aligner « Marquer comme payée » avec le `Payment` (la commande passe `paid`, le paiement reste `pending`, et un checkout Stripe reste possible)
-- [ ] Refuser un nouveau checkout si la commande n’est plus `pending`
-- [ ] À l’annulation, invalider la session Stripe ouverte (sinon le webhook peut encaisser une commande déjà annulée)
-- [ ] Comparer le montant Stripe au montant de la commande dans le webhook
-- [ ] Index sur `payments.provider_reference` (lookup webhook)
+- [x] Aligner « Marquer comme payée » avec le `Payment` (la commande passe `paid`, le paiement reste `pending`, et un checkout Stripe reste possible)
+- [x] Refuser un nouveau checkout si la commande n’est plus `pending`
+- [x] À l’annulation, invalider la session Stripe ouverte (sinon le webhook peut encaisser une commande déjà annulée)
+- [x] Comparer le montant Stripe au montant de la commande dans le webhook
+- [x] Index sur `payments.provider_reference` (lookup webhook)
 
 ### Admin et boutique
 

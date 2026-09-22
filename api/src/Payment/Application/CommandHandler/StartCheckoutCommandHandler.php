@@ -6,10 +6,12 @@ namespace App\Payment\Application\CommandHandler;
 
 use App\Payment\Application\Command\StartCheckoutCommand;
 use App\Payment\Application\PaymentGatewayRegistry;
+use App\Payment\Application\Port\PayableOrder;
 use App\Payment\Application\Response\CheckoutContext;
 use App\Payment\Application\Response\PaymentCheckoutResult;
 use App\Payment\Domain\Exception\PaymentAccessForbidden;
 use App\Payment\Domain\Exception\PaymentNotFound;
+use App\Payment\Domain\Exception\PaymentNotPayable;
 use App\Payment\Domain\Repository\PaymentRepository;
 use App\Payment\Domain\ValueObject\CustomerReference;
 use App\Payment\Domain\ValueObject\OrderReference;
@@ -19,6 +21,7 @@ final readonly class StartCheckoutCommandHandler
     public function __construct(
         private PaymentRepository $paymentRepository,
         private PaymentGatewayRegistry $gatewayRegistry,
+        private PayableOrder $payableOrder,
     ) {
     }
 
@@ -34,6 +37,10 @@ final readonly class StartCheckoutCommandHandler
 
         if (!$payment->customerId()->equals($customerId)) {
             throw new PaymentAccessForbidden();
+        }
+
+        if (!$payment->status()->isPending() || !$this->payableOrder->isPending($command->orderId)) {
+            throw new PaymentNotPayable();
         }
 
         $result = $this->gatewayRegistry->get($command->provider)->startCheckout(

@@ -15,8 +15,10 @@ use App\Payment\Infrastructure\Gateway\StripePaymentGateway;
 use App\Payment\Infrastructure\Persistence\InMemoryPaymentRepository;
 use App\Shared\Application\Event\OrderPlaced;
 use App\Shared\Application\Event\PaymentCompleted;
+use App\Payment\Domain\Exception\PaymentAmountMismatch;
 use App\Tests\Doubles\FakeStripeCheckoutClient;
 use App\Tests\Doubles\FixedClock;
+use App\Tests\Doubles\PendingPayableOrder;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 
 it('completes a pending stripe payment when checkout.session.completed is received', function () {
@@ -37,6 +39,7 @@ it('completes a pending stripe payment when checkout.session.completed is receiv
             new LocalPaymentGateway(),
             new StripePaymentGateway(new FakeStripeCheckoutClient(), 'eur'),
         ], 'local'),
+        new PendingPayableOrder(),
     ))->handle(new StartCheckoutCommand(
         orderId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
         customerId: '11111111-1111-4111-8111-111111111111',
@@ -54,6 +57,7 @@ it('completes a pending stripe payment when checkout.session.completed is receiv
         ->handle(new HandleStripeWebhookCommand(
             type: 'checkout.session.completed',
             providerReference: (string) $checkout->providerReference,
+            amountCents: 3998,
         ));
 
     $payment = $payments->findByOrderId(OrderReference::fromString('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'));
@@ -63,4 +67,41 @@ it('completes a pending stripe payment when checkout.session.completed is receiv
         ->and($completed)->toHaveCount(1)
         ->and($completed[0]->orderId)->toBe('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa')
         ->and($completed[0]->amountCents)->toBe(3998);
+});
+
+it('does not complete a payment when the stripe amount differs from the order', function () {
+    $payments = new InMemoryPaymentRepository();
+    $dispatcher = new EventDispatcher();
+    $now = new DateTimeImmutable('2026-08-20T12:00:00+00:00');
+    $dispatcher->addSubscriber(new CreatePaymentOnOrderPlaced($payments, new FixedClock($now)));
+    $dispatcher->dispatch(new OrderPlaced(
+        'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+        '11111111-1111-4111-8111-111111111111',
+        3998,
+    ));
+
+    $checkout = (new StartCheckoutCommandHandler(
+        $payments,
+        new PaymentGatewayRegistry([
+            new LocalPaymentGateway(),
+            new StripePaymentGateway(new FakeStripeCheckoutClient(), 'eur'),
+        ], 'local'),
+        new PendingPayableOrder(),
+    ))->handle(new StartCheckoutCommand(
+        orderId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+        customerId: '11111111-1111-4111-8111-111111111111',
+        provider: 'stripe',
+        successUrl: 'http://localhost:5173/orders/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa?payment=success',
+        cancelUrl: 'http://localhost:5173/orders/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa?payment=cancel',
+    ));
+
+    expect(fn () => (new HandleStripeWebhookCommandHandler($payments, new FixedClock($now), $dispatcher))
+        ->handle(new HandleStripeWebhookCommand(
+            type: 'checkout.session.completed',
+            providerReference: (string) $checkout->providerReference,
+            amountCents: 100,
+        )))->toThrow(PaymentAmountMismatch::class);
+
+    $payment = $payments->findByOrderId(OrderReference::fromString('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'));
+    expect($payment?->status())->toEqual(PaymentStatus::pending());
 });

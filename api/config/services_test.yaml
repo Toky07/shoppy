@@ -6,7 +6,8 @@ services:
         autowire: true
         autoconfigure: true
 
-    App\Tests\Doubles\FakeStripeCheckoutClient: ~
+    App\Tests\Doubles\FakeStripeCheckoutClient:
+        public: true
 
     App\Payment\Infrastructure\Gateway\Stripe\StripeCheckoutClient: '@App\Tests\Doubles\FakeStripeCheckoutClient'
 

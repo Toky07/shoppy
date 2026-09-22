@@ -58,4 +58,17 @@ final class StripeSdkCheckoutClient implements StripeCheckoutClient
 
         return new CreatedStripeSession($session->id, $session->url);
     }
+
+    public function expireSession(string $sessionId): void
+    {
+        if ($this->secretKey === '' || $sessionId === '') {
+            return;
+        }
+
+        try {
+            (new StripeClient($this->secretKey))->checkout->sessions->expire($sessionId);
+        } catch (ApiErrorException) {
+            // The session is already expired or completed. Cancellation still proceeds.
+        }
+    }
 }

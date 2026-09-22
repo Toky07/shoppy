@@ -13,8 +13,10 @@ use App\Payment\Infrastructure\Gateway\StripePaymentGateway;
 use App\Payment\Infrastructure\Persistence\InMemoryPaymentRepository;
 use App\Shared\Application\Event\OrderPlaced;
 use App\Shared\Application\Event\PaymentCompleted;
+use App\Payment\Domain\Exception\PaymentNotPayable;
 use App\Tests\Doubles\FakeStripeCheckoutClient;
 use App\Tests\Doubles\FixedClock;
+use App\Tests\Doubles\PendingPayableOrder;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 
 it('starts a stripe checkout through the registry and leaves the payment pending', function () {
@@ -39,6 +41,7 @@ it('starts a stripe checkout through the registry and leaves the payment pending
             new LocalPaymentGateway(),
             new StripePaymentGateway(new FakeStripeCheckoutClient(), 'eur'),
         ], 'local'),
+        new PendingPayableOrder(),
     ))->handle(new StartCheckoutCommand(
         orderId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
         customerId: '11111111-1111-4111-8111-111111111111',
@@ -58,3 +61,32 @@ it('starts a stripe checkout through the registry and leaves the payment pending
         ->and($payment?->providerReference())->toStartWith('cs_test_')
         ->and($completed)->toHaveCount(0);
 });
+
+it('refuses a stripe checkout when the order is no longer pending', function () {
+    $payments = new InMemoryPaymentRepository();
+    $dispatcher = new EventDispatcher();
+    $dispatcher->addSubscriber(new CreatePaymentOnOrderPlaced(
+        $payments,
+        new FixedClock(new DateTimeImmutable('2026-08-20T12:00:00+00:00')),
+    ));
+    $dispatcher->dispatch(new OrderPlaced(
+        'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+        '11111111-1111-4111-8111-111111111111',
+        3998,
+    ));
+
+    (new StartCheckoutCommandHandler(
+        $payments,
+        new PaymentGatewayRegistry([
+            new LocalPaymentGateway(),
+            new StripePaymentGateway(new FakeStripeCheckoutClient(), 'eur'),
+        ], 'local'),
+        new PendingPayableOrder(pending: false),
+    ))->handle(new StartCheckoutCommand(
+        orderId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+        customerId: '11111111-1111-4111-8111-111111111111',
+        provider: 'stripe',
+        successUrl: 'http://localhost:5173/orders/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa?payment=success',
+        cancelUrl: 'http://localhost:5173/orders/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa?payment=cancel',
+    ));
+})->throws(PaymentNotPayable::class);

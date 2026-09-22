@@ -9,6 +9,7 @@ final readonly class HandleStripeWebhookCommand
     public function __construct(
         public string $type,
         public string $providerReference,
+        public ?int $amountCents = null,
     ) {
     }
 }

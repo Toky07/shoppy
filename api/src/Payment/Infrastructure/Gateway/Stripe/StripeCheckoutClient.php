@@ -14,4 +14,6 @@ interface StripeCheckoutClient
         string $successUrl,
         string $cancelUrl,
     ): CreatedStripeSession;
+
+    public function expireSession(string $sessionId): void;
 }
