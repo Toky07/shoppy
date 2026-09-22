@@ -8,6 +8,8 @@
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
     app.media.upload_dir: '%kernel.project_dir%/public/uploads'
+    env(MAILER_DSN): 'null://null'
+    env(MAILER_FROM): 'noreply@shoppy.test'
 
 services:
     # default configuration for services in *this* file
@@ -59,6 +61,20 @@ services:
     App\Auth\Application\TokenGenerator: '@App\Auth\Infrastructure\Security\RandomTokenGenerator'
 
     App\Shared\Domain\Clock: '@App\Shared\Infrastructure\SystemClock'
+
+    App\Shared\Domain\Event\EventBus:
+        alias: App\Shared\Infrastructure\Event\SymfonyEventBus
+        public: true
+
+    App\Email\Infrastructure\Mailer\SymfonyMailer:
+        arguments:
+            $fromAddress: '%env(MAILER_FROM)%'
+
+    App\Email\Application\Port\Mailer: '@App\Email\Infrastructure\Mailer\SymfonyMailer'
+
+    App\Order\Application\Port\CustomerContact: '@App\Order\Infrastructure\Customer\UserCustomerContact'
+
+    App\Payment\Application\Port\PayerContact: '@App\Payment\Infrastructure\Customer\UserPayerContact'
 
     App\Order\Domain\Repository\OrderRepository: '@App\Order\Infrastructure\Persistence\Doctrine\DoctrineOrderRepository'
 

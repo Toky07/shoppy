@@ -30,4 +30,6 @@ Comptes démo : `admin@shoppy.test` / `visitor@shoppy.test`, mot de passe `passw
 
 Paiement : `PAYMENT_PROVIDER=local` par défaut, ou `stripe` avec `STRIPE_SECRET_KEY` et `STRIPE_WEBHOOK_SECRET`. En production, définissez aussi `APP_SECRET`.
 
+Emails : `MAILER_DSN=null://null` par défaut (aucun envoi). Expéditeur : `MAILER_FROM`. Les autres modules demandent un envoi en publiant `EmailRequested` sur le bus d’événements. L’événement accepte des pièces jointes. Une commande confirmée joint `recu.txt`.
+
 Les Dockerfiles sont dans `api/docker/` et `front/docker/`.
