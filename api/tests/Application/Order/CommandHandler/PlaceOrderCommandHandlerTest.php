@@ -15,6 +15,7 @@ use App\Product\Domain\Exception\InsufficientProductStock;
 use App\Shared\Application\Event\OrderPlaced;
 use App\Tests\Doubles\FakeCatalog;
 use App\Tests\Doubles\FixedClock;
+use App\Tests\Doubles\ImmediateTransactionRunner;
 use App\Tests\Doubles\RecordingEventDispatcher;
 
 it('places an order with catalog snapshots, ignoring later catalog prices', function () {
@@ -28,7 +29,7 @@ it('places an order with catalog snapshots, ignoring later catalog prices', func
         stock: 10,
     ));
     $createdAt = new DateTimeImmutable('2026-08-20T12:00:00+00:00');
-    $handler = new PlaceOrderCommandHandler($orders, $catalog, new FixedClock($createdAt), $events);
+    $handler = new PlaceOrderCommandHandler($orders, $catalog, new FixedClock($createdAt), new ImmediateTransactionRunner($events));
 
     $orderId = $handler->handle(new PlaceOrderCommand(
         customerId: '11111111-1111-4111-8111-111111111111',
@@ -82,7 +83,7 @@ it('decrements catalog stock when placing an order', function () {
         $orders,
         $catalog,
         new FixedClock(new DateTimeImmutable('2026-08-20T12:00:00+00:00')),
-        new RecordingEventDispatcher(),
+        new ImmediateTransactionRunner(new RecordingEventDispatcher()),
     ))->handle(new PlaceOrderCommand(
         customerId: '11111111-1111-4111-8111-111111111111',
         items: [new PlaceOrderLine(
@@ -115,7 +116,7 @@ it('rejects insufficient stock without persisting the order', function () {
         $orders,
         $catalog,
         new FixedClock(new DateTimeImmutable('2026-08-20T12:00:00+00:00')),
-        new RecordingEventDispatcher(),
+        new ImmediateTransactionRunner(new RecordingEventDispatcher()),
     ))->handle(new PlaceOrderCommand(
         customerId: '11111111-1111-4111-8111-111111111111',
         items: [new PlaceOrderLine(
@@ -136,7 +137,7 @@ it('rejects a missing catalog product without persisting', function () {
         $orders,
         new FakeCatalog(),
         new FixedClock(new DateTimeImmutable('2026-08-20T12:00:00+00:00')),
-        new RecordingEventDispatcher(),
+        new ImmediateTransactionRunner(new RecordingEventDispatcher()),
     );
 
     expect(fn () => $handler->handle(new PlaceOrderCommand(
@@ -157,7 +158,7 @@ it('rejects an order without items', function () {
         new InMemoryOrderRepository(),
         new FakeCatalog(),
         new FixedClock(new DateTimeImmutable('2026-08-20T12:00:00+00:00')),
-        new RecordingEventDispatcher(),
+        new ImmediateTransactionRunner(new RecordingEventDispatcher()),
     );
 
     $handler->handle(new PlaceOrderCommand(

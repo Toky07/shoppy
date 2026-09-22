@@ -256,6 +256,40 @@ it('rejects an order when stock is insufficient', function () {
     expect($fetched['stock'])->toBe(1);
 });
 
+it('does not decrement the first product when a later line has no stock', function () {
+    $this->client->jsonRequest('POST', '/products', [
+        'name' => 'Available Tee',
+        'priceCents' => 1999,
+        'stock' => 4,
+    ], catalogAdminHeaders());
+    $available = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+
+    $this->client->jsonRequest('POST', '/products', [
+        'name' => 'Empty Tee',
+        'priceCents' => 1999,
+        'stock' => 0,
+    ], catalogAdminHeaders());
+    $empty = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+
+    $this->client->jsonRequest('POST', '/orders', [
+        ...deliveryFields(),
+        'items' => [
+            ['productId' => $available['id'], 'quantity' => 1],
+            ['productId' => $empty['id'], 'quantity' => 1],
+        ],
+    ], catalogCustomerHeaders());
+
+    $response = $this->client->getResponse();
+    $payload = json_decode((string) $response->getContent(), true, flags: JSON_THROW_ON_ERROR);
+
+    expect($response->getStatusCode())->toBe(409)
+        ->and($payload['error']['code'])->toBe('insufficient_product_stock');
+
+    $this->client->jsonRequest('GET', '/products/'.$available['id']);
+    $fetched = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+    expect($fetched['stock'])->toBe(4);
+});
+
 it('decrements stock when an order is placed and restores it on cancel', function () {
     $this->client->jsonRequest('POST', '/products', [
         'name' => 'Stock Tee',

@@ -21,8 +21,8 @@ use App\Order\Domain\ValueObject\ShippingMethod;
 use App\Order\Domain\ValueObject\Quantity;
 use App\Order\Domain\ValueObject\UnitPrice;
 use App\Shared\Application\Event\OrderPlaced;
+use App\Shared\Application\Transaction\TransactionRunner;
 use App\Shared\Domain\Clock;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 final readonly class PlaceOrderCommandHandler
 {
@@ -30,11 +30,18 @@ final readonly class PlaceOrderCommandHandler
         private OrderRepository $orderRepository,
         private Catalog $catalog,
         private Clock $clock,
-        private EventDispatcherInterface $eventDispatcher,
+        private TransactionRunner $transactions,
     ) {
     }
 
     public function handle(PlaceOrderCommand $command): OrderId
+    {
+        return $this->transactions->run(function () use ($command): OrderId {
+            return $this->place($command);
+        });
+    }
+
+    private function place(PlaceOrderCommand $command): OrderId
     {
         $shippingAddress = $this->address($command->shippingAddress, 'shippingAddress');
         $billingAddress = $this->address($command->billingAddress, 'billingAddress');
@@ -65,7 +72,7 @@ final readonly class PlaceOrderCommandHandler
 
         $this->orderRepository->save($order);
 
-        $this->eventDispatcher->dispatch(new OrderPlaced(
+        $this->transactions->afterCommit(new OrderPlaced(
             orderId: $order->id()->value(),
             customerId: $order->customerId()->value(),
             amountCents: $order->totalCents(),

@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Cart\Application\AvailableStock;
 use App\Cart\Application\Command\AddToCartCommand;
 use App\Cart\Application\CommandHandler\AddToCartCommandHandler;
 use App\Cart\Application\Query\GetCartQuery;
@@ -25,13 +26,13 @@ it('adds a product to the cart and enriches the response from the catalog', func
     ));
     $now = new DateTimeImmutable('2026-08-20T12:00:00+00:00');
 
-    (new AddToCartCommandHandler($carts, $catalog, new FixedClock($now)))->handle(new AddToCartCommand(
+    (new AddToCartCommandHandler($carts, $catalog, new AvailableStock($carts, $catalog), new FixedClock($now)))->handle(new AddToCartCommand(
         customerId: '11111111-1111-4111-8111-111111111111',
         productId: '550e8400-e29b-41d4-a716-446655440000',
         quantity: 2,
     ));
 
-    $response = (new GetCartQueryHandler($carts, $catalog))->handle(new GetCartQuery(
+    $response = (new GetCartQueryHandler($carts, $catalog, new AvailableStock($carts, $catalog)))->handle(new GetCartQuery(
         '11111111-1111-4111-8111-111111111111',
     ));
 
@@ -65,6 +66,7 @@ it('merges quantities when adding the same product', function () {
     $handler = new AddToCartCommandHandler(
         $carts,
         $catalog,
+        new AvailableStock($carts, $catalog),
         new FixedClock(new DateTimeImmutable('2026-08-20T12:00:00+00:00')),
     );
 
@@ -89,6 +91,7 @@ it('rejects an unknown catalog product', function () {
     (new AddToCartCommandHandler(
         new InMemoryCartRepository(),
         new FakeCartCatalog(),
+        new AvailableStock(new InMemoryCartRepository(), new FakeCartCatalog()),
         new FixedClock(new DateTimeImmutable('2026-08-20T12:00:00+00:00')),
     ))->handle(new AddToCartCommand(
         customerId: '11111111-1111-4111-8111-111111111111',
@@ -109,6 +112,7 @@ it('rejects adding more than available stock', function () {
     (new AddToCartCommandHandler(
         new InMemoryCartRepository(),
         $catalog,
+        new AvailableStock(new InMemoryCartRepository(), $catalog),
         new FixedClock(new DateTimeImmutable('2026-08-20T12:00:00+00:00')),
     ))->handle(new AddToCartCommand(
         customerId: '11111111-1111-4111-8111-111111111111',
@@ -118,7 +122,9 @@ it('rejects adding more than available stock', function () {
 })->throws(InsufficientCartStock::class);
 
 it('returns an empty cart when none exists', function () {
-    $response = (new GetCartQueryHandler(new InMemoryCartRepository(), new FakeCartCatalog()))
+    $carts = new InMemoryCartRepository();
+    $catalog = new FakeCartCatalog();
+    $response = (new GetCartQueryHandler($carts, $catalog, new AvailableStock($carts, $catalog)))
         ->handle(new GetCartQuery('11111111-1111-4111-8111-111111111111'));
 
     expect($response->toArray())->toBe([
@@ -129,3 +135,32 @@ it('returns an empty cart when none exists', function () {
         'updatedAt' => null,
     ]);
 });
+
+it('reserves stock so another customer cannot take the last unit', function () {
+    $carts = new InMemoryCartRepository();
+    $catalog = new FakeCartCatalog();
+    $catalog->add(new CatalogSnapshot(
+        id: '550e8400-e29b-41d4-a716-446655440000',
+        name: 'Nuvora Tee',
+        unitPriceCents: 1999,
+        stock: 1,
+    ));
+    $handler = new AddToCartCommandHandler(
+        $carts,
+        $catalog,
+        new AvailableStock($carts, $catalog),
+        new FixedClock(new DateTimeImmutable('2026-08-20T12:00:00+00:00')),
+    );
+
+    $handler->handle(new AddToCartCommand(
+        customerId: '11111111-1111-4111-8111-111111111111',
+        productId: '550e8400-e29b-41d4-a716-446655440000',
+        quantity: 1,
+    ));
+
+    $handler->handle(new AddToCartCommand(
+        customerId: '22222222-2222-4222-8222-222222222222',
+        productId: '550e8400-e29b-41d4-a716-446655440000',
+        quantity: 1,
+    ));
+})->throws(InsufficientCartStock::class);

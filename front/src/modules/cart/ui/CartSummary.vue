@@ -10,6 +10,8 @@ const props = defineProps<{
   shippingLabel: string
   shippingFeeCents: number
   pending: boolean
+  actionLabel?: string
+  note?: string
 }>()
 
 const shippingFee = computed<Money>(() => ({
@@ -67,7 +69,7 @@ const emit = defineEmits<{
           <AppIcon name="loader" :size="17" />
         </span>
         <AppIcon v-else name="lock" :size="16" />
-        Payer ma commande
+        {{ actionLabel ?? 'Valider ma commande' }}
       </button>
       <button type="button" class="btn-ghost w-full" :disabled="pending" @click="emit('clear')">
         <AppIcon name="trash" :size="15" />
@@ -77,7 +79,7 @@ const emit = defineEmits<{
 
     <p class="mt-6 flex items-center justify-center gap-2 text-center text-[0.7rem] text-faint">
       <AppIcon name="shield" :size="14" />
-      Paiement chiffré, aucune donnée bancaire stockée
+      {{ note ?? 'La commande est créée ici. Le paiement se fait sur la page suivante.' }}
     </p>
   </div>
 </template>

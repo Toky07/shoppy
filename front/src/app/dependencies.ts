@@ -4,6 +4,7 @@ import { createAuthSession } from '@/modules/auth/application/createAuthSession'
 import { createCartState } from '@/modules/cart/application/createCartState'
 import { LocalStorageSessionStore } from '@/modules/auth/data/LocalStorageSessionStore'
 import { CartHttpRepository } from '@/modules/cart/data/CartHttpRepository'
+import { createLocalGuestCart } from '@/modules/cart/data/guestCartStorage'
 import { OrderHttpRepository } from '@/modules/order/data/OrderHttpRepository'
 import { PaymentHttpRepository } from '@/modules/payment/data/PaymentHttpRepository'
 import { AdminCatalogHttpRepository } from '@/modules/catalog/data/AdminCatalogHttpRepository'
@@ -19,7 +20,11 @@ export const httpClient = new FetchHttpClient(
 export const catalogRepository = new ProductHttpRepository(httpClient)
 export const authRepository = new AuthHttpRepository(httpClient)
 export const cartRepository = new CartHttpRepository(httpClient)
-export const cartState = createCartState(cartRepository, authSession.isAuthenticated)
+export const cartState = createCartState(
+  cartRepository,
+  authSession.isAuthenticated,
+  createLocalGuestCart(window.localStorage),
+)
 export const orderRepository = new OrderHttpRepository(httpClient)
 export const paymentRepository = new PaymentHttpRepository(httpClient)
 export const adminCatalogRepository = new AdminCatalogHttpRepository(httpClient)

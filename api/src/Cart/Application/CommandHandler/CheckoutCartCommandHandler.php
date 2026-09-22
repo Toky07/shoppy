@@ -12,6 +12,7 @@ use App\Order\Application\Command\PlaceOrderCommand;
 use App\Order\Application\Command\PlaceOrderLine;
 use App\Order\Application\CommandHandler\PlaceOrderCommandHandler;
 use App\Order\Domain\ValueObject\OrderId;
+use App\Shared\Application\Transaction\TransactionRunner;
 use App\Shared\Domain\Clock;
 
 final readonly class CheckoutCartCommandHandler
@@ -20,10 +21,18 @@ final readonly class CheckoutCartCommandHandler
         private CartRepository $cartRepository,
         private PlaceOrderCommandHandler $placeOrder,
         private Clock $clock,
+        private TransactionRunner $transactions,
     ) {
     }
 
     public function handle(CheckoutCartCommand $command): OrderId
+    {
+        return $this->transactions->run(function () use ($command): OrderId {
+            return $this->checkout($command);
+        });
+    }
+
+    private function checkout(CheckoutCartCommand $command): OrderId
     {
         $customerId = CustomerId::fromString($command->customerId);
         $cart = $this->cartRepository->findByCustomerId($customerId);
@@ -33,6 +42,9 @@ final readonly class CheckoutCartCommandHandler
         }
 
         $this->cartRepository->claimForCheckout($cart);
+        $lines = $cart->items();
+        $cart->clear($this->clock->now());
+        $this->cartRepository->save($cart);
 
         $orderId = $this->placeOrder->handle(new PlaceOrderCommand(
             customerId: $customerId->value(),
@@ -42,15 +54,12 @@ final readonly class CheckoutCartCommandHandler
                     $item->quantity()->value(),
                     $item->variantId()?->value(),
                 ),
-                $cart->items(),
+                $lines,
             ),
             shippingAddress: $command->shippingAddress,
             billingAddress: $command->billingAddress,
             shippingMethod: $command->shippingMethod,
         ));
-
-        $cart->clear($this->clock->now());
-        $this->cartRepository->save($cart);
 
         return $orderId;
     }

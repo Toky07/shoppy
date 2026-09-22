@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Cart\Application\QueryHandler;
 
+use App\Cart\Application\AvailableStock;
 use App\Cart\Application\Catalog;
 use App\Cart\Application\Query\GetCartQuery;
 use App\Cart\Application\Response\CartItemResponse;
@@ -17,6 +18,7 @@ final readonly class GetCartQueryHandler
     public function __construct(
         private CartRepository $cartRepository,
         private Catalog $catalog,
+        private AvailableStock $availableStock,
     ) {
     }
 
@@ -44,7 +46,7 @@ final readonly class GetCartQueryHandler
                 $quantity,
                 $snapshot->unitPriceCents,
                 $snapshot->unitPriceCents * $quantity,
-                $snapshot->stock,
+                $this->availableStock->maximum($customerId, $item->productId(), $item->variantId()) ?? 0,
                 $item->variantId()?->value(),
             );
         }

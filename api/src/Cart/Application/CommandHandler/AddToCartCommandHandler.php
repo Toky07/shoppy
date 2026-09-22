@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Cart\Application\CommandHandler;
 
+use App\Cart\Application\AvailableStock;
 use App\Cart\Application\Catalog;
 use App\Cart\Application\Command\AddToCartCommand;
 use App\Cart\Domain\Entity\Cart;
@@ -23,6 +24,7 @@ final readonly class AddToCartCommandHandler
     public function __construct(
         private CartRepository $cartRepository,
         private Catalog $catalog,
+        private AvailableStock $availableStock,
         private Clock $clock,
     ) {
     }
@@ -54,9 +56,10 @@ final readonly class AddToCartCommandHandler
             }
         }
 
+        $maximum = $this->availableStock->maximum($customerId, $productId, $variantId) ?? 0;
         $requestedTotal = $existingQuantity + $quantity->value();
-        if ($snapshot->stock < $requestedTotal) {
-            throw new InsufficientCartStock($snapshot->stock, $requestedTotal);
+        if ($requestedTotal > $maximum) {
+            throw new InsufficientCartStock($maximum, $requestedTotal);
         }
 
         $cart->addItem($productId, $quantity, $this->clock->now(), $variantId);

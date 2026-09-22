@@ -10,6 +10,8 @@ import { cartErrorMessage } from '@/modules/cart/ui/cartErrorMessage'
 const props = defineProps<{
   productId: string
   stock: number
+  name: string
+  unitPriceCents: number
   variantId?: string
 }>()
 
@@ -34,14 +36,13 @@ async function onSubmit() {
   errorMessage.value = undefined
   successMessage.value = undefined
 
-  if (!authSession.isAuthenticated.value) {
-    await router.push({ path: '/login', query: { redirect: route.path } })
-    return
-  }
-
   pending.value = true
   try {
-    await state.addItem(props.productId, quantity.value, props.variantId)
+    await state.addItem(props.productId, quantity.value, props.variantId, {
+      name: props.name,
+      unitPriceCents: props.unitPriceCents,
+      availableStock: props.stock,
+    })
     successMessage.value = 'Ajouté au panier.'
   } catch (caught) {
     const error = toApiError(caught)

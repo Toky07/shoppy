@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Cart\Application\AvailableStock;
 use App\Cart\Application\Command\AddToCartCommand;
 use App\Cart\Application\Command\CheckoutCartCommand;
 use App\Cart\Application\CommandHandler\AddToCartCommandHandler;
@@ -18,6 +19,7 @@ use App\Order\Infrastructure\Persistence\InMemoryOrderRepository;
 use App\Tests\Doubles\FakeCartCatalog;
 use App\Tests\Doubles\FakeCatalog;
 use App\Tests\Doubles\FixedClock;
+use App\Tests\Doubles\ImmediateTransactionRunner;
 use App\Tests\Doubles\RecordingEventDispatcher;
 
 it('checks out the cart into an order and clears the cart', function () {
@@ -30,7 +32,7 @@ it('checks out the cart into an order and clears the cart', function () {
     $orderCatalog->add(new OrderCatalogSnapshot($productId, 'Nuvora Tee', 1999, 10));
     $now = new DateTimeImmutable('2026-08-20T12:00:00+00:00');
 
-    (new AddToCartCommandHandler($carts, $cartCatalog, new FixedClock($now)))->handle(new AddToCartCommand(
+    (new AddToCartCommandHandler($carts, $cartCatalog, new AvailableStock($carts, $cartCatalog), new FixedClock($now)))->handle(new AddToCartCommand(
         customerId: '11111111-1111-4111-8111-111111111111',
         productId: $productId,
         quantity: 2,
@@ -42,9 +44,10 @@ it('checks out the cart into an order and clears the cart', function () {
             $orders,
             $orderCatalog,
             new FixedClock($now),
-            new RecordingEventDispatcher(),
+            $transactions = new ImmediateTransactionRunner(new RecordingEventDispatcher()),
         ),
         new FixedClock($now),
+        $transactions,
     ))->handle(new CheckoutCartCommand('11111111-1111-4111-8111-111111111111', sampleOrderAddress(), sampleOrderAddress(), 'standard'));
 
     $order = $orders->findById($orderId);
@@ -68,9 +71,10 @@ it('rejects checking out an empty cart', function () {
             new InMemoryOrderRepository(),
             new FakeCatalog(),
             new FixedClock(new DateTimeImmutable('2026-08-20T12:00:00+00:00')),
-            new RecordingEventDispatcher(),
+            $transactions = new ImmediateTransactionRunner(new RecordingEventDispatcher()),
         ),
         new FixedClock(new DateTimeImmutable('2026-08-20T12:00:00+00:00')),
+        $transactions,
     ))->handle(new CheckoutCartCommand('11111111-1111-4111-8111-111111111111', sampleOrderAddress(), sampleOrderAddress(), 'standard'));
 })->throws(EmptyCart::class);
 
@@ -85,7 +89,7 @@ it('does not place a second order when another checkout already claimed the cart
     $orderCatalog->add(new OrderCatalogSnapshot($productId, 'Nuvora Tee', 1999, 10));
     $now = new DateTimeImmutable('2026-08-20T12:00:00+00:00');
 
-    (new AddToCartCommandHandler($carts, $cartCatalog, new FixedClock($now)))->handle(new AddToCartCommand(
+    (new AddToCartCommandHandler($carts, $cartCatalog, new AvailableStock($carts, $cartCatalog), new FixedClock($now)))->handle(new AddToCartCommand(
         customerId: $customerId,
         productId: $productId,
         quantity: 2,
@@ -100,9 +104,10 @@ it('does not place a second order when another checkout already claimed the cart
             $orders,
             $orderCatalog,
             new FixedClock($now),
-            new RecordingEventDispatcher(),
+            $transactions = new ImmediateTransactionRunner(new RecordingEventDispatcher()),
         ),
         new FixedClock($now),
+        $transactions,
     );
 
     expect(fn () => $handler->handle(new CheckoutCartCommand(

@@ -32,6 +32,18 @@ const selectedVariant = computed(
 )
 const selectedStock = computed(() => selectedVariant.value?.stock ?? product.value?.stock ?? 0)
 const selectedSku = computed(() => selectedVariant.value?.sku ?? product.value?.sku ?? '')
+const selectedName = computed(() => {
+  const current = product.value
+  const variant = selectedVariant.value
+  if (!current) {
+    return ''
+  }
+  if (!variant) {
+    return current.name
+  }
+  const options = [variant.size, variant.color].filter((value) => value)
+  return options.length > 0 ? `${current.name} — ${options.join(' / ')}` : current.name
+})
 const related = ref<Product[]>([])
 const notFound = computed(() => error.value?.code === 'product_not_found')
 const errorMessage = computed(() =>
@@ -115,6 +127,8 @@ watch(product, async (current) => {
               :product-id="product.id"
               :variant-id="selectedVariant?.id"
               :stock="selectedStock"
+              :name="selectedName"
+              :unit-price-cents="product.price.cents"
             />
           </div>
 

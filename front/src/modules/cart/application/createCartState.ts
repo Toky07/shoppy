@@ -4,21 +4,38 @@ import { toApiError } from '@/shared/http/toApiError'
 import type { Cart } from '../domain/Cart'
 import type { CheckoutAddresses } from '../domain/CheckoutAddresses'
 import type { CheckoutResult } from '../domain/CheckoutResult'
+import {
+  createMemoryGuestCart,
+  guestCartFromLines,
+  type GuestCartLine,
+  type GuestCartStore,
+} from '../data/guestCartStorage'
 import type { CartRepository } from './CartRepository'
+
+export type GuestCartSnapshot = {
+  name: string
+  unitPriceCents: number
+  availableStock: number
+}
 
 export function createCartState(
   repository: CartRepository,
   isAuthenticated: MaybeRefOrGetter<boolean>,
+  guestCart: GuestCartStore = createMemoryGuestCart(),
 ) {
   const cart = ref<Cart | null>(null)
   const loading = ref(false)
   const error = ref<ApiError | null>(null)
 
+  function showGuestCart() {
+    cart.value = guestCartFromLines(guestCart.read())
+    error.value = null
+    loading.value = false
+  }
+
   async function refresh() {
     if (!toValue(isAuthenticated)) {
-      cart.value = null
-      error.value = null
-      loading.value = false
+      showGuestCart()
       return
     }
 
@@ -26,6 +43,19 @@ export function createCartState(
     error.value = null
 
     try {
+      const guestLines = guestCart.read()
+      if (guestLines.length > 0) {
+        cart.value = await repository.merge(
+          guestLines.map((line) => ({
+            productId: line.productId,
+            quantity: line.quantity,
+            variantId: line.variantId,
+          })),
+        )
+        guestCart.clear()
+        return
+      }
+
       cart.value = await repository.get()
     } catch (caught) {
       error.value = toApiError(caught)
@@ -36,6 +66,12 @@ export function createCartState(
   }
 
   watch(() => toValue(isAuthenticated), refresh, { immediate: true })
+
+  function changeGuest(update: (lines: GuestCartLine[]) => GuestCartLine[]) {
+    const next = update(guestCart.read())
+    guestCart.write(next)
+    showGuestCart()
+  }
 
   async function mutate(run: () => Promise<Cart>): Promise<Cart> {
     const next = await run()
@@ -55,15 +91,81 @@ export function createCartState(
     error: readonly(error),
     itemCount: computed(() => cart.value?.items.reduce((sum, item) => sum + item.quantity, 0) ?? 0),
     refresh,
-    addItem: (productId: string, quantity: number, variantId?: string | null) =>
-      mutate(() => repository.addItem(productId, quantity, variantId)),
-    updateItem: (productId: string, quantity: number, variantId?: string | null) =>
-      mutate(() => repository.updateItem(productId, quantity, variantId)),
-    removeItem: (productId: string, variantId?: string | null) =>
-      mutate(() => repository.removeItem(productId, variantId)),
-    clear: () => mutate(() => repository.clear()),
+    addItem: (
+      productId: string,
+      quantity: number,
+      variantId?: string | null,
+      snapshot?: GuestCartSnapshot,
+    ) => {
+      if (!toValue(isAuthenticated)) {
+        changeGuest((lines) => addGuestLine(lines, productId, quantity, variantId ?? null, snapshot))
+        return Promise.resolve(cart.value as Cart)
+      }
+
+      return mutate(() => repository.addItem(productId, quantity, variantId))
+    },
+    updateItem: (productId: string, quantity: number, variantId?: string | null) => {
+      if (!toValue(isAuthenticated)) {
+        changeGuest((lines) =>
+          lines.map((line) =>
+            line.productId === productId && line.variantId === (variantId ?? null)
+              ? { ...line, quantity }
+              : line,
+          ),
+        )
+        return Promise.resolve(cart.value as Cart)
+      }
+
+      return mutate(() => repository.updateItem(productId, quantity, variantId))
+    },
+    removeItem: (productId: string, variantId?: string | null) => {
+      if (!toValue(isAuthenticated)) {
+        changeGuest((lines) =>
+          lines.filter((line) => !(line.productId === productId && line.variantId === (variantId ?? null))),
+        )
+        return Promise.resolve(cart.value as Cart)
+      }
+
+      return mutate(() => repository.removeItem(productId, variantId))
+    },
+    clear: () => {
+      if (!toValue(isAuthenticated)) {
+        guestCart.clear()
+        showGuestCart()
+        return Promise.resolve(cart.value as Cart)
+      }
+
+      return mutate(() => repository.clear())
+    },
     checkout,
   }
+}
+
+function addGuestLine(
+  lines: GuestCartLine[],
+  productId: string,
+  quantity: number,
+  variantId: string | null,
+  snapshot?: GuestCartSnapshot,
+): GuestCartLine[] {
+  const existing = lines.find((line) => line.productId === productId && line.variantId === variantId)
+  if (existing) {
+    return lines.map((line) =>
+      line === existing ? { ...line, quantity: line.quantity + quantity } : line,
+    )
+  }
+
+  return [
+    ...lines,
+    {
+      productId,
+      variantId,
+      quantity,
+      name: snapshot?.name ?? 'Article',
+      unitPriceCents: snapshot?.unitPriceCents ?? 0,
+      availableStock: snapshot?.availableStock ?? quantity,
+    },
+  ]
 }
 
 export type CartState = ReturnType<typeof createCartState>

@@ -42,6 +42,7 @@ export class FakeCartRepository implements CartRepository {
   public updated: Array<{ productId: string; quantity: number; variantId?: string }> = []
   public removed: string[] = []
   public clearCount = 0
+  public merged: Array<{ productId: string; quantity: number; variantId?: string | null }> = []
   public checkoutCount = 0
   public checkouts: CheckoutAddresses[] = []
   public getCount = 0
@@ -105,6 +106,16 @@ export class FakeCartRepository implements CartRepository {
     })
     if (this.cart.items.length === 0) {
       this.cart = emptyCart(this.cart.customerId)
+    }
+    return cloneCart(this.cart)
+  }
+
+  async merge(
+    items: Array<{ productId: string; quantity: number; variantId?: string | null }>,
+  ): Promise<Cart> {
+    this.merged.push(...items)
+    for (const item of items) {
+      await this.addItem(item.productId, item.quantity, item.variantId)
     }
     return cloneCart(this.cart)
   }

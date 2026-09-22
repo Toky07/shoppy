@@ -40,6 +40,20 @@ export class CartHttpRepository implements CartRepository {
     return mapCart(await this.http.delete('/cart'))
   }
 
+  async merge(
+    items: Array<{ productId: string; quantity: number; variantId?: string | null }>,
+  ): Promise<Cart> {
+    return mapCart(
+      await this.http.post('/cart/merge', {
+        items: items.map((item) => ({
+          productId: item.productId,
+          quantity: item.quantity,
+          ...(item.variantId ? { variantId: item.variantId } : {}),
+        })),
+      }),
+    )
+  }
+
   async checkout(addresses: CheckoutAddresses): Promise<CheckoutResult> {
     return mapCheckoutResult(await this.http.post('/cart/checkout', addresses))
   }
