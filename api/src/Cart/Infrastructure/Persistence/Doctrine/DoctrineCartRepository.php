@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Cart\Infrastructure\Persistence\Doctrine;
 
 use App\Cart\Domain\Entity\Cart;
+use App\Cart\Domain\Exception\CartAlreadyCheckingOut;
 use App\Cart\Domain\Repository\CartRepository;
 use App\Cart\Domain\ValueObject\CustomerId;
 use App\Cart\Infrastructure\Persistence\Doctrine\Entity\CartRecord;
@@ -38,6 +39,28 @@ final readonly class DoctrineCartRepository implements CartRepository
         $record = $this->findRecordByCustomerId($customerId->value());
 
         return $record?->toDomain();
+    }
+
+    public function claimForCheckout(Cart $cart): void
+    {
+        $claimed = $this->entityManager->getConnection()->executeStatement(
+            'UPDATE carts SET version = version + 1 WHERE id = :id AND version = :version',
+            [
+                'id' => $cart->id()->value(),
+                'version' => $cart->version(),
+            ],
+        );
+
+        if ((int) $claimed !== 1) {
+            throw new CartAlreadyCheckingOut();
+        }
+
+        $cart->claimCheckout();
+        $record = $this->entityManager->find(CartRecord::class, $cart->id()->value());
+
+        if ($record instanceof CartRecord) {
+            $record->syncVersion($cart->version());
+        }
     }
 
     private function findRecordByCustomerId(string $customerId): ?CartRecord

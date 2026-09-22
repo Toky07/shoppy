@@ -106,6 +106,35 @@ it('checks out the cart into an order and empties the cart', function () {
     expect($fetched['stock'])->toBe(3);
 });
 
+it('rejects a second checkout once the cart has been ordered', function () {
+    $product = cartProduct(stock: 5);
+
+    $this->client->jsonRequest('POST', '/cart/items', [
+        'productId' => $product['id'],
+        'quantity' => 2,
+    ], catalogCustomerHeaders());
+
+    $this->client->jsonRequest('POST', '/cart/checkout', [
+        ...deliveryFields(),
+    ], catalogCustomerHeaders());
+    expect($this->client->getResponse()->getStatusCode())->toBe(201);
+
+    $this->client->jsonRequest('POST', '/cart/checkout', [
+        ...deliveryFields(),
+    ], catalogCustomerHeaders());
+
+    $response = $this->client->getResponse();
+    $payload = json_decode((string) $response->getContent(), true, flags: JSON_THROW_ON_ERROR);
+
+    expect($response->getStatusCode())->toBe(400)
+        ->and($payload['error']['code'])->toBe('validation_error')
+        ->and($payload['error']['violations'][0]['message'])->toBe('Cart cannot be empty.');
+
+    $this->client->jsonRequest('GET', '/products/'.$product['id']);
+    $fetched = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+    expect($fetched['stock'])->toBe(3);
+});
+
 it('rejects unauthenticated cart access', function () {
     $this->client->jsonRequest('GET', '/cart');
 

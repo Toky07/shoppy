@@ -11,6 +11,10 @@ export function cartErrorMessage(error: {
     return 'Le panier est vide.'
   }
 
+  if (error.code === 'cart_already_checking_out') {
+    return 'Cette commande est déjà en cours de validation.'
+  }
+
   if (error.code === 'cart_item_not_found') {
     return "Cet article n'est plus dans le panier."
   }
