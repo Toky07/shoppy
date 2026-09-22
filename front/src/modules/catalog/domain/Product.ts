@@ -22,4 +22,5 @@ export type Product = {
   category: Category | null
   sku: string
   variants: ProductVariant[]
+  published: boolean
 }

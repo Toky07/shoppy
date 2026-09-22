@@ -15,6 +15,7 @@ final readonly class CreateProductCommand
         public ?string $sku = null,
         /** @var list<array{id: string|null, sku: string, size: string|null, color: string|null, stock: int}>|null */
         public ?array $variants = null,
+        public bool $published = true,
     ) {
     }
 }

@@ -28,6 +28,7 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Index(name: 'idx_products_created_at', columns: ['created_at'])]
 #[ORM\Index(name: 'idx_products_name', columns: ['name'])]
 #[ORM\Index(name: 'idx_products_category_id', columns: ['category_id'])]
+#[ORM\Index(name: 'idx_products_published', columns: ['published'])]
 class ProductRecord
 {
     #[ORM\Id]
@@ -60,6 +61,9 @@ class ProductRecord
 
     #[ORM\Column(length: 40)]
     private string $sku;
+
+    #[ORM\Column]
+    private bool $published = true;
 
     /** @var Collection<int, ProductVariantRecord> */
     #[ORM\OneToMany(targetEntity: ProductVariantRecord::class, mappedBy: 'product', cascade: ['persist'], orphanRemoval: true)]
@@ -102,6 +106,7 @@ class ProductRecord
                 static fn (ProductVariantRecord $record): ProductVariant => $record->toDomain(),
                 $this->variants->getValues(),
             ),
+            $this->published,
         );
     }
 
@@ -115,6 +120,7 @@ class ProductRecord
         $this->stock = $product->stock()->value();
         $this->categoryId = $product->categoryId()?->value();
         $this->sku = $product->sku()->value();
+        $this->published = $product->isPublished();
         $this->syncVariants($product);
     }
 

@@ -20,6 +20,8 @@ final readonly class UpdateProductHttpRequest
         public bool $variantsProvided,
         /** @var list<array{id: string|null, sku: string, size: string|null, color: string|null, stock: int}> */
         public array $variants,
+        public bool $publishedProvided,
+        public bool $published,
     ) {
     }
 
@@ -34,8 +36,9 @@ final readonly class UpdateProductHttpRequest
         $hasCategory = array_key_exists('categoryId', $payload);
         $hasSku = array_key_exists('sku', $payload);
         $hasVariants = array_key_exists('variants', $payload);
+        $hasPublished = array_key_exists('published', $payload);
 
-        if (!$hasName && !$hasPrice && !$hasDescription && !$hasCategory && !$hasSku && !$hasVariants) {
+        if (!$hasName && !$hasPrice && !$hasDescription && !$hasCategory && !$hasSku && !$hasVariants && !$hasPublished) {
             throw InvalidRequest::of('At least one field is required.');
         }
 
@@ -81,6 +84,14 @@ final readonly class UpdateProductHttpRequest
 
         $variants = ProductVariantHttpList::fromPayload($payload) ?? [];
 
+        $published = true;
+        if ($hasPublished) {
+            if (!is_bool($payload['published'])) {
+                throw InvalidRequest::of('This value must be a boolean.', 'published');
+            }
+            $published = $payload['published'];
+        }
+
         return new self(
             $name,
             $priceCents,
@@ -92,6 +103,8 @@ final readonly class UpdateProductHttpRequest
             $sku,
             $hasVariants,
             $variants,
+            $hasPublished,
+            $published,
         );
     }
 }

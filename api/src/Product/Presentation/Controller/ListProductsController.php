@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Product\Presentation\Controller;
 
+use App\Auth\Application\Query\RequireAdminQuery;
+use App\Auth\Application\QueryHandler\RequireAdminQueryHandler;
+use App\Auth\Presentation\Http\BearerToken;
 use App\Product\Application\Query\ListProductsByIdsQuery;
 use App\Product\Application\Query\ListProductsQuery;
 use App\Product\Application\QueryHandler\ListProductsByIdsQueryHandler;
@@ -18,6 +21,7 @@ final readonly class ListProductsController
     public function __construct(
         private ListProductsQueryHandler $listProducts,
         private ListProductsByIdsQueryHandler $listProductsByIds,
+        private RequireAdminQueryHandler $requireAdmin,
     ) {
     }
 
@@ -30,6 +34,14 @@ final readonly class ListProductsController
             return new JsonResponse($this->listProductsByIds->handle(new ListProductsByIdsQuery($ids))->toArray());
         }
 
+        $includeDrafts = self::queryFlag($request, 'includeDrafts');
+
+        if ($includeDrafts) {
+            $this->requireAdmin->handle(new RequireAdminQuery(
+                BearerToken::fromAuthorizationHeader($request->headers->get('Authorization')),
+            ));
+        }
+
         $response = $this->listProducts->handle(new ListProductsQuery(
             page: $request->query->getInt('page', ListProductsQuery::DEFAULT_PAGE),
             limit: $request->query->getInt('limit', ListProductsQuery::DEFAULT_LIMIT),
@@ -39,6 +51,7 @@ final readonly class ListProductsController
             maxPriceCents: self::queryCents($request, 'maxPrice'),
             inStockOnly: self::queryFlag($request, 'inStock'),
             categorySlug: self::queryString($request, 'category'),
+            includeDrafts: $includeDrafts,
         ));
 
         return new JsonResponse($response->toArray());

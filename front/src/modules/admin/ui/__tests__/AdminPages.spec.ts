@@ -195,6 +195,7 @@ describe('Admin pages', () => {
           description: null,
           stock: 5,
           categoryId: null,
+          published: true,
         },
       ])
       expect(router.currentRoute.value.path).toBe('/admin/products')

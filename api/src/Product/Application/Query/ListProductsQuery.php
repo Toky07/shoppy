@@ -19,6 +19,7 @@ final readonly class ListProductsQuery
         public ?int $maxPriceCents = null,
         public bool $inStockOnly = false,
         public ?string $categorySlug = null,
+        public bool $includeDrafts = false,
     ) {
     }
 }

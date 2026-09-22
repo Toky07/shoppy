@@ -133,6 +133,10 @@ final class InMemoryProductRepository implements ProductRepository
                     return false;
                 }
 
+                if ($criteria->publishedOnly && !$product->isPublished()) {
+                    return false;
+                }
+
                 return !$criteria->inStockOnly || $product->stock()->value() > 0;
             },
         ));
@@ -159,6 +163,30 @@ final class InMemoryProductRepository implements ProductRepository
                 };
             },
         );
+    }
+
+    public function findRelated(Product $product, int $limit): array
+    {
+        $categoryId = $product->categoryId();
+
+        if ($categoryId === null || $limit < 1) {
+            return [];
+        }
+
+        $related = array_values(array_filter(
+            $this->products,
+            static fn (Product $candidate): bool => $candidate->isPublished()
+                && $candidate->id()->value() !== $product->id()->value()
+                && $candidate->categoryId()?->value() === $categoryId->value(),
+        ));
+
+        usort(
+            $related,
+            static fn (Product $left, Product $right): int => $right->createdAt() <=> $left->createdAt()
+                ?: $left->name()->value() <=> $right->name()->value(),
+        );
+
+        return array_values(array_slice($related, 0, $limit));
     }
 
     public function delete(Product $product): void

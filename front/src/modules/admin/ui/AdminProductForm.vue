@@ -97,7 +97,18 @@ function removeVariant(index: number) {
             <span class="field-label">SKU</span>
             <input v-model="draft.sku" class="field uppercase" placeholder="NUVORA-TEE" maxlength="40" />
           </label>
+          <label class="mt-5 flex items-start gap-3 rounded-2xl border border-line bg-surface-muted p-4">
+            <input v-model="draft.published" type="checkbox" class="mt-1 size-4 accent-accent" />
+            <span>
+              <span class="block text-sm font-semibold text-strong">Publié</span>
+              <span class="mt-1 block text-sm text-muted">
+                Décochez pour garder le produit en brouillon. Il reste invisible dans la boutique.
+              </span>
+            </span>
+          </label>
         </section>
+
+        <slot name="media" />
 
         <section class="border-t border-line pt-8">
           <p class="text-[0.7rem] font-semibold tracking-[0.14em] text-muted uppercase">Inventaire</p>

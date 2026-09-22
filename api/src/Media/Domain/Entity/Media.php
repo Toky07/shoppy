@@ -102,4 +102,9 @@ final class Media
     {
         return $this->createdAt;
     }
+
+    public function moveTo(MediaPosition $position): void
+    {
+        $this->position = $position;
+    }
 }

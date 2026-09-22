@@ -7,39 +7,15 @@ use App\Product\Application\ProductResponseFactory;
 use App\Product\Application\Query\ListProductsQuery;
 use App\Product\Application\QueryHandler\ListProductsQueryHandler;
 use App\Product\Domain\Entity\Category;
-use App\Product\Domain\Entity\Product;
 use App\Product\Domain\Exception\InvalidProductPagination;
 use App\Product\Domain\Exception\InvalidProductSearch;
 use App\Product\Domain\Exception\InvalidProductSort;
 use App\Product\Domain\Repository\CategoryRepository;
 use App\Product\Domain\ValueObject\CategoryId;
 use App\Product\Domain\ValueObject\CategoryName;
-use App\Product\Domain\ValueObject\ProductDescription;
 use App\Product\Domain\ValueObject\ProductId;
-use App\Product\Domain\ValueObject\ProductName;
-use App\Product\Domain\ValueObject\ProductPrice;
-use App\Product\Domain\ValueObject\StockQuantity;
 use App\Product\Infrastructure\Persistence\InMemoryCategoryRepository;
 use App\Product\Infrastructure\Persistence\InMemoryProductRepository;
-
-function saveProduct(
-    InMemoryProductRepository $repository,
-    string $id,
-    string $name,
-    DateTimeImmutable $createdAt,
-    int $priceCents = 1999,
-    ?string $description = null,
-    int $stock = 0,
-): void {
-    $repository->save(Product::create(
-        ProductId::fromString($id),
-        ProductName::fromString($name),
-        ProductPrice::fromCents($priceCents),
-        $createdAt,
-        $description === null ? null : ProductDescription::fromString($description),
-        StockQuantity::fromInt($stock),
-    ));
-}
 
 function listProductsHandler(
     InMemoryProductRepository $repository,
@@ -214,4 +190,21 @@ it('filters products by category and ignores an unknown slug', function () {
         ])
         ->and($missing->toArray()['items'])->toBe([])
         ->and($missing->total)->toBe(0);
+});
+
+it('hides drafts unless they are explicitly included', function () {
+    $repository = new InMemoryProductRepository();
+    saveProduct($repository, '550e8400-e29b-41d4-a716-446655440001', 'Visible Tee', new DateTimeImmutable('2026-08-20T12:00:00+00:00'));
+    saveProduct($repository, '550e8400-e29b-41d4-a716-446655440002', 'Draft Mug', new DateTimeImmutable('2026-08-21T12:00:00+00:00'));
+    $draft = $repository->findById(ProductId::fromString('550e8400-e29b-41d4-a716-446655440002'));
+    $draft->changePublication(false);
+    $repository->save($draft);
+
+    $handler = listProductsHandler($repository);
+    $public = $handler->handle(new ListProductsQuery());
+    $admin = $handler->handle(new ListProductsQuery(includeDrafts: true));
+
+    expect(array_column($public->toArray()['items'], 'name'))->toBe(['Visible Tee'])
+        ->and(array_column($admin->toArray()['items'], 'name'))->toBe(['Draft Mug', 'Visible Tee'])
+        ->and($admin->toArray()['items'][0]['published'])->toBeFalse();
 });

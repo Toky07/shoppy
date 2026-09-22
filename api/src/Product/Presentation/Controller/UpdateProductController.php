@@ -46,6 +46,8 @@ final readonly class UpdateProductController
             sku: $httpRequest->sku,
             variantsProvided: $httpRequest->variantsProvided,
             variants: $httpRequest->variants,
+            publishedProvided: $httpRequest->publishedProvided,
+            published: $httpRequest->published,
         ));
 
         $product = $this->getProduct->handle(new GetProductQuery($id));

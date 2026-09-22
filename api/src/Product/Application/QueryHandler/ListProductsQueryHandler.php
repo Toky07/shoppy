@@ -48,6 +48,7 @@ final readonly class ListProductsQueryHandler
             $query->maxPriceCents,
             $query->inStockOnly,
             $categoryId,
+            publishedOnly: !$query->includeDrafts,
         );
         $products = $this->productRepository->findPage($offset, $query->limit, $criteria);
 

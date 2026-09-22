@@ -6,6 +6,7 @@ export type ProductDraft = {
   categoryId: string
   sku: string
   variants: VariantDraft[]
+  published: boolean
 }
 
 export type VariantDraft = {
@@ -25,5 +26,6 @@ export function emptyProductDraft(): ProductDraft {
     categoryId: '',
     sku: '',
     variants: [],
+    published: true,
   }
 }

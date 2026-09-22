@@ -9,6 +9,7 @@ import { catalogRepositoryKey } from '@/modules/catalog/application/catalogRepos
 import { usePendingAction } from '@/shared/async/usePendingAction'
 import AdminPageHeader from './AdminPageHeader.vue'
 import AdminProductForm from './AdminProductForm.vue'
+import AdminProductGallery, { type GalleryImage } from './AdminProductGallery.vue'
 import { emptyProductDraft } from './productDraft'
 import type { Category } from '@/modules/catalog/domain/Category'
 
@@ -25,22 +26,36 @@ const router = useRouter()
 const route = useRoute()
 const isCreate = computed(() => route.name === 'admin-product-new')
 const productId = computed(() => String(route.params.id ?? ''))
+const persistedId = ref<string | null>(null)
+const editingId = computed(() => persistedId.value ?? (isCreate.value ? '' : productId.value))
+const queueImages = computed(() => editingId.value === '')
 const draft = ref(emptyProductDraft())
 const categories = ref<Category[]>([])
-const previewImages = ref<string[]>([])
+const images = ref<GalleryImage[]>([])
 const slug = ref<string | null>(null)
 const loadError = ref<string>()
 const { pending, errorMessage, run } = usePendingAction(
   (error) => error.violations[0]?.message ?? error.message,
 )
+const previewImages = computed(() => images.value.map((image) => image.url))
+
+function releaseQueuedUrls() {
+  for (const image of images.value) {
+    if (image.file) {
+      URL.revokeObjectURL(image.url)
+    }
+  }
+}
 
 watch(
   [isCreate, productId],
   async () => {
     loadError.value = undefined
+    persistedId.value = null
+    releaseQueuedUrls()
     if (isCreate.value) {
       draft.value = emptyProductDraft()
-      previewImages.value = []
+      images.value = []
       slug.value = null
       categories.value = await catalogRepository.listCategories()
       return
@@ -63,8 +78,10 @@ watch(
           color: variant.color ?? '',
           stock: variant.stock,
         })),
+        published: product.published,
       }
-      previewImages.value = product.imageUrls
+      const media = await adminRepository.listImages(product.id)
+      images.value = media.map((image) => ({ key: image.id, url: image.url, id: image.id }))
       slug.value = product.slug
     } catch (caught) {
       const error = toApiError(caught)
@@ -74,6 +91,23 @@ watch(
   },
   { immediate: true },
 )
+
+async function uploadQueued(productIdValue: string) {
+  const pendingFiles = images.value.filter((image) => image.file)
+  if (pendingFiles.length === 0) {
+    return
+  }
+
+  const uploaded = []
+  for (const [position, image] of pendingFiles.entries()) {
+    if (!image.file) {
+      continue
+    }
+    uploaded.push(await adminRepository.uploadImage(productIdValue, image.file, position))
+    URL.revokeObjectURL(image.url)
+  }
+  images.value = uploaded.map((image) => ({ key: image.id, url: image.url, id: image.id }))
+}
 
 function onSubmit() {
   return run(async () => {
@@ -89,28 +123,31 @@ function onSubmit() {
         color: variant.color.trim() === '' ? null : variant.color.trim(),
         stock: Number(variant.stock) || 0,
       }))
-    if (isCreate.value) {
-      await adminRepository.create({
-        name: draft.value.name.trim(),
-        priceCents: eurosToCents(draft.value.priceEuros),
-        description: descriptionValue,
+    const fields = {
+      name: draft.value.name.trim(),
+      priceCents: eurosToCents(draft.value.priceEuros),
+      description: descriptionValue,
+      categoryId,
+      published: draft.value.published,
+      ...(sku === '' ? {} : { sku }),
+    }
+    if (editingId.value === '') {
+      const created = await adminRepository.create({
+        ...fields,
         stock: draft.value.stock,
-        categoryId,
-        ...(sku === '' ? {} : { sku }),
         ...(variants.length === 0 ? {} : { variants }),
       })
+      persistedId.value = created.id
+      await uploadQueued(created.id)
     } else {
-      await adminRepository.update(productId.value, {
-        name: draft.value.name.trim(),
-        priceCents: eurosToCents(draft.value.priceEuros),
-        description: descriptionValue,
-        categoryId,
-        ...(sku === '' ? {} : { sku }),
+      await adminRepository.update(editingId.value, {
+        ...fields,
         variants,
       })
       if (variants.length === 0) {
-        await adminRepository.setStock(productId.value, draft.value.stock)
+        await adminRepository.setStock(editingId.value, draft.value.stock)
       }
+      await uploadQueued(editingId.value)
     }
     await router.push('/admin/products')
   })
@@ -123,8 +160,77 @@ function onDelete() {
   }
 
   return run(async () => {
-    await adminRepository.delete(productId.value)
+    await adminRepository.delete(editingId.value)
     await router.push('/admin/products')
+  })
+}
+
+function onAddImages(files: File[]) {
+  if (queueImages.value) {
+    images.value = [
+      ...images.value,
+      ...files.map((file) => ({
+        key: crypto.randomUUID(),
+        url: URL.createObjectURL(file),
+        id: null,
+        file,
+      })),
+    ]
+    return
+  }
+
+  return run(async () => {
+    const start = images.value.length
+    for (const [offset, file] of files.entries()) {
+      const uploaded = await adminRepository.uploadImage(editingId.value, file, start + offset)
+      images.value = [...images.value, { key: uploaded.id, url: uploaded.url, id: uploaded.id }]
+    }
+  })
+}
+
+function onRemoveImage(index: number) {
+  const image = images.value[index]
+  if (!image) {
+    return
+  }
+
+  if (image.id === null) {
+    if (image.file) {
+      URL.revokeObjectURL(image.url)
+    }
+    images.value = images.value.filter((_, current) => current !== index)
+    return
+  }
+
+  return run(async () => {
+    await adminRepository.deleteImage(image.id as string)
+    images.value = images.value.filter((item) => item.id !== image.id)
+  })
+}
+
+function onMoveImage(index: number, direction: -1 | 1) {
+  const nextIndex = index + direction
+  if (nextIndex < 0 || nextIndex >= images.value.length) {
+    return
+  }
+
+  const next = images.value.slice()
+  const [moved] = next.splice(index, 1)
+  if (!moved) {
+    return
+  }
+  next.splice(nextIndex, 0, moved)
+  images.value = next
+
+  if (next.some((image) => image.id === null)) {
+    return
+  }
+
+  return run(async () => {
+    await adminRepository.reorderImages(
+      editingId.value,
+      next.map((image) => image.id as string),
+    )
   })
 }
 </script>
@@ -148,7 +254,7 @@ function onDelete() {
     <AdminProductForm
       v-else
       v-model="draft"
-      :is-create="isCreate"
+      :is-create="queueImages"
       :pending="pending"
       :error-message="errorMessage"
       :preview-images="previewImages"
@@ -156,6 +262,17 @@ function onDelete() {
       :categories="categories"
       @submit="onSubmit"
       @delete="onDelete"
-    />
+    >
+      <template #media>
+        <AdminProductGallery
+          :images="images"
+          :pending="pending"
+          :queued="queueImages"
+          @add="onAddImages"
+          @remove="onRemoveImage"
+          @move="onMoveImage"
+        />
+      </template>
+    </AdminProductForm>
   </section>
 </template>

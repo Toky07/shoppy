@@ -17,6 +17,7 @@ final readonly class CreateProductHttpRequest
         public ?string $sku,
         /** @var list<array{id: string|null, sku: string, size: string|null, color: string|null, stock: int}>|null */
         public ?array $variants,
+        public bool $published,
     ) {
     }
 
@@ -59,6 +60,14 @@ final readonly class CreateProductHttpRequest
             $sku = $payload['sku'];
         }
 
+        $published = true;
+        if (array_key_exists('published', $payload)) {
+            if (!is_bool($payload['published'])) {
+                throw InvalidRequest::of('This value must be a boolean.', 'published');
+            }
+            $published = $payload['published'];
+        }
+
         return new self(
             $payload['name'],
             $payload['priceCents'],
@@ -67,6 +76,7 @@ final readonly class CreateProductHttpRequest
             $categoryId,
             $sku,
             ProductVariantHttpList::fromPayload($payload),
+            $published,
         );
     }
 }

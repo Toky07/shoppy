@@ -173,7 +173,40 @@ final readonly class DoctrineProductRepository implements ProductRepository
                 ->setParameter('categoryId', $criteria->categoryId->value());
         }
 
+        if ($criteria->publishedOnly) {
+            $queryBuilder->andWhere('product.published = true');
+        }
+
         return $queryBuilder;
+    }
+
+    public function findRelated(Product $product, int $limit): array
+    {
+        $categoryId = $product->categoryId();
+
+        if ($categoryId === null || $limit < 1) {
+            return [];
+        }
+
+        /** @var list<ProductRecord> $records */
+        $records = $this->entityManager->createQueryBuilder()
+            ->select('product')
+            ->from(ProductRecord::class, 'product')
+            ->where('product.categoryId = :categoryId')
+            ->andWhere('product.id != :id')
+            ->andWhere('product.published = true')
+            ->setParameter('categoryId', $categoryId->value())
+            ->setParameter('id', $product->id()->value())
+            ->orderBy('product.createdAt', 'DESC')
+            ->addOrderBy('product.name', 'ASC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+
+        return array_map(
+            static fn (ProductRecord $record): Product => $record->toDomain(),
+            $records,
+        );
     }
 
     private function applySort(QueryBuilder $queryBuilder, ProductSort $sort): void

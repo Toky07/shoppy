@@ -20,11 +20,11 @@ Déjà en place : inscription / connexion / rôles, sécurité du compte (réini
 - [x] Catégories (navigation, filtre, rattachement produit)
 - [x] Variantes (taille, couleur) et SKU métier (l’UI affiche un UUID tronqué)
 - [x] Filtres prix et « en stock seulement »
-- [ ] Produits associés sur la fiche
-- [ ] Statut publié / brouillon (tout produit créé est visible)
-- [ ] Upload, ordre et suppression d’images dans le formulaire admin — l’API `POST/DELETE /media` existe, l’UI ne l’appelle pas
-- [ ] Mise à jour à l’import CSV (aujourd’hui une ligne dont le nom existe est ignorée)
-- [ ] Avis clients
+- [x] Produits associés sur la fiche (autres produits publiés de la même catégorie)
+- [x] Statut publié / brouillon
+- [x] Upload, ordre et suppression d’images dans le formulaire admin
+- [x] Mise à jour à l’import CSV (prix, description et stock ; les images déjà présentes sont conservées)
+- [x] Avis clients (une note et un commentaire par client, modifiables)
 
 ### Achat, livraison, commande
 

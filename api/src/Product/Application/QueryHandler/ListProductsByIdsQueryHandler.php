@@ -7,6 +7,7 @@ namespace App\Product\Application\QueryHandler;
 use App\Product\Application\ProductResponseFactory;
 use App\Product\Application\Query\ListProductsByIdsQuery;
 use App\Product\Application\Response\ProductListResponse;
+use App\Product\Domain\Entity\Product;
 use App\Product\Domain\Exception\InvalidProductId;
 use App\Product\Domain\Exception\InvalidProductIdList;
 use App\Product\Domain\Repository\ProductRepository;
@@ -36,7 +37,10 @@ final readonly class ListProductsByIdsQueryHandler
             }
         }
 
-        $products = $this->productRepository->findByIds($ids);
+        $products = array_values(array_filter(
+            $this->productRepository->findByIds($ids),
+            static fn (Product $product): bool => $product->isPublished(),
+        ));
         $items = $this->productResponseFactory->fromProducts($products);
 
         return new ProductListResponse($items, 1, max(count($items), 1), count($items));

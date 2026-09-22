@@ -56,6 +56,7 @@ final readonly class CreateProductCommandHandler
             self::categoryFrom($command->categoryId, $this->categoryRepository),
             $sku,
             $variants,
+            $command->published,
         );
 
         $this->productRepository->save($product);

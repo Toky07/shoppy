@@ -35,6 +35,7 @@ final class Product
         private ?CategoryId $categoryId,
         private ProductSku $sku,
         private array $variants,
+        private bool $published,
     ) {
     }
 
@@ -52,6 +53,7 @@ final class Product
         ?CategoryId $categoryId = null,
         ?ProductSku $sku = null,
         array $variants = [],
+        bool $published = true,
     ): self {
         $sku ??= ProductSku::fromName($name);
         self::assertVariants($sku, $variants);
@@ -67,6 +69,7 @@ final class Product
             $categoryId,
             $sku,
             array_values($variants),
+            $published,
         );
     }
 
@@ -126,6 +129,16 @@ final class Product
     public function hasVariants(): bool
     {
         return $this->variants !== [];
+    }
+
+    public function isPublished(): bool
+    {
+        return $this->published;
+    }
+
+    public function changePublication(bool $published): void
+    {
+        $this->published = $published;
     }
 
     public function findVariant(VariantId $id): ?ProductVariant

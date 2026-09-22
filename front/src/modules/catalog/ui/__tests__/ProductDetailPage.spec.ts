@@ -24,6 +24,8 @@ describe('ProductDetailPage', () => {
     })
     expect(screen.getByRole('link', { name: 'Retour au catalogue' }).getAttribute('href')).toBe('/')
     expect(screen.getByText('Réf. NUVORA-TEE')).toBeTruthy()
+    expect(screen.getByRole('link', { name: 'Connectez-vous' })).toBeTruthy()
+    expect(screen.queryByRole('button', { name: "Publier l'avis" })).toBeNull()
   })
 
   it('shows a thumbnail list to browse the gallery', async () => {
@@ -219,6 +221,47 @@ describe('ProductDetailPage', () => {
       expect(cartRepository.added).toEqual([
         { productId: sizedTee.id, quantity: 1, variantId: '550e8400-e29b-41d4-a716-446655440011' },
       ])
+    })
+  })
+
+  it('shows related products from the same category', async () => {
+    const textile = { id: 'cat-textile', name: 'Textile', slug: 'textile' }
+    const tee = createProduct({ category: textile })
+    const hoodie = createProduct({
+      id: '770e8400-e29b-41d4-a716-446655440099',
+      slug: 'nuvora-hoodie',
+      name: 'Nuvora Hoodie',
+      category: textile,
+    })
+
+    await renderApp({
+      repository: createFakeCatalogRepository([tee, hoodie]),
+      path: `/products/${tee.slug}`,
+    })
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'Produits associés' })).toBeTruthy()
+      expect(screen.getByRole('heading', { name: 'Nuvora Hoodie' })).toBeTruthy()
+    })
+  })
+
+  it('publishes a customer review', async () => {
+    await renderApp({
+      repository: createFakeCatalogRepository([nuvoraTee]),
+      session: visitorSession,
+      path: `/products/${nuvoraTee.slug}`,
+    })
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: "Publier l'avis" })).toBeTruthy()
+    })
+
+    await userEvent.type(screen.getByLabelText('Commentaire'), 'Très beau tee')
+    await userEvent.click(screen.getByRole('button', { name: "Publier l'avis" }))
+
+    await waitFor(() => {
+      expect(screen.getByText('Très beau tee')).toBeTruthy()
+      expect(screen.getByText('ada')).toBeTruthy()
     })
   })
 })

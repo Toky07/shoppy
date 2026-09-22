@@ -23,7 +23,7 @@ final readonly class ProductCatalog implements Catalog
     {
         $product = $this->productRepository->findById(ProductId::fromString($id->value()));
 
-        if ($product === null) {
+        if ($product === null || !$product->isPublished()) {
             return null;
         }
 

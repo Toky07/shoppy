@@ -9,9 +9,12 @@ import { useProduct } from '../application/useProduct'
 import ProductMedia from './ProductMedia.vue'
 import ProductPrice from './ProductPrice.vue'
 import ProductReassurance from './ProductReassurance.vue'
+import ProductReviews from './ProductReviews.vue'
 import ProductTabs from './ProductTabs.vue'
+import ProductCard from './ProductCard.vue'
 import VariantPicker from './VariantPicker.vue'
 import { stockLabel } from './stockLabel'
+import type { Product } from '../domain/Product'
 
 const repository = inject(catalogRepositoryKey)
 
@@ -29,17 +32,27 @@ const selectedVariant = computed(
 )
 const selectedStock = computed(() => selectedVariant.value?.stock ?? product.value?.stock ?? 0)
 const selectedSku = computed(() => selectedVariant.value?.sku ?? product.value?.sku ?? '')
+const related = ref<Product[]>([])
 const notFound = computed(() => error.value?.code === 'product_not_found')
 const errorMessage = computed(() =>
   notFound.value ? 'Ce produit est introuvable.' : error.value?.message,
 )
 
-watch(product, (current) => {
+watch(product, async (current) => {
   if (current !== null && current.variants.length > 0) {
     const available = current.variants.find((variant) => variant.stock > 0) ?? current.variants[0]
     selectedVariantId.value = available?.id ?? ''
   } else {
     selectedVariantId.value = ''
+  }
+
+  related.value = []
+  if (current !== null) {
+    try {
+      related.value = await repository.listRelated(current.id)
+    } catch {
+      related.value = []
+    }
   }
 
   if (current === null || route.params.slug === current.slug) {
@@ -109,6 +122,17 @@ watch(product, (current) => {
           <ProductReassurance />
         </div>
       </article>
+
+      <section v-if="product && related.length > 0" class="mt-16" aria-labelledby="related-products-title">
+        <h2 id="related-products-title" class="font-display text-3xl font-extrabold text-strong">
+          Produits associés
+        </h2>
+        <div class="mt-6 grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+          <ProductCard v-for="item in related" :key="item.id" :product="item" />
+        </div>
+      </section>
+
+      <ProductReviews v-if="product" :product-id="product.id" :product-slug="product.slug" />
     </PageStatus>
   </section>
 </template>

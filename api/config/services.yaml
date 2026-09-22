@@ -47,6 +47,10 @@ services:
 
     App\Product\Domain\Repository\ProductRepository: '@App\Product\Infrastructure\Persistence\Doctrine\DoctrineProductRepository'
 
+    App\Product\Domain\Repository\ProductReviewRepository: '@App\Product\Infrastructure\Persistence\Doctrine\DoctrineProductReviewRepository'
+
+    App\Product\Application\Port\ReviewAuthors: '@App\Product\Infrastructure\Review\UserReviewAuthors'
+
     App\Product\Domain\Repository\CategoryRepository: '@App\Product\Infrastructure\Persistence\Doctrine\DoctrineCategoryRepository'
 
     App\Media\Domain\Repository\MediaRepository: '@App\Media\Infrastructure\Persistence\Doctrine\DoctrineMediaRepository'

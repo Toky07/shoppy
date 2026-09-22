@@ -37,5 +37,12 @@ interface ProductRepository
 
     public function countAll(?ProductListCriteria $criteria = null): int;
 
+    /**
+     * Published products that share the category, excluding the product itself.
+     *
+     * @return list<Product>
+     */
+    public function findRelated(Product $product, int $limit): array;
+
     public function delete(Product $product): void;
 }

@@ -13,6 +13,7 @@ export const nuvoraTee: Product = {
   category: null,
   sku: 'NUVORA-TEE',
   variants: [],
+  published: true,
 }
 
 export const nuvoraTeeGallery: Product = {
@@ -37,6 +38,7 @@ export const outOfStockMug: Product = {
   category: null,
   sku: 'NUVORA-MUG',
   variants: [],
+  published: true,
 }
 
 export function createProduct(overrides: Partial<Product> = {}): Product {
@@ -57,6 +59,7 @@ export function createProductJson(overrides: Record<string, unknown> = {}) {
     category: null,
     sku: nuvoraTee.sku,
     variants: [],
+    published: true,
     ...overrides,
   }
 }

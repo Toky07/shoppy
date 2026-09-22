@@ -43,6 +43,7 @@ final readonly class CreateProductController
             categoryId: $httpRequest->categoryId,
             sku: $httpRequest->sku,
             variants: $httpRequest->variants,
+            published: $httpRequest->published,
         ));
 
         $product = $this->getProduct->handle(new GetProductQuery($id->value()));

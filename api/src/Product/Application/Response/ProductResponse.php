@@ -29,6 +29,7 @@ final readonly class ProductResponse
         public ?CategoryResponse $category,
         public string $sku,
         public array $variants,
+        public bool $published,
     ) {
     }
 
@@ -51,6 +52,7 @@ final readonly class ProductResponse
             $category === null ? null : CategoryResponse::fromCategory($category),
             $product->sku()->value(),
             array_map(self::variantToArray(...), $product->variants()),
+            $product->isPublished(),
         );
     }
 
@@ -81,7 +83,8 @@ final readonly class ProductResponse
      *     createdAt: string,
      *     category: array{id: string, name: string, slug: string}|null,
      *     sku: string,
-     *     variants: list<array{id: string, sku: string, size: string|null, color: string|null, stock: int}>
+     *     variants: list<array{id: string, sku: string, size: string|null, color: string|null, stock: int}>,
+     *     published: bool
      * }
      */
     public function toArray(): array
@@ -102,6 +105,7 @@ final readonly class ProductResponse
             'category' => $this->category?->toArray(),
             'sku' => $this->sku,
             'variants' => $this->variants,
+            'published' => $this->published,
         ];
     }
 }

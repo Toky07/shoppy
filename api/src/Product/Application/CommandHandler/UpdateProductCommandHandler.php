@@ -64,6 +64,10 @@ final readonly class UpdateProductCommandHandler
             $product->changeSku($sku);
         }
 
+        if ($command->publishedProvided) {
+            $product->changePublication($command->published);
+        }
+
         if ($command->variantsProvided) {
             $variants = ProductVariants::fromInput($command->variants);
 

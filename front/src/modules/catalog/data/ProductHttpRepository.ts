@@ -3,7 +3,8 @@ import type { CatalogRepository, ListProductsQuery } from '../application/Catalo
 import type { Category } from '../domain/Category'
 import type { Product } from '../domain/Product'
 import type { ProductPage } from '../domain/ProductPage'
-import { mapCategoryList, mapProduct, mapProductPage } from './productMapper'
+import type { ProductReviewList, SubmitReviewInput } from '../domain/ProductReview'
+import { mapCategoryList, mapProduct, mapProductPage, mapProductReviewList } from './productMapper'
 
 export class ProductHttpRepository implements CatalogRepository {
   constructor(private readonly http: HttpClient) {}
@@ -19,6 +20,7 @@ export class ProductHttpRepository implements CatalogRepository {
         ...(query.maxPriceCents !== undefined ? { maxPrice: query.maxPriceCents } : {}),
         ...(query.inStockOnly ? { inStock: 1 } : {}),
         ...(query.categorySlug !== undefined ? { category: query.categorySlug } : {}),
+        ...(query.includeDrafts ? { includeDrafts: 1 } : {}),
       }),
     )
   }
@@ -39,5 +41,22 @@ export class ProductHttpRepository implements CatalogRepository {
 
   async getById(id: string): Promise<Product> {
     return mapProduct(await this.http.get(`/products/${encodeURIComponent(id)}`))
+  }
+
+  async listRelated(id: string): Promise<Product[]> {
+    const page = mapProductPage(await this.http.get(`/products/${encodeURIComponent(id)}/related`))
+
+    return page.items
+  }
+
+  async listReviews(productId: string): Promise<ProductReviewList> {
+    return mapProductReviewList(await this.http.get(`/products/${encodeURIComponent(productId)}/reviews`))
+  }
+
+  async submitReview(productId: string, input: SubmitReviewInput): Promise<void> {
+    await this.http.post(`/products/${encodeURIComponent(productId)}/reviews`, {
+      rating: input.rating,
+      body: input.body,
+    })
   }
 }

@@ -57,6 +57,7 @@ it('returns a product by id', function () {
         'category' => null,
         'sku' => 'NUVORA-TEE',
         'variants' => [],
+        'published' => true,
     ]);
 });
 

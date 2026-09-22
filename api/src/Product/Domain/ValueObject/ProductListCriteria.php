@@ -18,12 +18,13 @@ final readonly class ProductListCriteria
         public ?int $maxPriceCents,
         public bool $inStockOnly,
         public ?CategoryId $categoryId,
+        public bool $publishedOnly,
     ) {
     }
 
     public static function default(): self
     {
-        return new self(null, ProductSort::newest(), null, null, false, null);
+        return new self(null, ProductSort::newest(), null, null, false, null, true);
     }
 
     public static function fromInput(
@@ -33,6 +34,7 @@ final readonly class ProductListCriteria
         ?int $maxPriceCents = null,
         bool $inStockOnly = false,
         ?CategoryId $categoryId = null,
+        bool $publishedOnly = true,
     ): self {
         self::assertPriceRange($minPriceCents, $maxPriceCents);
 
@@ -43,6 +45,7 @@ final readonly class ProductListCriteria
             $maxPriceCents,
             $inStockOnly,
             $categoryId,
+            $publishedOnly,
         );
     }
 
