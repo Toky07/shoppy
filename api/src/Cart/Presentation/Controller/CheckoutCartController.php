@@ -9,6 +9,7 @@ use App\Auth\Application\QueryHandler\AuthenticateTokenQueryHandler;
 use App\Auth\Presentation\Http\BearerToken;
 use App\Cart\Application\Command\CheckoutCartCommand;
 use App\Cart\Application\CommandHandler\CheckoutCartCommandHandler;
+use App\Cart\Presentation\Request\CheckoutCartHttpRequest;
 use App\Order\Application\Query\GetOrderQuery;
 use App\Order\Application\QueryHandler\GetOrderQueryHandler;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -32,7 +33,14 @@ final readonly class CheckoutCartController
             BearerToken::fromAuthorizationHeader($request->headers->get('Authorization')),
         ));
 
-        $orderId = $this->checkoutCart->handle(new CheckoutCartCommand($userId->value()));
+        $httpRequest = CheckoutCartHttpRequest::fromPayload($request->toArray());
+
+        $orderId = $this->checkoutCart->handle(new CheckoutCartCommand(
+            $userId->value(),
+            $httpRequest->delivery->shippingAddress,
+            $httpRequest->delivery->billingAddress,
+            $httpRequest->delivery->shippingMethod,
+        ));
         $order = $this->getOrder->handle(new GetOrderQuery($orderId->value()));
 
         return new JsonResponse(

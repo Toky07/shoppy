@@ -39,7 +39,7 @@ function cancelOrderSeed(
                 Quantity::fromInt(1),
             )],
             new DateTimeImmutable('2026-08-20T12:00:00+00:00'),
-        )
+        samplePostalAddress(), samplePostalAddress(), sampleShippingMethod())
         : Order::reconstitute(
             OrderId::fromString($orderId),
             CustomerId::fromString($customerId),

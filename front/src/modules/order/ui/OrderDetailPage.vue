@@ -11,6 +11,7 @@ import { usePaymentByOrder } from '@/modules/payment/application/usePaymentByOrd
 import { orderRepositoryKey } from '../application/orderRepositoryKey'
 import { useOrder } from '../application/useOrder'
 import OrderCheckoutPanel from './OrderCheckoutPanel.vue'
+import OrderAddresses from './OrderAddresses.vue'
 import OrderDetailHeader from './OrderDetailHeader.vue'
 import OrderLine from './OrderLine.vue'
 import { orderErrorMessage } from './orderErrorMessage'
@@ -100,6 +101,7 @@ function onCancel() {
       <article v-if="order" class="mx-auto max-w-4xl">
         <div class="panel overflow-hidden">
           <OrderDetailHeader :order="order" :payment="payment" />
+          <OrderAddresses :shipping="order.shippingAddress" :billing="order.billingAddress" />
 
           <div class="p-6 sm:p-8">
             <h2 class="field-label">Articles commandés</h2>
@@ -110,6 +112,7 @@ function onCancel() {
 
           <OrderCheckoutPanel
             :total="order.total"
+            :shipping="order.shipping"
             :pending="pending"
             :can-pay="canPay"
             :can-cancel="canCancel"

@@ -6,6 +6,7 @@ import {
   createCartJson,
   createCheckoutJson,
   filledCart,
+  parisCheckout,
   pendingCheckout,
 } from '../../testing/cartFixtures'
 import { nuvoraTee } from '@/modules/catalog/testing/productFixtures'
@@ -61,8 +62,8 @@ describe('CartHttpRepository', () => {
     const http = new FakeHttpClient(() => createCheckoutJson())
     const repository = new CartHttpRepository(http)
 
-    await expect(repository.checkout()).resolves.toEqual(pendingCheckout)
-    expect(http.calls).toEqual([{ method: 'POST', path: '/cart/checkout', body: undefined }])
+    await expect(repository.checkout(parisCheckout)).resolves.toEqual(pendingCheckout)
+    expect(http.calls).toEqual([{ method: 'POST', path: '/cart/checkout', body: parisCheckout }])
   })
 
   it('propagates API errors', async () => {

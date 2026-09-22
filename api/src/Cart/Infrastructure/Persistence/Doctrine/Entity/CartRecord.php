@@ -28,6 +28,9 @@ class CartRecord
     #[ORM\Column(name: 'updated_at')]
     private DateTimeImmutable $updatedAt;
 
+    #[ORM\Column(type: 'integer')]
+    private int $version = 1;
+
     /** @var Collection<int, CartItemRecord> */
     #[ORM\OneToMany(targetEntity: CartItemRecord::class, mappedBy: 'cart', cascade: ['persist'], orphanRemoval: true)]
     #[ORM\OrderBy(['position' => 'ASC'])]
@@ -51,7 +54,13 @@ class CartRecord
     public function updateFromDomain(Cart $cart): void
     {
         $this->updatedAt = $cart->updatedAt();
+        $this->version = $cart->version();
         $this->items->clear();
+    }
+
+    public function syncVersion(int $version): void
+    {
+        $this->version = $version;
     }
 
     /**
@@ -73,12 +82,14 @@ class CartRecord
                 static fn (CartItemRecord $item): CartItem => $item->toDomain(),
             )->toArray()),
             $this->updatedAt,
+            $this->version,
         );
     }
 
     private function syncFromDomain(Cart $cart): void
     {
         $this->updatedAt = $cart->updatedAt();
+        $this->version = $cart->version();
         $this->addItems($cart->items());
     }
 }

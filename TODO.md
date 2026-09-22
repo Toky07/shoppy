@@ -28,14 +28,14 @@ Déjà en place : inscription / connexion / rôles, sécurité du compte (réini
 
 ### Achat, livraison, commande
 
-- [ ] Adresses de livraison et de facturation
-- [ ] Modes de livraison et frais (le libellé « Livraison : Offerte » est en dur)
+- [x] Adresses de livraison et de facturation (saisies au checkout, figées sur la commande ; la facturation peut reprendre la livraison)
+- [x] Modes de livraison et frais (Standard 4,90 €, offert dès 49 € ; Express 9,90 € ; montant figé sur la commande et ajouté au total)
 - [ ] TVA / taxes (le total est une somme de lignes, affiché « TTC » sans calcul)
 - [ ] Codes promo
 - [ ] Commande invité, ou fusion du panier après connexion
 - [ ] Réserver le stock entre panier et paiement (le décrément n’a lieu qu’à la création de la commande, sans verrou)
 - [ ] Rendre atomiques stock + création de commande (si le second produit échoue, le premier est déjà décrémenté ; pas de transaction)
-- [ ] Empêcher un double checkout du même panier (deux `POST /cart/checkout` parallèles créent deux commandes)
+- [x] Empêcher un double checkout du même panier (le panier est réservé par une version avant de créer la commande ; la seconde demande est refusée)
 - [ ] Clarifier le parcours : « Payer ma commande » sur le panier crée seulement la commande ; le paiement est sur `/orders/:id`
 - [ ] Photo produit dans le panier (icône générique aujourd’hui)
 - [ ] Retour visuel Stripe (`?payment=success` / `?payment=cancel` sont dans l’URL, la page ne s’en sert pas)

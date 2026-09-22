@@ -1,6 +1,7 @@
 import type { HttpClient } from '@/shared/http/HttpClient'
 import type { CartRepository } from '../application/CartRepository'
 import type { Cart } from '../domain/Cart'
+import type { CheckoutAddresses } from '../domain/CheckoutAddresses'
 import type { CheckoutResult } from '../domain/CheckoutResult'
 import { mapCart, mapCheckoutResult } from './cartMapper'
 
@@ -39,7 +40,7 @@ export class CartHttpRepository implements CartRepository {
     return mapCart(await this.http.delete('/cart'))
   }
 
-  async checkout(): Promise<CheckoutResult> {
-    return mapCheckoutResult(await this.http.post('/cart/checkout'))
+  async checkout(addresses: CheckoutAddresses): Promise<CheckoutResult> {
+    return mapCheckoutResult(await this.http.post('/cart/checkout', addresses))
   }
 }

@@ -4,7 +4,7 @@ import { waitFor } from '@testing-library/vue'
 import { ApiError } from '@/shared/http/ApiError'
 import { createCartState } from '../createCartState'
 import { FakeCartRepository } from '../../testing/FakeCartRepository'
-import { emptyCart, filledCart, pendingCheckout } from '../../testing/cartFixtures'
+import { emptyCart, filledCart, parisCheckout, pendingCheckout } from '../../testing/cartFixtures'
 import { nuvoraTee } from '@/modules/catalog/testing/productFixtures'
 
 describe('createCartState', () => {
@@ -86,7 +86,7 @@ describe('createCartState', () => {
       expect(state.itemCount.value).toBe(2)
     })
 
-    await expect(state.checkout()).resolves.toEqual(pendingCheckout)
+    await expect(state.checkout(parisCheckout)).resolves.toEqual(pendingCheckout)
     expect(state.cart.value?.items).toEqual([])
     expect(repository.checkoutCount).toBe(1)
   })

@@ -32,6 +32,8 @@ final readonly class CheckoutCartCommandHandler
             throw new EmptyCart();
         }
 
+        $this->cartRepository->claimForCheckout($cart);
+
         $orderId = $this->placeOrder->handle(new PlaceOrderCommand(
             customerId: $customerId->value(),
             items: array_map(
@@ -42,6 +44,9 @@ final readonly class CheckoutCartCommandHandler
                 ),
                 $cart->items(),
             ),
+            shippingAddress: $command->shippingAddress,
+            billingAddress: $command->billingAddress,
+            shippingMethod: $command->shippingMethod,
         ));
 
         $cart->clear($this->clock->now());

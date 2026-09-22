@@ -80,7 +80,9 @@ it('checks out the cart into an order and empties the cart', function () {
         'quantity' => 2,
     ], catalogCustomerHeaders());
 
-    $this->client->jsonRequest('POST', '/cart/checkout', [], catalogCustomerHeaders());
+    $this->client->jsonRequest('POST', '/cart/checkout', [
+        ...deliveryFields(),
+    ], catalogCustomerHeaders());
 
     $response = $this->client->getResponse();
     $order = json_decode((string) $response->getContent(), true, flags: JSON_THROW_ON_ERROR);
@@ -88,12 +90,45 @@ it('checks out the cart into an order and empties the cart', function () {
     expect($response->getStatusCode())->toBe(201)
         ->and($order['status'])->toBe('pending')
         ->and($order['items'][0]['quantity'])->toBe(2)
-        ->and($order['total'])->toBe(['cents' => 3998, 'currency' => 'EUR'])
+        ->and($order['total'])->toBe(['cents' => 4488, 'currency' => 'EUR'])
+        ->and($order['shipping']['method'])->toBe('standard')
+        ->and($order['shipping']['fee'])->toBe(['cents' => 490, 'currency' => 'EUR'])
+        ->and($order['shippingAddress']['city'])->toBe('Paris')
+        ->and($order['billingAddress']['recipient'])->toBe('Ada Lovelace')
         ->and($response->headers->get('Location'))->toBe('/orders/'.$order['id']);
 
     $this->client->jsonRequest('GET', '/cart', [], catalogCustomerHeaders());
     $cart = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
     expect($cart['items'])->toBe([]);
+
+    $this->client->jsonRequest('GET', '/products/'.$product['id']);
+    $fetched = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+    expect($fetched['stock'])->toBe(3);
+});
+
+it('rejects a second checkout once the cart has been ordered', function () {
+    $product = cartProduct(stock: 5);
+
+    $this->client->jsonRequest('POST', '/cart/items', [
+        'productId' => $product['id'],
+        'quantity' => 2,
+    ], catalogCustomerHeaders());
+
+    $this->client->jsonRequest('POST', '/cart/checkout', [
+        ...deliveryFields(),
+    ], catalogCustomerHeaders());
+    expect($this->client->getResponse()->getStatusCode())->toBe(201);
+
+    $this->client->jsonRequest('POST', '/cart/checkout', [
+        ...deliveryFields(),
+    ], catalogCustomerHeaders());
+
+    $response = $this->client->getResponse();
+    $payload = json_decode((string) $response->getContent(), true, flags: JSON_THROW_ON_ERROR);
+
+    expect($response->getStatusCode())->toBe(400)
+        ->and($payload['error']['code'])->toBe('validation_error')
+        ->and($payload['error']['violations'][0]['message'])->toBe('Cart cannot be empty.');
 
     $this->client->jsonRequest('GET', '/products/'.$product['id']);
     $fetched = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);

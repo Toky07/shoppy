@@ -24,12 +24,13 @@ final class Cart
         private CustomerId $customerId,
         private array $items,
         private DateTimeImmutable $updatedAt,
+        private int $version,
     ) {
     }
 
     public static function create(CartId $id, CustomerId $customerId, DateTimeImmutable $updatedAt): self
     {
-        return new self($id, $customerId, [], $updatedAt);
+        return new self($id, $customerId, [], $updatedAt, 1);
     }
 
     /**
@@ -40,8 +41,9 @@ final class Cart
         CustomerId $customerId,
         array $items,
         DateTimeImmutable $updatedAt,
+        int $version = 1,
     ): self {
-        return new self($id, $customerId, $items, $updatedAt);
+        return new self($id, $customerId, $items, $updatedAt, $version);
     }
 
     public function id(): CartId
@@ -65,6 +67,16 @@ final class Cart
     public function updatedAt(): DateTimeImmutable
     {
         return $this->updatedAt;
+    }
+
+    public function version(): int
+    {
+        return $this->version;
+    }
+
+    public function claimCheckout(): void
+    {
+        $this->version++;
     }
 
     public function isEmpty(): bool

@@ -12,4 +12,6 @@ interface CartRepository
     public function save(Cart $cart): void;
 
     public function findByCustomerId(CustomerId $customerId): ?Cart;
+
+    public function claimForCheckout(Cart $cart): void;
 }

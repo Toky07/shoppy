@@ -49,6 +49,13 @@ const emit = defineEmits<{
         <p class="numeric mt-1 font-display text-2xl font-extrabold text-strong">
           <ProductPrice :price="order.total" />
         </p>
+        <p v-if="order.shipping" class="mt-1 text-xs text-muted">
+          Livraison {{ order.shipping.label }}
+          <template v-if="order.shipping.fee.cents === 0"> offerte</template>
+          <template v-else>
+            · <ProductPrice :price="order.shipping.fee" />
+          </template>
+        </p>
       </div>
 
       <button

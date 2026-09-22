@@ -32,7 +32,7 @@ function saveOrder(
             Quantity::fromInt(1),
         )],
         $createdAt,
-    ));
+    samplePostalAddress(), samplePostalAddress(), sampleShippingMethod()));
 }
 
 it('lists current customer orders newest first', function () {

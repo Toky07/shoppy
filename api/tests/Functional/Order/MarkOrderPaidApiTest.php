@@ -33,6 +33,7 @@ function markPaidLifecycleLogin(string $email): array
 function markPaidLifecyclePlaceOrder(array $headers, string $productId): array
 {
     test()->client->jsonRequest('POST', '/orders', [
+        ...deliveryFields(),
         'items' => [[
             'productId' => $productId,
             'quantity' => 1,

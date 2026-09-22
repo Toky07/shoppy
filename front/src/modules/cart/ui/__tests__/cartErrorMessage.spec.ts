@@ -7,6 +7,9 @@ describe('cartErrorMessage', () => {
       'Stock insuffisant pour ce produit.',
     )
     expect(cartErrorMessage({ code: 'empty_cart', message: 'x' })).toBe('Le panier est vide.')
+    expect(cartErrorMessage({ code: 'cart_already_checking_out', message: 'x' })).toBe(
+      'Cette commande est déjà en cours de validation.',
+    )
     expect(cartErrorMessage({ code: 'cart_item_not_found', message: 'x' })).toBe(
       "Cet article n'est plus dans le panier.",
     )

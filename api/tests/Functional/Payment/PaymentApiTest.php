@@ -17,6 +17,7 @@ it('creates a pending payment when an order is placed and completes it via event
     $product = paymentCatalogProduct();
 
     $this->client->jsonRequest('POST', '/orders', [
+        ...deliveryFields(),
         'items' => [[
             'productId' => $product['id'],
             'quantity' => 2,
@@ -33,7 +34,7 @@ it('creates a pending payment when an order is placed and completes it via event
     expect($this->client->getResponse()->getStatusCode())->toBe(200)
         ->and($pending['status'])->toBe('pending')
         ->and($pending['orderId'])->toBe($order['id'])
-        ->and($pending['amount'])->toBe(['cents' => 3998, 'currency' => 'EUR']);
+        ->and($pending['amount'])->toBe(['cents' => 4488, 'currency' => 'EUR']);
 
     $this->client->jsonRequest('POST', '/payments/complete', [
         'orderId' => $order['id'],
@@ -55,6 +56,7 @@ it('rejects paying another customer order payment', function () {
     $product = paymentCatalogProduct();
 
     $this->client->jsonRequest('POST', '/orders', [
+        ...deliveryFields(),
         'items' => [[
             'productId' => $product['id'],
             'quantity' => 1,
@@ -98,6 +100,7 @@ it('cancels the pending payment when the order is cancelled', function () {
     $product = paymentCatalogProduct();
 
     $this->client->jsonRequest('POST', '/orders', [
+        ...deliveryFields(),
         'items' => [[
             'productId' => $product['id'],
             'quantity' => 1,
@@ -128,6 +131,7 @@ it('starts a stripe checkout and leaves the order unpaid', function () {
     $product = paymentCatalogProduct();
 
     $this->client->jsonRequest('POST', '/orders', [
+        ...deliveryFields(),
         'items' => [[
             'productId' => $product['id'],
             'quantity' => 2,
@@ -164,6 +168,7 @@ it('confirms a stripe payment from a signed checkout.session.completed webhook',
     $product = paymentCatalogProduct();
 
     $this->client->jsonRequest('POST', '/orders', [
+        ...deliveryFields(),
         'items' => [[
             'productId' => $product['id'],
             'quantity' => 2,

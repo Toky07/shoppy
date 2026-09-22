@@ -2,6 +2,9 @@
 
 declare(strict_types=1);
 
+use App\Order\Application\Command\PlaceOrderAddress;
+use App\Order\Domain\ValueObject\PostalAddress;
+use App\Order\Domain\ValueObject\ShippingMethod;
 use App\Product\Application\CommandHandler\CreateProductCommandHandler;
 use App\Product\Application\CommandHandler\UpdateProductCommandHandler;
 use App\Product\Application\UniqueProductSku;
@@ -43,6 +46,54 @@ function updateProducts(ProductRepository $repository, ?CategoryRepository $cate
         $categories ?? new InMemoryCategoryRepository(),
         new UniqueProductSku($repository),
     );
+}
+
+function sampleOrderAddress(): PlaceOrderAddress
+{
+    return new PlaceOrderAddress(
+        'Ada Lovelace',
+        '10 rue de la Paix',
+        null,
+        '75002',
+        'Paris',
+        'FR',
+    );
+}
+
+function sampleShippingMethod(): ShippingMethod
+{
+    return ShippingMethod::quote(ShippingMethod::STANDARD, ShippingMethod::FREE_FROM_CENTS);
+}
+
+function samplePostalAddress(): PostalAddress
+{
+    return PostalAddress::fromInput(
+        'Ada Lovelace',
+        '10 rue de la Paix',
+        null,
+        '75002',
+        'Paris',
+        'FR',
+        'address',
+    );
+}
+
+/**
+ * @return array{shippingAddress: array{recipient: string, line1: string, postalCode: string, city: string, country: string}, billingSameAsShipping: true, shippingMethod: string}
+ */
+function deliveryFields(): array
+{
+    return [
+        'shippingAddress' => [
+            'recipient' => 'Ada Lovelace',
+            'line1' => '10 rue de la Paix',
+            'postalCode' => '75002',
+            'city' => 'Paris',
+            'country' => 'FR',
+        ],
+        'billingSameAsShipping' => true,
+        'shippingMethod' => 'standard',
+    ];
 }
 
 function saveProduct(
