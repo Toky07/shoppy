@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\User\Domain\ValueObject\Role;
+
 function cartProduct(string $name = 'Nuvora Tee', int $priceCents = 1999, int $stock = 10): array
 {
     test()->client->jsonRequest('POST', '/products', [
@@ -158,6 +160,91 @@ it('rejects adding more than available stock', function () {
 
     expect($response->getStatusCode())->toBe(409)
         ->and($payload['error']['code'])->toBe('insufficient_product_stock');
+});
+
+it('reserves the last unit so another customer cannot add it', function () {
+    $product = cartProduct(name: 'Last Tee', stock: 1);
+
+    $this->client->jsonRequest('POST', '/cart/items', [
+        'productId' => $product['id'],
+        'quantity' => 1,
+    ], catalogCustomerHeaders());
+    expect($this->client->getResponse()->getStatusCode())->toBe(200);
+
+    $this->client->jsonRequest('GET', '/products/'.$product['id']);
+    $listed = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+    expect($listed['stock'])->toBe(1);
+
+    $other = catalogAuthHeaders('other-cart@nuvora.test', Role::customer());
+    $this->client->jsonRequest('POST', '/cart/items', [
+        'productId' => $product['id'],
+        'quantity' => 1,
+    ], $other);
+    $rejected = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+    expect($this->client->getResponse()->getStatusCode())->toBe(409)
+        ->and($rejected['error']['code'])->toBe('insufficient_product_stock');
+
+    $this->client->jsonRequest('DELETE', '/cart/items/'.$product['id'], [], catalogCustomerHeaders());
+    expect($this->client->getResponse()->getStatusCode())->toBe(200);
+
+    $this->client->jsonRequest('POST', '/cart/items', [
+        'productId' => $product['id'],
+        'quantity' => 1,
+    ], $other);
+    expect($this->client->getResponse()->getStatusCode())->toBe(200);
+});
+
+it('merges guest lines and caps them to the remaining stock', function () {
+    $product = cartProduct(name: 'Merge Tee', stock: 3);
+
+    $this->client->jsonRequest('POST', '/cart/merge', [
+        'items' => [
+            ['productId' => $product['id'], 'quantity' => 5],
+            ['productId' => '00000000-0000-4000-8000-000000000000', 'quantity' => 1],
+        ],
+    ], catalogCustomerHeaders());
+
+    $response = $this->client->getResponse();
+    $cart = json_decode((string) $response->getContent(), true, flags: JSON_THROW_ON_ERROR);
+
+    expect($response->getStatusCode())->toBe(200)
+        ->and($cart['items'])->toHaveCount(1)
+        ->and($cart['items'][0]['quantity'])->toBe(3)
+        ->and($cart['items'][0]['productId'])->toBe($product['id']);
+});
+
+it('rolls back the first product when checkout fails on a later line', function () {
+    $first = cartProduct(name: 'Kept Tee', stock: 4);
+    $second = cartProduct(name: 'Gone Tee', stock: 1);
+
+    $this->client->jsonRequest('POST', '/cart/items', [
+        'productId' => $first['id'],
+        'quantity' => 1,
+    ], catalogCustomerHeaders());
+    $this->client->jsonRequest('POST', '/cart/items', [
+        'productId' => $second['id'],
+        'quantity' => 1,
+    ], catalogCustomerHeaders());
+
+    $this->client->jsonRequest('PUT', '/products/'.$second['id'].'/stock', [
+        'stock' => 0,
+    ], catalogAdminHeaders());
+    expect($this->client->getResponse()->getStatusCode())->toBe(200);
+
+    $this->client->jsonRequest('POST', '/cart/checkout', [
+        ...deliveryFields(),
+    ], catalogCustomerHeaders());
+    $rejected = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+    expect($this->client->getResponse()->getStatusCode())->toBe(409)
+        ->and($rejected['error']['code'])->toBe('insufficient_product_stock');
+
+    $this->client->jsonRequest('GET', '/products/'.$first['id']);
+    $kept = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+    expect($kept['stock'])->toBe(4);
+
+    $this->client->jsonRequest('GET', '/cart', [], catalogCustomerHeaders());
+    $cart = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+    expect($cart['items'])->toHaveCount(2);
 });
 
 it('rejects checking out an empty cart', function () {

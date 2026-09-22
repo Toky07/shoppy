@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Cart\Application\CommandHandler;
 
+use App\Cart\Application\AvailableStock;
 use App\Cart\Application\Catalog;
 use App\Cart\Application\Command\UpdateCartItemQuantityCommand;
 use App\Cart\Domain\Exception\CartItemNotFound;
@@ -21,6 +22,7 @@ final readonly class UpdateCartItemQuantityCommandHandler
     public function __construct(
         private CartRepository $cartRepository,
         private Catalog $catalog,
+        private AvailableStock $availableStock,
         private Clock $clock,
     ) {
     }
@@ -42,8 +44,9 @@ final readonly class UpdateCartItemQuantityCommandHandler
             throw new CartProductNotFound($productId);
         }
 
-        if ($snapshot->stock < $quantity->value()) {
-            throw new InsufficientCartStock($snapshot->stock, $quantity->value());
+        $maximum = $this->availableStock->maximum($customerId, $productId, $variantId) ?? 0;
+        if ($quantity->value() > $maximum) {
+            throw new InsufficientCartStock($maximum, $quantity->value());
         }
 
         $cart->setItemQuantity($productId, $quantity, $this->clock->now(), $variantId);

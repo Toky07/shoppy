@@ -8,5 +8,6 @@ export interface CartRepository {
   updateItem(productId: string, quantity: number, variantId?: string | null): Promise<Cart>
   removeItem(productId: string, variantId?: string | null): Promise<Cart>
   clear(): Promise<Cart>
+  merge(items: Array<{ productId: string; quantity: number; variantId?: string | null }>): Promise<Cart>
   checkout(addresses: CheckoutAddresses): Promise<CheckoutResult>
 }

@@ -38,6 +38,9 @@ class ProductVariantRecord
     #[ORM\Column]
     private int $stock = 0;
 
+    #[ORM\Column(name: 'reserved_stock')]
+    private int $reservedStock = 0;
+
     #[ORM\Column]
     private int $position = 0;
 

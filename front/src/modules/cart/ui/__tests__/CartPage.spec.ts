@@ -15,18 +15,11 @@ describe('CartPage', () => {
     await userEvent.type(screen.getByLabelText('Code postal'), '75002')
     await userEvent.type(screen.getByLabelText('Ville'), 'Paris')
   }
-  it('asks a guest to log in', async () => {
+  it('shows an empty cart to a guest', async () => {
     await renderApp({ path: '/cart' })
 
     expect(screen.getByRole('heading', { name: 'Votre Panier' })).toBeTruthy()
-    expect(
-      screen.getByText('Vous devez être connecté pour accéder à votre panier et passer commande.'),
-    ).toBeTruthy()
-    expect(
-      screen
-        .getAllByRole('link', { name: 'Se connecter' })
-        .some((link) => link.getAttribute('href') === '/login?redirect=/cart'),
-    ).toBe(true)
+    expect(screen.getByRole('heading', { name: 'Votre panier est vide' })).toBeTruthy()
   })
 
   it('shows an empty cart', async () => {
@@ -101,19 +94,19 @@ describe('CartPage', () => {
     })
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /Payer ma commande/ })).toBeTruthy()
+      expect(screen.getByRole('button', { name: /Valider ma commande/ })).toBeTruthy()
     })
 
     await fillDeliveryAddress()
-    await userEvent.click(screen.getByRole('button', { name: /Payer ma commande/ }))
+    await userEvent.click(screen.getByRole('button', { name: /Valider ma commande/ }))
 
     await waitFor(() => {
       expect(cartRepository.checkoutCount).toBe(1)
       expect(cartRepository.checkouts).toEqual([parisCheckout])
       expect(screen.getByRole('status').textContent).toContain(
-        `Votre commande n°${pendingCheckout.id} a été créée avec succès.`,
+        `La commande n°${pendingCheckout.id} est enregistrée. Le paiement se fait sur sa page.`,
       )
-      expect(screen.getByRole('link', { name: /Voir les détails de la commande/ }).getAttribute('href')).toBe(
+      expect(screen.getByRole('link', { name: /Payer la commande/ }).getAttribute('href')).toBe(
         `/orders/${pendingCheckout.id}`,
       )
       expect(screen.getByRole('heading', { name: 'Votre panier est vide' })).toBeTruthy()
@@ -130,11 +123,11 @@ describe('CartPage', () => {
     })
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /Payer ma commande/ })).toBeTruthy()
+      expect(screen.getByRole('button', { name: /Valider ma commande/ })).toBeTruthy()
     })
 
     await fillDeliveryAddress()
-    await userEvent.click(screen.getByRole('button', { name: /Payer ma commande/ }))
+    await userEvent.click(screen.getByRole('button', { name: /Valider ma commande/ }))
 
     await waitFor(() => {
       expect(screen.getByRole('alert').textContent).toContain('Stock insuffisant pour ce produit.')

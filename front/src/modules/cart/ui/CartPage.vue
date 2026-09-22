@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import { computed, inject, reactive, ref } from 'vue'
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRouter } from 'vue-router'
 import AppIcon from '@/shared/ui/AppIcon.vue'
 import EmptyState from '@/shared/ui/EmptyState.vue'
 import StatusNotice from '@/shared/ui/StatusNotice.vue'
 import PageHeader from '@/shared/ui/PageHeader.vue'
 import PageStatus from '@/shared/ui/PageStatus.vue'
-import AuthRequiredPanel from '@/modules/auth/ui/AuthRequiredPanel.vue'
 import { usePendingAction } from '@/shared/async/usePendingAction'
 import { authSessionKey } from '@/modules/auth/application/authSessionKey'
 import { cartStateKey } from '../application/cartStateKey'
@@ -27,6 +26,7 @@ if (!session || !cartState) {
 
 const authSession = session
 const state = cartState
+const router = useRouter()
 const { pending, errorMessage: actionError, run } = usePendingAction((error) =>
   cartErrorMessage(error),
 )
@@ -86,6 +86,11 @@ function addressReady(draft: AddressDraft): boolean {
 }
 
 async function onCheckout() {
+  if (!isAuthenticated.value) {
+    await router.push({ path: '/login', query: { redirect: '/cart' } })
+    return
+  }
+
   if (!addressReady(shipping) || (!billingSameAsShipping.value && !addressReady(billing))) {
     addressError.value = 'Renseignez l’adresse de livraison et de facturation.'
     return
@@ -120,21 +125,16 @@ async function onCheckout() {
       </template>
     </PageHeader>
 
-    <AuthRequiredPanel
-      v-if="!isAuthenticated"
-      message="Vous devez être connecté pour accéder à votre panier et passer commande."
-      redirect="/cart"
-    />
-
-    <template v-else>
-      <StatusNotice v-if="checkoutOrderId" tone="positive" class="mt-10">
-        <strong class="block font-display text-base">Commande confirmée</strong>
-        <p class="mt-1">Votre commande n°{{ checkoutOrderId }} a été créée avec succès.</p>
+    <StatusNotice v-if="checkoutOrderId" tone="positive" class="mt-10">
+        <strong class="block font-display text-base">Commande créée</strong>
+        <p class="mt-1">
+          La commande n°{{ checkoutOrderId }} est enregistrée. Le paiement se fait sur sa page.
+        </p>
         <RouterLink
           :to="{ name: 'order', params: { id: checkoutOrderId } }"
           class="mt-3 inline-flex items-center gap-1.5 font-semibold underline underline-offset-2"
         >
-          Voir les détails de la commande
+          Payer la commande
           <AppIcon name="arrow-right" :size="15" />
         </RouterLink>
       </StatusNotice>
@@ -166,16 +166,18 @@ async function onCheckout() {
                 @update-quantity="onUpdateQuantity(item.productId, $event, item.variantId)"
                 @remove="onRemove(item.productId, item.variantId)"
               />
-              <li>
-                <CheckoutAddressForm
-                  v-model:shipping="shipping"
-                  v-model:billing="billing"
-                  v-model:billing-same-as-shipping="billingSameAsShipping"
-                />
-              </li>
-              <li>
-                <CheckoutShippingForm v-model="shippingMethod" />
-              </li>
+              <template v-if="isAuthenticated">
+                <li>
+                  <CheckoutAddressForm
+                    v-model:shipping="shipping"
+                    v-model:billing="billing"
+                    v-model:billing-same-as-shipping="billingSameAsShipping"
+                  />
+                </li>
+                <li>
+                  <CheckoutShippingForm v-model="shippingMethod" />
+                </li>
+              </template>
             </ul>
 
             <CartSummary
@@ -184,12 +186,17 @@ async function onCheckout() {
               :shipping-label="quotedShipping.label"
               :shipping-fee-cents="quotedShipping.fee.cents"
               :pending="pending"
+              :action-label="isAuthenticated ? 'Valider ma commande' : 'Se connecter pour commander'"
+              :note="
+                isAuthenticated
+                  ? 'La commande est créée ici. Le paiement se fait sur la page suivante.'
+                  : 'Connectez-vous pour commander. Le panier sera fusionné avec votre compte.'
+              "
               @checkout="onCheckout"
               @clear="onClear"
             />
           </div>
         </PageStatus>
       </div>
-    </template>
   </section>
 </template>

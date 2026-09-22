@@ -112,7 +112,7 @@ describe('ProductDetailPage', () => {
     })
   })
 
-  it('redirects a guest to login before adding to cart', async () => {
+  it('keeps a guest cart locally before login', async () => {
     const { router } = await renderApp({
       repository: createFakeCatalogRepository([nuvoraTee]),
       path: `/products/${nuvoraTee.slug}`,
@@ -125,7 +125,9 @@ describe('ProductDetailPage', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Ajouter au panier' }))
 
     await waitFor(() => {
-      expect(router.currentRoute.value.fullPath).toBe(`/login?redirect=/products/${nuvoraTee.slug}`)
+      expect(router.currentRoute.value.path).toBe(`/products/${nuvoraTee.slug}`)
+      expect(screen.getByRole('status').textContent).toContain('Ajouté au panier.')
+      expect(screen.getByRole('link', { name: 'Panier (1)' })).toBeTruthy()
     })
   })
 

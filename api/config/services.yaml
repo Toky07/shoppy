@@ -91,6 +91,8 @@ services:
 
     App\Payment\Application\Port\PayableOrder: '@App\Payment\Infrastructure\Order\OrderPayableOrder'
 
+    App\Shared\Application\Transaction\TransactionRunner: '@App\Shared\Infrastructure\Persistence\DoctrineTransactionRunner'
+
     App\Order\Domain\Repository\OrderRepository: '@App\Order\Infrastructure\Persistence\Doctrine\DoctrineOrderRepository'
 
     App\Order\Application\Catalog: '@App\Order\Infrastructure\Catalog\ProductCatalog'

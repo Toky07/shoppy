@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { waitFor } from '@testing-library/vue'
 import { ApiError } from '@/shared/http/ApiError'
 import { createCartState } from '../createCartState'
+import { createMemoryGuestCart } from '../../data/guestCartStorage'
 import { FakeCartRepository } from '../../testing/FakeCartRepository'
 import { emptyCart, filledCart, parisCheckout, pendingCheckout } from '../../testing/cartFixtures'
 import { nuvoraTee } from '@/modules/catalog/testing/productFixtures'
@@ -76,6 +77,36 @@ describe('createCartState', () => {
 
     await state.removeItem(nuvoraTee.id)
     expect(state.itemCount.value).toBe(0)
+  })
+
+  it('merges the guest cart when the customer logs in', async () => {
+    const repository = new FakeCartRepository(emptyCart())
+    const guestCart = createMemoryGuestCart()
+    guestCart.write([
+      {
+        productId: nuvoraTee.id,
+        variantId: null,
+        quantity: 2,
+        name: nuvoraTee.name,
+        unitPriceCents: nuvoraTee.price.cents,
+        availableStock: nuvoraTee.stock,
+      },
+    ])
+    const isAuthenticated = ref(false)
+    const state = createCartState(repository, isAuthenticated, guestCart)
+
+    await waitFor(() => {
+      expect(state.itemCount.value).toBe(2)
+    })
+    expect(repository.getCount).toBe(0)
+
+    isAuthenticated.value = true
+
+    await waitFor(() => {
+      expect(repository.merged).toEqual([{ productId: nuvoraTee.id, quantity: 2, variantId: null }])
+      expect(guestCart.read()).toEqual([])
+      expect(state.itemCount.value).toBe(2)
+    })
   })
 
   it('refreshes an empty cart after checkout', async () => {
