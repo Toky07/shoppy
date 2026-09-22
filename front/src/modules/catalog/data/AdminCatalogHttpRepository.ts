@@ -14,6 +14,8 @@ export class AdminCatalogHttpRepository implements AdminCatalogRepository {
         description: input.description,
         stock: input.stock,
         ...(input.categoryId !== undefined ? { categoryId: input.categoryId } : {}),
+        ...(input.sku !== undefined ? { sku: input.sku } : {}),
+        ...(input.variants !== undefined ? { variants: input.variants } : {}),
       }),
     )
   }
@@ -31,6 +33,12 @@ export class AdminCatalogHttpRepository implements AdminCatalogRepository {
     }
     if (input.categoryId !== undefined) {
       body.categoryId = input.categoryId
+    }
+    if (input.sku !== undefined) {
+      body.sku = input.sku
+    }
+    if (input.variants !== undefined) {
+      body.variants = input.variants
     }
     return mapProduct(await this.http.patch(`/products/${encodeURIComponent(id)}`, body))
   }

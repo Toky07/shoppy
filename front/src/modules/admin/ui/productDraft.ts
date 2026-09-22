@@ -4,6 +4,16 @@ export type ProductDraft = {
   description: string
   stock: number
   categoryId: string
+  sku: string
+  variants: VariantDraft[]
+}
+
+export type VariantDraft = {
+  id: string
+  sku: string
+  size: string
+  color: string
+  stock: number
 }
 
 export function emptyProductDraft(): ProductDraft {
@@ -13,5 +23,7 @@ export function emptyProductDraft(): ProductDraft {
     description: '',
     stock: 0,
     categoryId: '',
+    sku: '',
+    variants: [],
   }
 }

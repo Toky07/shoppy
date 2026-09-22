@@ -9,16 +9,21 @@ use App\Product\Domain\ValueObject\CategoryId;
 use App\Product\Domain\ValueObject\ProductDescription;
 use App\Product\Domain\ValueObject\ProductId;
 use App\Product\Domain\ValueObject\ProductName;
+use App\Product\Domain\Entity\ProductVariant;
 use App\Product\Domain\ValueObject\ProductPrice;
+use App\Product\Domain\ValueObject\ProductSku;
 use App\Product\Domain\ValueObject\ProductSlug;
 use App\Product\Domain\ValueObject\StockQuantity;
 use DateTimeImmutable;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'products')]
 #[ORM\UniqueConstraint(name: 'uniq_products_slug', columns: ['slug'])]
+#[ORM\UniqueConstraint(name: 'uniq_products_sku', columns: ['sku'])]
 #[ORM\Index(name: 'idx_products_price_cents', columns: ['price_cents'])]
 #[ORM\Index(name: 'idx_products_created_at', columns: ['created_at'])]
 #[ORM\Index(name: 'idx_products_name', columns: ['name'])]
@@ -53,6 +58,19 @@ class ProductRecord
     #[ORM\Column(name: 'category_id', length: 36, nullable: true)]
     private ?string $categoryId = null;
 
+    #[ORM\Column(length: 40)]
+    private string $sku;
+
+    /** @var Collection<int, ProductVariantRecord> */
+    #[ORM\OneToMany(targetEntity: ProductVariantRecord::class, mappedBy: 'product', cascade: ['persist'], orphanRemoval: true)]
+    #[ORM\OrderBy(['position' => 'ASC'])]
+    private Collection $variants;
+
+    public function __construct()
+    {
+        $this->variants = new ArrayCollection();
+    }
+
     public static function fromDomain(Product $product): self
     {
         $record = new self();
@@ -79,6 +97,11 @@ class ProductRecord
             StockQuantity::fromInt($this->stock),
             ProductSlug::fromString($this->slug),
             $this->categoryId === null ? null : CategoryId::fromString($this->categoryId),
+            ProductSku::fromString($this->sku),
+            array_map(
+                static fn (ProductVariantRecord $record): ProductVariant => $record->toDomain(),
+                $this->variants->getValues(),
+            ),
         );
     }
 
@@ -91,5 +114,37 @@ class ProductRecord
         $this->currency = $product->price()->currency();
         $this->stock = $product->stock()->value();
         $this->categoryId = $product->categoryId()?->value();
+        $this->sku = $product->sku()->value();
+        $this->syncVariants($product);
+    }
+
+    private function syncVariants(Product $product): void
+    {
+        $indexed = [];
+
+        foreach ($this->variants as $record) {
+            $indexed[$record->id()] = $record;
+        }
+
+        $seen = [];
+
+        foreach ($product->variants() as $position => $variant) {
+            $id = $variant->id()->value();
+            $seen[$id] = true;
+            $existing = $indexed[$id] ?? null;
+
+            if ($existing === null) {
+                $this->variants->add(ProductVariantRecord::fromDomain($this, $variant, $position));
+                continue;
+            }
+
+            $existing->updateFromDomain($variant, $position);
+        }
+
+        foreach ($this->variants->toArray() as $record) {
+            if (!isset($seen[$record->id()])) {
+                $this->variants->removeElement($record);
+            }
+        }
     }
 }

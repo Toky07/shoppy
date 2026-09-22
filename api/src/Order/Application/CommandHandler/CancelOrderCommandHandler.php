@@ -41,6 +41,7 @@ final readonly class CancelOrderCommandHandler
             $this->catalog->increaseStock(
                 $item->catalogProductId(),
                 $item->quantity()->value(),
+                $item->variantId(),
             );
         }
 

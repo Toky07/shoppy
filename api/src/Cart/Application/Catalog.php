@@ -9,5 +9,5 @@ use App\Cart\Domain\ValueObject\CartProductId;
 
 interface Catalog
 {
-    public function findById(CartProductId $id): ?CatalogSnapshot;
+    public function findById(CartProductId $id, ?string $variantId = null): ?CatalogSnapshot;
 }

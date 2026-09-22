@@ -12,6 +12,9 @@ final readonly class CreateProductCommand
         public ?string $description = null,
         public int $stock = 0,
         public ?string $categoryId = null,
+        public ?string $sku = null,
+        /** @var list<array{id: string|null, sku: string, size: string|null, color: string|null, stock: int}>|null */
+        public ?array $variants = null,
     ) {
     }
 }

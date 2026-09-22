@@ -7,4 +7,5 @@ export type CartItem = {
   unitPrice: Money
   lineTotal: Money
   availableStock: number
+  variantId?: string | null
 }

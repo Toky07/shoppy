@@ -9,9 +9,9 @@ use App\Order\Domain\ValueObject\CatalogProductId;
 
 interface Catalog
 {
-    public function findById(CatalogProductId $id): ?CatalogSnapshot;
+    public function findById(CatalogProductId $id, ?string $variantId = null): ?CatalogSnapshot;
 
-    public function decreaseStock(CatalogProductId $id, int $quantity): void;
+    public function decreaseStock(CatalogProductId $id, int $quantity, ?string $variantId = null): void;
 
-    public function increaseStock(CatalogProductId $id, int $quantity): void;
+    public function increaseStock(CatalogProductId $id, int $quantity, ?string $variantId = null): void;
 }

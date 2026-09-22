@@ -11,6 +11,7 @@ export const cartTeeItem: CartItem = {
   unitPrice: { cents: 1999, currency: 'EUR' },
   lineTotal: { cents: 3998, currency: 'EUR' },
   availableStock: 10,
+  variantId: null,
 }
 
 export function emptyCart(customerId = visitorUser.id): Cart {

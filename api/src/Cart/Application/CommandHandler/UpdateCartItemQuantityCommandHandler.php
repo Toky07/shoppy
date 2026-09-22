@@ -12,6 +12,7 @@ use App\Cart\Domain\Exception\InsufficientCartStock;
 use App\Cart\Domain\Repository\CartRepository;
 use App\Cart\Domain\ValueObject\CartProductId;
 use App\Cart\Domain\ValueObject\CartQuantity;
+use App\Cart\Domain\ValueObject\CartVariantId;
 use App\Cart\Domain\ValueObject\CustomerId;
 use App\Shared\Domain\Clock;
 
@@ -28,6 +29,7 @@ final readonly class UpdateCartItemQuantityCommandHandler
     {
         $customerId = CustomerId::fromString($command->customerId);
         $productId = CartProductId::fromString($command->productId);
+        $variantId = $command->variantId === null ? null : CartVariantId::fromString($command->variantId);
         $quantity = CartQuantity::fromInt($command->quantity);
         $cart = $this->cartRepository->findByCustomerId($customerId);
 
@@ -35,7 +37,7 @@ final readonly class UpdateCartItemQuantityCommandHandler
             throw new CartItemNotFound($productId);
         }
 
-        $snapshot = $this->catalog->findById($productId);
+        $snapshot = $this->catalog->findById($productId, $variantId?->value());
         if ($snapshot === null) {
             throw new CartProductNotFound($productId);
         }
@@ -44,7 +46,7 @@ final readonly class UpdateCartItemQuantityCommandHandler
             throw new InsufficientCartStock($snapshot->stock, $quantity->value());
         }
 
-        $cart->setItemQuantity($productId, $quantity, $this->clock->now());
+        $cart->setItemQuantity($productId, $quantity, $this->clock->now(), $variantId);
         $this->cartRepository->save($cart);
     }
 }

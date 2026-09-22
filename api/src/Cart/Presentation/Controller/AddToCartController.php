@@ -38,6 +38,7 @@ final readonly class AddToCartController
             customerId: $userId->value(),
             productId: $httpRequest->productId,
             quantity: $httpRequest->quantity,
+            variantId: $httpRequest->variantId,
         ));
 
         $cart = $this->getCart->handle(new GetCartQuery($userId->value()));

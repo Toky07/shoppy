@@ -26,6 +26,37 @@ function mapCategory(payload: Record<string, unknown>): Category | null {
   }
 }
 
+function mapVariants(payload: Record<string, unknown>) {
+  if (payload.variants === undefined) {
+    return []
+  }
+
+  if (!Array.isArray(payload.variants)) {
+    throw new InvalidResponseError('Invalid product payload.')
+  }
+
+  return payload.variants.map((variant) => {
+    if (
+      !isRecord(variant) ||
+      typeof variant.id !== 'string' ||
+      typeof variant.sku !== 'string' ||
+      (variant.size !== null && typeof variant.size !== 'string') ||
+      (variant.color !== null && typeof variant.color !== 'string') ||
+      typeof variant.stock !== 'number'
+    ) {
+      throw new InvalidResponseError('Invalid product payload.')
+    }
+
+    return {
+      id: variant.id,
+      sku: variant.sku,
+      size: variant.size,
+      color: variant.color,
+      stock: variant.stock,
+    }
+  })
+}
+
 function mapImageUrls(payload: Record<string, unknown>): string[] {
   if (payload.imageUrls === undefined) {
     return typeof payload.imageUrl === 'string' && payload.imageUrl !== '' ? [payload.imageUrl] : []
@@ -47,7 +78,8 @@ export function mapProduct(payload: unknown): Product {
     (payload.description !== null && typeof payload.description !== 'string') ||
     typeof payload.stock !== 'number' ||
     (payload.imageUrl !== null && payload.imageUrl !== undefined && typeof payload.imageUrl !== 'string') ||
-    typeof payload.createdAt !== 'string'
+    typeof payload.createdAt !== 'string' ||
+    typeof payload.sku !== 'string'
   ) {
     throw new InvalidResponseError('Invalid product payload.')
   }
@@ -65,6 +97,8 @@ export function mapProduct(payload: unknown): Product {
     imageUrls,
     createdAt: payload.createdAt,
     category: mapCategory(payload),
+    sku: payload.sku,
+    variants: mapVariants(payload),
   }
 }
 

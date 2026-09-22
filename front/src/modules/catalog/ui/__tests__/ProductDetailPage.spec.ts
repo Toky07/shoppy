@@ -6,7 +6,7 @@ import { renderApp } from '@/shared/testing/renderApp'
 import { visitorSession } from '@/modules/auth/testing/authFixtures'
 import { FakeCartRepository } from '@/modules/cart/testing/FakeCartRepository'
 import { createFakeCatalogRepository } from '../../testing/fakeCatalogRepository'
-import { nuvoraTee, nuvoraTeeGallery, outOfStockMug } from '../../testing/productFixtures'
+import { createProduct, nuvoraTee, nuvoraTeeGallery, outOfStockMug } from '../../testing/productFixtures'
 
 describe('ProductDetailPage', () => {
   it('shows product details', async () => {
@@ -23,6 +23,7 @@ describe('ProductDetailPage', () => {
       expect(screen.getByText('En stock (10)')).toBeTruthy()
     })
     expect(screen.getByRole('link', { name: 'Retour au catalogue' }).getAttribute('href')).toBe('/')
+    expect(screen.getByText('Réf. NUVORA-TEE')).toBeTruthy()
   })
 
   it('shows a thumbnail list to browse the gallery', async () => {
@@ -170,6 +171,54 @@ describe('ProductDetailPage', () => {
       expect(
         (screen.getByRole('button', { name: 'Ajouter au panier' }) as HTMLButtonElement).disabled,
       ).toBe(true)
+    })
+  })
+
+  it('shows the selected variant reference and stock', async () => {
+    const sizedTee = createProduct({
+      variants: [
+        {
+          id: '550e8400-e29b-41d4-a716-446655440010',
+          sku: 'NUVORA-TEE-S',
+          size: 'S',
+          color: 'Noir',
+          stock: 0,
+        },
+        {
+          id: '550e8400-e29b-41d4-a716-446655440011',
+          sku: 'NUVORA-TEE-M',
+          size: 'M',
+          color: 'Noir',
+          stock: 4,
+        },
+      ],
+    })
+    const cartRepository = new FakeCartRepository()
+
+    await renderApp({
+      repository: createFakeCatalogRepository([sizedTee]),
+      cartRepository,
+      session: visitorSession,
+      path: `/products/${sizedTee.slug}`,
+    })
+
+    await waitFor(() => {
+      expect(screen.getByText('Réf. NUVORA-TEE-M')).toBeTruthy()
+      expect(screen.getByText('En stock (4)')).toBeTruthy()
+    })
+
+    await userEvent.click(screen.getByRole('radio', { name: 'S' }))
+
+    expect(screen.getByText('Réf. NUVORA-TEE-S')).toBeTruthy()
+    expect(screen.getByText('Rupture de stock')).toBeTruthy()
+
+    await userEvent.click(screen.getByRole('radio', { name: 'M' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Ajouter au panier' }))
+
+    await waitFor(() => {
+      expect(cartRepository.added).toEqual([
+        { productId: sizedTee.id, quantity: 1, variantId: '550e8400-e29b-41d4-a716-446655440011' },
+      ])
     })
   })
 })

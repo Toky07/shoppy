@@ -2,7 +2,7 @@
 
 Audit du 22 septembre 2026. Cocher au fur et à mesure.
 
-Déjà en place : inscription / connexion / rôles, sécurité du compte (réinitialisation, vérification d’email, changement de mot de passe et d’email, déconnexion de toutes les sessions, suppression anonymisée, refus de supprimer le dernier admin), catalogue paginé (recherche, tri, slug, stock, catégories, filtres prix et « en stock seulement », favoris locaux), panier authentifié, commande avec prix serveur, annulation qui restaure le stock, Stripe (session + webhook signé), admin produits / commandes / utilisateurs, emails transactionnels, tests Pest et Vitest.
+Déjà en place : inscription / connexion / rôles, sécurité du compte (réinitialisation, vérification d’email, changement de mot de passe et d’email, déconnexion de toutes les sessions, suppression anonymisée, refus de supprimer le dernier admin), catalogue paginé (recherche, tri, slug, stock, catégories, filtres prix et « en stock seulement », SKU et variantes, favoris locaux), panier authentifié, commande avec prix serveur, annulation qui restaure le stock, Stripe (session + webhook signé), admin produits / commandes / utilisateurs, emails transactionnels, tests Pest et Vitest.
 
 ## Fonctionnalités manquantes
 
@@ -18,7 +18,7 @@ Déjà en place : inscription / connexion / rôles, sécurité du compte (réini
 ### Catalogue
 
 - [x] Catégories (navigation, filtre, rattachement produit)
-- [ ] Variantes (taille, couleur) et SKU métier (l’UI affiche un UUID tronqué)
+- [x] Variantes (taille, couleur) et SKU métier (l’UI affiche un UUID tronqué)
 - [x] Filtres prix et « en stock seulement »
 - [ ] Produits associés sur la fiche
 - [ ] Statut publié / brouillon (tout produit créé est visible)

@@ -18,7 +18,7 @@ final class FakeCartCatalog implements Catalog
         $this->items[$item->id] = $item;
     }
 
-    public function findById(CartProductId $id): ?CatalogSnapshot
+    public function findById(CartProductId $id, ?string $variantId = null): ?CatalogSnapshot
     {
         return $this->items[$id->value()] ?? null;
     }

@@ -128,3 +128,31 @@ it('increases stock', function () {
 
     expect($product->stock()->value())->toBe(7);
 });
+
+it('sells a specific size and keeps the product stock equal to the variants', function () {
+    $medium = \App\Product\Domain\Entity\ProductVariant::create(
+        \App\Product\Domain\ValueObject\VariantId::fromString('550e8400-e29b-41d4-a716-446655440010'),
+        \App\Product\Domain\ValueObject\ProductSku::fromString('NUVORA-TEE-M'),
+        \App\Product\Domain\ValueObject\VariantLabel::fromString('M', 'size'),
+        \App\Product\Domain\ValueObject\VariantLabel::fromString('Noir', 'color'),
+        StockQuantity::fromInt(4),
+    );
+    $product = Product::create(
+        ProductId::fromString('550e8400-e29b-41d4-a716-446655440000'),
+        ProductName::fromString('Nuvora Tee'),
+        ProductPrice::fromCents(1999),
+        new DateTimeImmutable('2026-08-20T12:00:00+00:00'),
+        null,
+        null,
+        null,
+        null,
+        \App\Product\Domain\ValueObject\ProductSku::fromString('NUVORA-TEE'),
+        [$medium],
+    );
+
+    $product->decreaseStock(1, $medium->id());
+
+    expect($product->sku()->value())->toBe('NUVORA-TEE')
+        ->and($medium->stock()->value())->toBe(3)
+        ->and($product->stock()->value())->toBe(3);
+});

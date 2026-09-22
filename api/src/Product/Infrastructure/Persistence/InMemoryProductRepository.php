@@ -9,6 +9,7 @@ use App\Product\Domain\Repository\ProductRepository;
 use App\Product\Domain\ValueObject\ProductId;
 use App\Product\Domain\ValueObject\ProductListCriteria;
 use App\Product\Domain\ValueObject\ProductName;
+use App\Product\Domain\ValueObject\ProductSku;
 use App\Product\Domain\ValueObject\ProductSlug;
 use App\Product\Domain\ValueObject\ProductSort;
 
@@ -43,6 +44,23 @@ final class InMemoryProductRepository implements ProductRepository
         foreach ($this->products as $product) {
             if ($product->slug()->value() === $slug->value()) {
                 return $product;
+            }
+        }
+
+        return null;
+    }
+
+    public function findBySku(ProductSku $sku): ?Product
+    {
+        foreach ($this->products as $product) {
+            if ($product->sku()->equals($sku)) {
+                return $product;
+            }
+
+            foreach ($product->variants() as $variant) {
+                if ($variant->sku()->equals($sku)) {
+                    return $product;
+                }
             }
         }
 

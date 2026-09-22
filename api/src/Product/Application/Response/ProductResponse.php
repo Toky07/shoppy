@@ -6,12 +6,14 @@ namespace App\Product\Application\Response;
 
 use App\Product\Domain\Entity\Category;
 use App\Product\Domain\Entity\Product;
+use App\Product\Domain\Entity\ProductVariant;
 use DateTimeInterface;
 
 final readonly class ProductResponse
 {
     /**
      * @param list<string> $imageUrls
+     * @param list<array{id: string, sku: string, size: string|null, color: string|null, stock: int}> $variants
      */
     public function __construct(
         public string $id,
@@ -25,6 +27,8 @@ final readonly class ProductResponse
         public ?string $imageUrl,
         public array $imageUrls,
         public ?CategoryResponse $category,
+        public string $sku,
+        public array $variants,
     ) {
     }
 
@@ -45,7 +49,23 @@ final readonly class ProductResponse
             $imageUrls[0] ?? null,
             array_values($imageUrls),
             $category === null ? null : CategoryResponse::fromCategory($category),
+            $product->sku()->value(),
+            array_map(self::variantToArray(...), $product->variants()),
         );
+    }
+
+    /**
+     * @return array{id: string, sku: string, size: string|null, color: string|null, stock: int}
+     */
+    private static function variantToArray(ProductVariant $variant): array
+    {
+        return [
+            'id' => $variant->id()->value(),
+            'sku' => $variant->sku()->value(),
+            'size' => $variant->size()?->value(),
+            'color' => $variant->color()?->value(),
+            'stock' => $variant->stock()->value(),
+        ];
     }
 
     /**
@@ -59,7 +79,9 @@ final readonly class ProductResponse
      *     imageUrl: string|null,
      *     imageUrls: list<string>,
      *     createdAt: string,
-     *     category: array{id: string, name: string, slug: string}|null
+     *     category: array{id: string, name: string, slug: string}|null,
+     *     sku: string,
+     *     variants: list<array{id: string, sku: string, size: string|null, color: string|null, stock: int}>
      * }
      */
     public function toArray(): array
@@ -78,6 +100,8 @@ final readonly class ProductResponse
             'imageUrls' => $this->imageUrls,
             'createdAt' => $this->createdAt,
             'category' => $this->category?->toArray(),
+            'sku' => $this->sku,
+            'variants' => $this->variants,
         ];
     }
 }

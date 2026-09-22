@@ -9,7 +9,9 @@ use App\Product\Domain\Repository\ProductRepository;
 use App\Product\Domain\ValueObject\ProductId;
 use App\Product\Domain\ValueObject\ProductListCriteria;
 use App\Product\Domain\ValueObject\ProductName;
+use App\Product\Domain\ValueObject\ProductSku;
 use App\Product\Domain\ValueObject\ProductSlug;
+use App\Product\Infrastructure\Persistence\Doctrine\Entity\ProductVariantRecord;
 use App\Product\Domain\ValueObject\ProductSort;
 use App\Product\Infrastructure\Persistence\Doctrine\Entity\ProductRecord;
 use Doctrine\ORM\EntityManagerInterface;
@@ -57,6 +59,23 @@ final readonly class DoctrineProductRepository implements ProductRepository
         ]);
 
         return $record?->toDomain();
+    }
+
+    public function findBySku(ProductSku $sku): ?Product
+    {
+        $record = $this->entityManager->getRepository(ProductRecord::class)->findOneBy([
+            'sku' => $sku->value(),
+        ]);
+
+        if ($record !== null) {
+            return $record->toDomain();
+        }
+
+        $variant = $this->entityManager->getRepository(ProductVariantRecord::class)->findOneBy([
+            'sku' => $sku->value(),
+        ]);
+
+        return $variant?->product()->toDomain();
     }
 
     public function findByIds(array $ids): array

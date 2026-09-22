@@ -37,8 +37,8 @@ function withTotals(cart: Cart): Cart {
 
 export class FakeCartRepository implements CartRepository {
   public cart: Cart
-  public added: Array<{ productId: string; quantity: number }> = []
-  public updated: Array<{ productId: string; quantity: number }> = []
+  public added: Array<{ productId: string; quantity: number; variantId?: string }> = []
+  public updated: Array<{ productId: string; quantity: number; variantId?: string }> = []
   public removed: string[] = []
   public clearCount = 0
   public checkoutCount = 0
@@ -57,25 +57,27 @@ export class FakeCartRepository implements CartRepository {
     return cloneCart(this.cart)
   }
 
-  async addItem(productId: string, quantity: number): Promise<Cart> {
-    this.added.push({ productId, quantity })
+  async addItem(productId: string, quantity: number, variantId?: string | null): Promise<Cart> {
+    this.added.push(variantId ? { productId, quantity, variantId } : { productId, quantity })
     if (this.addError) {
       throw this.addError
     }
 
-    const existing = this.cart.items.find((item) => item.productId === productId)
+    const existing = this.cart.items.find(
+      (item) => item.productId === productId && (item.variantId ?? null) === (variantId ?? null),
+    )
     if (existing) {
       existing.quantity += quantity
     } else {
-      this.cart.items.push(this.newItem(productId, quantity))
+      this.cart.items.push(this.newItem(productId, quantity, variantId))
     }
 
     this.cart = withTotals(this.cart)
     return cloneCart(this.cart)
   }
 
-  async updateItem(productId: string, quantity: number): Promise<Cart> {
-    this.updated.push({ productId, quantity })
+  async updateItem(productId: string, quantity: number, variantId?: string | null): Promise<Cart> {
+    this.updated.push(variantId ? { productId, quantity, variantId } : { productId, quantity })
     if (this.updateError) {
       throw this.updateError
     }
@@ -83,17 +85,21 @@ export class FakeCartRepository implements CartRepository {
     this.cart = withTotals({
       ...this.cart,
       items: this.cart.items.map((item) =>
-        item.productId === productId ? { ...item, quantity } : item,
+        item.productId === productId && (item.variantId ?? null) === (variantId ?? null)
+          ? { ...item, quantity }
+          : item,
       ),
     })
     return cloneCart(this.cart)
   }
 
-  async removeItem(productId: string): Promise<Cart> {
+  async removeItem(productId: string, variantId?: string | null): Promise<Cart> {
     this.removed.push(productId)
     this.cart = withTotals({
       ...this.cart,
-      items: this.cart.items.filter((item) => item.productId !== productId),
+      items: this.cart.items.filter(
+        (item) => !(item.productId === productId && (item.variantId ?? null) === (variantId ?? null)),
+      ),
     })
     if (this.cart.items.length === 0) {
       this.cart = emptyCart(this.cart.customerId)
@@ -116,9 +122,10 @@ export class FakeCartRepository implements CartRepository {
     return { ...this.checkoutResult }
   }
 
-  private newItem(productId: string, quantity: number): CartItem {
+  private newItem(productId: string, quantity: number, variantId?: string | null): CartItem {
     return {
       productId,
+      variantId: variantId ?? null,
       name: productId,
       quantity,
       unitPrice: { cents: 0, currency: 'EUR' },

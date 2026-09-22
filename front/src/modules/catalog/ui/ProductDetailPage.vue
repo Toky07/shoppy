@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, inject, watch } from 'vue'
+import { computed, inject, ref, watch } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import AppIcon from '@/shared/ui/AppIcon.vue'
 import PageStatus from '@/shared/ui/PageStatus.vue'
@@ -10,6 +10,7 @@ import ProductMedia from './ProductMedia.vue'
 import ProductPrice from './ProductPrice.vue'
 import ProductReassurance from './ProductReassurance.vue'
 import ProductTabs from './ProductTabs.vue'
+import VariantPicker from './VariantPicker.vue'
 import { stockLabel } from './stockLabel'
 
 const repository = inject(catalogRepositoryKey)
@@ -22,12 +23,25 @@ const route = useRoute()
 const router = useRouter()
 const productRef = computed(() => String(route.params.slug ?? ''))
 const { status, product, error } = useProduct(repository, productRef)
+const selectedVariantId = ref('')
+const selectedVariant = computed(
+  () => product.value?.variants.find((variant) => variant.id === selectedVariantId.value) ?? null,
+)
+const selectedStock = computed(() => selectedVariant.value?.stock ?? product.value?.stock ?? 0)
+const selectedSku = computed(() => selectedVariant.value?.sku ?? product.value?.sku ?? '')
 const notFound = computed(() => error.value?.code === 'product_not_found')
 const errorMessage = computed(() =>
   notFound.value ? 'Ce produit est introuvable.' : error.value?.message,
 )
 
 watch(product, (current) => {
+  if (current !== null && current.variants.length > 0) {
+    const available = current.variants.find((variant) => variant.stock > 0) ?? current.variants[0]
+    selectedVariantId.value = available?.id ?? ''
+  } else {
+    selectedVariantId.value = ''
+  }
+
   if (current === null || route.params.slug === current.slug) {
     return
   }
@@ -53,7 +67,7 @@ watch(product, (current) => {
       skeleton="detail"
     >
       <article v-if="product" class="grid items-start gap-10 lg:grid-cols-2 lg:gap-16">
-        <ProductMedia :product="product" />
+        <ProductMedia :product="product" :reference="selectedSku" :stock="selectedStock" />
 
         <div class="flex flex-col">
           <p class="text-xs font-semibold tracking-[0.12em] text-muted uppercase">
@@ -65,7 +79,7 @@ watch(product, (current) => {
               {{ product.category.name }}
             </RouterLink>
             <span v-if="product.category" class="mx-2 text-faint" aria-hidden="true">·</span>
-            <span>{{ stockLabel(product.stock) }}</span>
+            <span>{{ stockLabel(selectedStock) }}</span>
           </p>
 
           <h1 class="display-tight mt-4 text-4xl text-strong sm:text-5xl">{{ product.name }}</h1>
@@ -77,8 +91,18 @@ watch(product, (current) => {
             <p class="text-xs text-muted">TTC · livraison offerte dès 49 €</p>
           </div>
 
+          <VariantPicker
+            v-if="product.variants.length > 0 && selectedVariantId"
+            v-model="selectedVariantId"
+            :variants="product.variants"
+          />
+
           <div class="panel mt-8 p-5 sm:p-6">
-            <AddToCartForm :product-id="product.id" :stock="product.stock" />
+            <AddToCartForm
+              :product-id="product.id"
+              :variant-id="selectedVariant?.id"
+              :stock="selectedStock"
+            />
           </div>
 
           <ProductTabs :description="product.description" />

@@ -54,10 +54,12 @@ export function createCartState(
     error: readonly(error),
     itemCount: computed(() => cart.value?.items.reduce((sum, item) => sum + item.quantity, 0) ?? 0),
     refresh,
-    addItem: (productId: string, quantity: number) => mutate(() => repository.addItem(productId, quantity)),
-    updateItem: (productId: string, quantity: number) =>
-      mutate(() => repository.updateItem(productId, quantity)),
-    removeItem: (productId: string) => mutate(() => repository.removeItem(productId)),
+    addItem: (productId: string, quantity: number, variantId?: string | null) =>
+      mutate(() => repository.addItem(productId, quantity, variantId)),
+    updateItem: (productId: string, quantity: number, variantId?: string | null) =>
+      mutate(() => repository.updateItem(productId, quantity, variantId)),
+    removeItem: (productId: string, variantId?: string | null) =>
+      mutate(() => repository.removeItem(productId, variantId)),
     clear: () => mutate(() => repository.clear()),
     checkout,
   }

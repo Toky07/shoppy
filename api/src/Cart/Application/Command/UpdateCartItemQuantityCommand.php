@@ -10,6 +10,7 @@ final readonly class UpdateCartItemQuantityCommand
         public string $customerId,
         public string $productId,
         public int $quantity,
+        public ?string $variantId = null,
     ) {
     }
 }

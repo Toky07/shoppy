@@ -55,6 +55,14 @@ watch(
         description: product.description ?? '',
         stock: product.stock,
         categoryId: product.category?.id ?? '',
+        sku: product.sku,
+        variants: product.variants.map((variant) => ({
+          id: variant.id,
+          sku: variant.sku,
+          size: variant.size ?? '',
+          color: variant.color ?? '',
+          stock: variant.stock,
+        })),
       }
       previewImages.value = product.imageUrls
       slug.value = product.slug
@@ -71,6 +79,16 @@ function onSubmit() {
   return run(async () => {
     const descriptionValue = draft.value.description.trim() === '' ? null : draft.value.description.trim()
     const categoryId = draft.value.categoryId === '' ? null : draft.value.categoryId
+    const sku = draft.value.sku.trim()
+    const variants = draft.value.variants
+      .filter((variant) => variant.sku.trim() !== '' || variant.size.trim() !== '' || variant.color.trim() !== '')
+      .map((variant) => ({
+        ...(variant.id === '' ? {} : { id: variant.id }),
+        sku: variant.sku.trim(),
+        size: variant.size.trim() === '' ? null : variant.size.trim(),
+        color: variant.color.trim() === '' ? null : variant.color.trim(),
+        stock: Number(variant.stock) || 0,
+      }))
     if (isCreate.value) {
       await adminRepository.create({
         name: draft.value.name.trim(),
@@ -78,6 +96,8 @@ function onSubmit() {
         description: descriptionValue,
         stock: draft.value.stock,
         categoryId,
+        ...(sku === '' ? {} : { sku }),
+        ...(variants.length === 0 ? {} : { variants }),
       })
     } else {
       await adminRepository.update(productId.value, {
@@ -85,8 +105,12 @@ function onSubmit() {
         priceCents: eurosToCents(draft.value.priceEuros),
         description: descriptionValue,
         categoryId,
+        ...(sku === '' ? {} : { sku }),
+        variants,
       })
-      await adminRepository.setStock(productId.value, draft.value.stock)
+      if (variants.length === 0) {
+        await adminRepository.setStock(productId.value, draft.value.stock)
+      }
     }
     await router.push('/admin/products')
   })

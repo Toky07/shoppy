@@ -10,6 +10,7 @@ use App\Cart\Domain\ValueObject\CartId;
 use App\Cart\Domain\ValueObject\CartItem;
 use App\Cart\Domain\ValueObject\CartProductId;
 use App\Cart\Domain\ValueObject\CartQuantity;
+use App\Cart\Domain\ValueObject\CartVariantId;
 use App\Cart\Domain\ValueObject\CustomerId;
 use DateTimeImmutable;
 
@@ -71,10 +72,14 @@ final class Cart
         return $this->items === [];
     }
 
-    public function addItem(CartProductId $productId, CartQuantity $quantity, DateTimeImmutable $updatedAt): void
-    {
+    public function addItem(
+        CartProductId $productId,
+        CartQuantity $quantity,
+        DateTimeImmutable $updatedAt,
+        ?CartVariantId $variantId = null,
+    ): void {
         foreach ($this->items as $index => $item) {
-            if ($item->productId()->equals($productId)) {
+            if ($item->matches($productId, $variantId)) {
                 $this->items[$index] = $item->withQuantity($item->quantity()->add($quantity));
                 $this->updatedAt = $updatedAt;
 
@@ -82,14 +87,18 @@ final class Cart
             }
         }
 
-        $this->items[] = CartItem::of($productId, $quantity);
+        $this->items[] = CartItem::of($productId, $quantity, $variantId);
         $this->updatedAt = $updatedAt;
     }
 
-    public function setItemQuantity(CartProductId $productId, CartQuantity $quantity, DateTimeImmutable $updatedAt): void
-    {
+    public function setItemQuantity(
+        CartProductId $productId,
+        CartQuantity $quantity,
+        DateTimeImmutable $updatedAt,
+        ?CartVariantId $variantId = null,
+    ): void {
         foreach ($this->items as $index => $item) {
-            if ($item->productId()->equals($productId)) {
+            if ($item->matches($productId, $variantId)) {
                 $this->items[$index] = $item->withQuantity($quantity);
                 $this->updatedAt = $updatedAt;
 
@@ -100,10 +109,10 @@ final class Cart
         throw new CartItemNotFound($productId);
     }
 
-    public function removeItem(CartProductId $productId, DateTimeImmutable $updatedAt): void
+    public function removeItem(CartProductId $productId, DateTimeImmutable $updatedAt, ?CartVariantId $variantId = null): void
     {
         foreach ($this->items as $index => $item) {
-            if ($item->productId()->equals($productId)) {
+            if ($item->matches($productId, $variantId)) {
                 unset($this->items[$index]);
                 $this->items = array_values($this->items);
                 $this->updatedAt = $updatedAt;

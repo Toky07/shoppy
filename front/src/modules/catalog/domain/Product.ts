@@ -1,6 +1,14 @@
 import type { Money } from '@/shared/money/Money'
 import type { Category } from './Category'
 
+export type ProductVariant = {
+  id: string
+  sku: string
+  size: string | null
+  color: string | null
+  stock: number
+}
+
 export type Product = {
   id: string
   slug: string
@@ -12,4 +20,6 @@ export type Product = {
   imageUrls: string[]
   createdAt: string
   category: Category | null
+  sku: string
+  variants: ProductVariant[]
 }

@@ -38,6 +38,7 @@ final readonly class UpdateCartItemController
             customerId: $userId->value(),
             productId: $productId,
             quantity: $httpRequest->quantity,
+            variantId: $httpRequest->variantId,
         ));
 
         $cart = $this->getCart->handle(new GetCartQuery($userId->value()));

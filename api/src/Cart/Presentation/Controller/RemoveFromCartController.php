@@ -31,9 +31,15 @@ final readonly class RemoveFromCartController
             BearerToken::fromAuthorizationHeader($request->headers->get('Authorization')),
         ));
 
+        $variantId = $request->query->get('variantId');
+        if ($variantId !== null && !is_string($variantId)) {
+            $variantId = null;
+        }
+
         $this->removeFromCart->handle(new RemoveFromCartCommand(
             customerId: $userId->value(),
             productId: $productId,
+            variantId: $variantId === '' ? null : $variantId,
         ));
 
         $cart = $this->getCart->handle(new GetCartQuery($userId->value()));

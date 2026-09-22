@@ -11,6 +11,7 @@ final readonly class OrderItem
         private OrderedProductName $name,
         private UnitPrice $unitPrice,
         private Quantity $quantity,
+        private ?string $variantId,
     ) {
     }
 
@@ -19,8 +20,9 @@ final readonly class OrderItem
         OrderedProductName $name,
         UnitPrice $unitPrice,
         Quantity $quantity,
+        ?string $variantId = null,
     ): self {
-        return new self($catalogProductId, $name, $unitPrice, $quantity);
+        return new self($catalogProductId, $name, $unitPrice, $quantity, $variantId);
     }
 
     public function catalogProductId(): CatalogProductId
@@ -41,6 +43,11 @@ final readonly class OrderItem
     public function quantity(): Quantity
     {
         return $this->quantity;
+    }
+
+    public function variantId(): ?string
+    {
+        return $this->variantId;
     }
 
     public function lineTotalCents(): int

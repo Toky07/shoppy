@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Product\Application\CommandHandler\CreateProductCommandHandler;
 use App\Product\Application\CommandHandler\UpdateProductCommandHandler;
+use App\Product\Application\UniqueProductSku;
 use App\Product\Application\UniqueProductSlug;
 use App\Product\Domain\Repository\CategoryRepository;
 use App\Product\Domain\Repository\ProductRepository;
@@ -23,6 +24,7 @@ function createProducts(ProductRepository $repository, Clock $clock, ?CategoryRe
         $clock,
         new UniqueProductSlug($repository),
         $categories ?? new InMemoryCategoryRepository(),
+        new UniqueProductSku($repository),
     );
 }
 
@@ -32,6 +34,7 @@ function updateProducts(ProductRepository $repository, ?CategoryRepository $cate
         $repository,
         new UniqueProductSlug($repository),
         $categories ?? new InMemoryCategoryRepository(),
+        new UniqueProductSku($repository),
     );
 }
 

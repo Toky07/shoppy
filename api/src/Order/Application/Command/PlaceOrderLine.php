@@ -9,6 +9,7 @@ final readonly class PlaceOrderLine
     public function __construct(
         public string $productId,
         public int $quantity,
+        public ?string $variantId = null,
     ) {
     }
 }

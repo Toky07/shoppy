@@ -55,6 +55,8 @@ it('returns a product by id', function () {
         'imageUrls' => [],
         'createdAt' => '2026-08-20T12:00:00+00:00',
         'category' => null,
+        'sku' => 'NUVORA-TEE',
+        'variants' => [],
     ]);
 });
 

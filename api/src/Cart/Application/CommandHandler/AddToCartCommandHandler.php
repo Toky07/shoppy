@@ -8,11 +8,13 @@ use App\Cart\Application\Catalog;
 use App\Cart\Application\Command\AddToCartCommand;
 use App\Cart\Domain\Entity\Cart;
 use App\Cart\Domain\Exception\CartProductNotFound;
+use App\Cart\Domain\Exception\CartVariantRequired;
 use App\Cart\Domain\Exception\InsufficientCartStock;
 use App\Cart\Domain\Repository\CartRepository;
 use App\Cart\Domain\ValueObject\CartId;
 use App\Cart\Domain\ValueObject\CartProductId;
 use App\Cart\Domain\ValueObject\CartQuantity;
+use App\Cart\Domain\ValueObject\CartVariantId;
 use App\Cart\Domain\ValueObject\CustomerId;
 use App\Shared\Domain\Clock;
 
@@ -29,11 +31,16 @@ final readonly class AddToCartCommandHandler
     {
         $customerId = CustomerId::fromString($command->customerId);
         $productId = CartProductId::fromString($command->productId);
+        $variantId = $command->variantId === null ? null : CartVariantId::fromString($command->variantId);
         $quantity = CartQuantity::fromInt($command->quantity);
-        $snapshot = $this->catalog->findById($productId);
+        $snapshot = $this->catalog->findById($productId, $variantId?->value());
 
         if ($snapshot === null) {
             throw new CartProductNotFound($productId);
+        }
+
+        if ($snapshot->requiresVariant && $variantId === null) {
+            throw new CartVariantRequired();
         }
 
         $cart = $this->cartRepository->findByCustomerId($customerId)
@@ -41,7 +48,7 @@ final readonly class AddToCartCommandHandler
 
         $existingQuantity = 0;
         foreach ($cart->items() as $item) {
-            if ($item->productId()->equals($productId)) {
+            if ($item->matches($productId, $variantId)) {
                 $existingQuantity = $item->quantity()->value();
                 break;
             }
@@ -52,7 +59,7 @@ final readonly class AddToCartCommandHandler
             throw new InsufficientCartStock($snapshot->stock, $requestedTotal);
         }
 
-        $cart->addItem($productId, $quantity, $this->clock->now());
+        $cart->addItem($productId, $quantity, $this->clock->now(), $variantId);
         $this->cartRepository->save($cart);
     }
 }

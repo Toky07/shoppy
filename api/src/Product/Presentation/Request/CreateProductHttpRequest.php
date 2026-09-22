@@ -14,6 +14,9 @@ final readonly class CreateProductHttpRequest
         public ?string $description,
         public int $stock,
         public ?string $categoryId,
+        public ?string $sku,
+        /** @var list<array{id: string|null, sku: string, size: string|null, color: string|null, stock: int}>|null */
+        public ?array $variants,
     ) {
     }
 
@@ -48,6 +51,22 @@ final readonly class CreateProductHttpRequest
             $categoryId = $payload['categoryId'];
         }
 
-        return new self($payload['name'], $payload['priceCents'], $description, $stock, $categoryId);
+        $sku = null;
+        if (array_key_exists('sku', $payload) && $payload['sku'] !== null) {
+            if (!is_string($payload['sku']) || trim($payload['sku']) === '') {
+                throw InvalidRequest::of('This value must be a string.', 'sku');
+            }
+            $sku = $payload['sku'];
+        }
+
+        return new self(
+            $payload['name'],
+            $payload['priceCents'],
+            $description,
+            $stock,
+            $categoryId,
+            $sku,
+            ProductVariantHttpList::fromPayload($payload),
+        );
     }
 }

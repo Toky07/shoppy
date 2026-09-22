@@ -11,6 +11,7 @@ final readonly class AddToCartHttpRequest
     public function __construct(
         public string $productId,
         public int $quantity,
+        public ?string $variantId,
     ) {
     }
 
@@ -27,6 +28,22 @@ final readonly class AddToCartHttpRequest
             throw InvalidRequest::of('This field is required.', 'quantity');
         }
 
-        return new self($payload['productId'], $payload['quantity']);
+        return new self($payload['productId'], $payload['quantity'], self::variantId($payload));
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     */
+    public static function variantId(array $payload): ?string
+    {
+        if (!array_key_exists('variantId', $payload) || $payload['variantId'] === null) {
+            return null;
+        }
+
+        if (!is_string($payload['variantId']) || $payload['variantId'] === '') {
+            throw InvalidRequest::of('This value must be a string.', 'variantId');
+        }
+
+        return $payload['variantId'];
     }
 }

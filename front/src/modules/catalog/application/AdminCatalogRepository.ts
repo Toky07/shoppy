@@ -6,6 +6,14 @@ export type CreateProductInput = {
   description: string | null
   stock: number
   categoryId?: string | null
+  sku?: string | null
+  variants?: Array<{
+    id?: string
+    sku: string
+    size: string | null
+    color: string | null
+    stock: number
+  }>
 }
 
 export type UpdateProductInput = {
@@ -13,6 +21,14 @@ export type UpdateProductInput = {
   priceCents?: number
   description?: string | null
   categoryId?: string | null
+  sku?: string | null
+  variants?: Array<{
+    id?: string
+    sku: string
+    size: string | null
+    color: string | null
+    stock: number
+  }>
 }
 
 export interface AdminCatalogRepository {

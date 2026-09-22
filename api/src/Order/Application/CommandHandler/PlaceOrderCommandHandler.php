@@ -38,8 +38,12 @@ final readonly class PlaceOrderCommandHandler
             $command->items,
         );
 
-        foreach ($this->aggregatedQuantities($command->items) as $productId => $quantity) {
-            $this->catalog->decreaseStock(CatalogProductId::fromString($productId), $quantity);
+        foreach ($this->aggregatedQuantities($command->items) as $line) {
+            $this->catalog->decreaseStock(
+                CatalogProductId::fromString($line['productId']),
+                $line['quantity'],
+                $line['variantId'],
+            );
         }
 
         $order = Order::place(
@@ -63,7 +67,7 @@ final readonly class PlaceOrderCommandHandler
     private function snapshot(PlaceOrderLine $line): OrderItem
     {
         $productId = CatalogProductId::fromString($line->productId);
-        $snapshot = $this->catalog->findById($productId);
+        $snapshot = $this->catalog->findById($productId, $line->variantId);
 
         if ($snapshot === null) {
             throw new CatalogProductNotFound($productId);
@@ -74,22 +78,33 @@ final readonly class PlaceOrderCommandHandler
             OrderedProductName::fromString($snapshot->name),
             UnitPrice::fromCents($snapshot->unitPriceCents),
             Quantity::fromInt($line->quantity),
+            $line->variantId,
         );
     }
 
     /**
      * @param list<PlaceOrderLine> $items
      *
-     * @return array<string, int>
+     * @return list<array{productId: string, variantId: string|null, quantity: int}>
      */
     private function aggregatedQuantities(array $items): array
     {
         $quantities = [];
 
         foreach ($items as $item) {
-            $quantities[$item->productId] = ($quantities[$item->productId] ?? 0) + $item->quantity;
+            $key = $item->productId."\0".($item->variantId ?? '');
+
+            if (!isset($quantities[$key])) {
+                $quantities[$key] = [
+                    'productId' => $item->productId,
+                    'variantId' => $item->variantId,
+                    'quantity' => 0,
+                ];
+            }
+
+            $quantities[$key]['quantity'] += $item->quantity;
         }
 
-        return $quantities;
+        return array_values($quantities);
     }
 }

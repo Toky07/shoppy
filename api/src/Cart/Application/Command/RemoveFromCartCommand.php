@@ -9,6 +9,7 @@ final readonly class RemoveFromCartCommand
     public function __construct(
         public string $customerId,
         public string $productId,
+        public ?string $variantId = null,
     ) {
     }
 }

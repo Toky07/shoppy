@@ -15,6 +15,11 @@ final readonly class UpdateProductHttpRequest
         public ?string $description,
         public bool $categoryProvided,
         public ?string $categoryId,
+        public bool $skuProvided,
+        public ?string $sku,
+        public bool $variantsProvided,
+        /** @var list<array{id: string|null, sku: string, size: string|null, color: string|null, stock: int}> */
+        public array $variants,
     ) {
     }
 
@@ -27,8 +32,10 @@ final readonly class UpdateProductHttpRequest
         $hasPrice = array_key_exists('priceCents', $payload);
         $hasDescription = array_key_exists('description', $payload);
         $hasCategory = array_key_exists('categoryId', $payload);
+        $hasSku = array_key_exists('sku', $payload);
+        $hasVariants = array_key_exists('variants', $payload);
 
-        if (!$hasName && !$hasPrice && !$hasDescription && !$hasCategory) {
+        if (!$hasName && !$hasPrice && !$hasDescription && !$hasCategory && !$hasSku && !$hasVariants) {
             throw InvalidRequest::of('At least one field is required.');
         }
 
@@ -64,6 +71,27 @@ final readonly class UpdateProductHttpRequest
             $categoryId = $payload['categoryId'];
         }
 
-        return new self($name, $priceCents, $hasDescription, $description, $hasCategory, $categoryId);
+        $sku = null;
+        if ($hasSku) {
+            if (!is_string($payload['sku']) || trim($payload['sku']) === '') {
+                throw InvalidRequest::of('This value must be a string.', 'sku');
+            }
+            $sku = $payload['sku'];
+        }
+
+        $variants = ProductVariantHttpList::fromPayload($payload) ?? [];
+
+        return new self(
+            $name,
+            $priceCents,
+            $hasDescription,
+            $description,
+            $hasCategory,
+            $categoryId,
+            $hasSku,
+            $sku,
+            $hasVariants,
+            $variants,
+        );
     }
 }
