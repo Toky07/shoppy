@@ -44,4 +44,14 @@ final class StripePaymentGateway implements PaymentGateway
 
         return PaymentCheckoutResult::hosted(self::NAME, $session->url, $session->id);
     }
+
+    public function expireCheckout(Payment $payment): void
+    {
+        $reference = $payment->providerReference();
+        if ($reference === null || $reference === '') {
+            return;
+        }
+
+        $this->client->expireSession($reference);
+    }
 }

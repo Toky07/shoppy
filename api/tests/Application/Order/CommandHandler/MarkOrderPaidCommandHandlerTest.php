@@ -16,6 +16,8 @@ use App\Order\Domain\ValueObject\OrderStatus;
 use App\Order\Domain\ValueObject\Quantity;
 use App\Order\Domain\ValueObject\UnitPrice;
 use App\Order\Infrastructure\Persistence\InMemoryOrderRepository;
+use App\Shared\Application\Event\OrderMarkedPaid;
+use Symfony\Component\EventDispatcher\EventDispatcher;
 
 function markPaidOrderSeed(
     InMemoryOrderRepository $repository,
@@ -53,18 +55,26 @@ it('marks a pending order as paid', function () {
     $repository = new InMemoryOrderRepository();
     markPaidOrderSeed($repository);
 
-    (new MarkOrderPaidCommandHandler($repository))->handle(new MarkOrderPaidCommand(
+    $dispatcher = new EventDispatcher();
+    $marked = [];
+    $dispatcher->addListener(OrderMarkedPaid::class, static function (OrderMarkedPaid $event) use (&$marked): void {
+        $marked[] = $event;
+    });
+
+    (new MarkOrderPaidCommandHandler($repository, $dispatcher))->handle(new MarkOrderPaidCommand(
         'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
     ));
 
     $order = $repository->findById(OrderId::fromString('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'));
 
     expect($order)->not->toBeNull()
-        ->and($order->status())->toEqual(OrderStatus::paid());
+        ->and($order->status())->toEqual(OrderStatus::paid())
+        ->and($marked)->toHaveCount(1)
+        ->and($marked[0]->orderId)->toBe('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa');
 });
 
 it('rejects a missing order', function () {
-    (new MarkOrderPaidCommandHandler(new InMemoryOrderRepository()))->handle(new MarkOrderPaidCommand(
+    (new MarkOrderPaidCommandHandler(new InMemoryOrderRepository(), new EventDispatcher()))->handle(new MarkOrderPaidCommand(
         'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
     ));
 })->throws(OrderNotFound::class);
@@ -73,7 +83,7 @@ it('rejects marking a cancelled order as paid', function () {
     $repository = new InMemoryOrderRepository();
     markPaidOrderSeed($repository, OrderStatus::cancelled());
 
-    (new MarkOrderPaidCommandHandler($repository))->handle(new MarkOrderPaidCommand(
+    (new MarkOrderPaidCommandHandler($repository, new EventDispatcher()))->handle(new MarkOrderPaidCommand(
         'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
     ));
 })->throws(InvalidOrderTransition::class);

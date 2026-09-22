@@ -35,4 +35,8 @@ final class FakePaymentGateway implements PaymentGateway
     {
         return PaymentCheckoutResult::immediate($this->name);
     }
+
+    public function expireCheckout(Payment $payment): void
+    {
+    }
 }

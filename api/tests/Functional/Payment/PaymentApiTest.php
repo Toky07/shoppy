@@ -191,6 +191,7 @@ it('confirms a stripe payment from a signed checkout.session.completed webhook',
         'data' => [
             'object' => [
                 'id' => $sessionId,
+                'amount_total' => 4488,
             ],
         ],
     ], ['HTTP_STRIPE_SIGNATURE' => 'test']);
@@ -222,4 +223,124 @@ it('rejects an unsigned stripe webhook', function () {
 
     expect($response->getStatusCode())->toBe(400)
         ->and($payload['error']['code'])->toBe('validation_error');
+});
+
+it('refuses a stripe checkout once the order is marked paid', function () {
+    $product = paymentCatalogProduct();
+
+    $this->client->jsonRequest('POST', '/orders', [
+        ...deliveryFields(),
+        'items' => [[
+            'productId' => $product['id'],
+            'quantity' => 1,
+        ]],
+    ], catalogCustomerHeaders());
+    $order = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+
+    $this->client->jsonRequest('POST', '/orders/'.$order['id'].'/mark-paid', [], catalogAdminHeaders());
+    expect($this->client->getResponse()->getStatusCode())->toBe(200);
+
+    $this->client->jsonRequest('GET', '/payments/by-order/'.$order['id'], [], catalogCustomerHeaders());
+    $payment = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+    expect($payment['status'])->toBe('completed');
+
+    $this->client->jsonRequest('POST', '/payments/checkout', [
+        'orderId' => $order['id'],
+        'provider' => 'stripe',
+        'successUrl' => 'http://localhost:5173/orders/'.$order['id'].'?payment=success',
+        'cancelUrl' => 'http://localhost:5173/orders/'.$order['id'].'?payment=cancel',
+    ], catalogCustomerHeaders());
+
+    $response = $this->client->getResponse();
+    $payload = json_decode((string) $response->getContent(), true, flags: JSON_THROW_ON_ERROR);
+
+    expect($response->getStatusCode())->toBe(409)
+        ->and($payload['error']['code'])->toBe('payment_not_payable');
+});
+
+it('expires the stripe session on cancel and ignores a later webhook', function () {
+    $product = paymentCatalogProduct();
+
+    $this->client->jsonRequest('POST', '/orders', [
+        ...deliveryFields(),
+        'items' => [[
+            'productId' => $product['id'],
+            'quantity' => 1,
+        ]],
+    ], catalogCustomerHeaders());
+    $order = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+    $orderId = $order['id'];
+
+    $this->client->jsonRequest('POST', '/payments/checkout', [
+        'orderId' => $orderId,
+        'provider' => 'stripe',
+        'successUrl' => 'http://localhost:5173/orders/'.$orderId.'?payment=success',
+        'cancelUrl' => 'http://localhost:5173/orders/'.$orderId.'?payment=cancel',
+    ], catalogCustomerHeaders());
+    $checkout = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+    $sessionId = ltrim((string) parse_url((string) $checkout['redirectUrl'], PHP_URL_PATH), '/');
+
+    $this->client->jsonRequest('POST', '/orders/'.$orderId.'/cancel', [], catalogCustomerHeaders());
+    expect($this->client->getResponse()->getStatusCode())->toBe(200);
+
+    $stripe = $this->getContainer()->get(\App\Tests\Doubles\FakeStripeCheckoutClient::class);
+    expect($stripe->expiredSessionIds)->toContain($sessionId);
+
+    $this->client->jsonRequest('POST', '/payments/webhooks/stripe', [
+        'type' => 'checkout.session.completed',
+        'data' => [
+            'object' => [
+                'id' => $sessionId,
+                'amount_total' => 2489,
+            ],
+        ],
+    ], ['HTTP_STRIPE_SIGNATURE' => 'test']);
+    expect($this->client->getResponse()->getStatusCode())->toBe(200);
+
+    $this->client->jsonRequest('GET', '/orders/'.$orderId, [], catalogCustomerHeaders());
+    $orderAfter = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+    expect($orderAfter['status'])->toBe('cancelled');
+});
+
+it('rejects a stripe webhook whose amount does not match the order', function () {
+    $product = paymentCatalogProduct();
+
+    $this->client->jsonRequest('POST', '/orders', [
+        ...deliveryFields(),
+        'items' => [[
+            'productId' => $product['id'],
+            'quantity' => 2,
+        ]],
+    ], catalogCustomerHeaders());
+    $order = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+    $orderId = $order['id'];
+
+    $this->client->jsonRequest('POST', '/payments/checkout', [
+        'orderId' => $orderId,
+        'provider' => 'stripe',
+        'successUrl' => 'http://localhost:5173/orders/'.$orderId.'?payment=success',
+        'cancelUrl' => 'http://localhost:5173/orders/'.$orderId.'?payment=cancel',
+    ], catalogCustomerHeaders());
+    $checkout = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+    $sessionId = ltrim((string) parse_url((string) $checkout['redirectUrl'], PHP_URL_PATH), '/');
+
+    $this->client->jsonRequest('POST', '/payments/webhooks/stripe', [
+        'type' => 'checkout.session.completed',
+        'data' => [
+            'object' => [
+                'id' => $sessionId,
+                'amount_total' => 100,
+            ],
+        ],
+    ], ['HTTP_STRIPE_SIGNATURE' => 'test']);
+
+    $response = $this->client->getResponse();
+    $payload = json_decode((string) $response->getContent(), true, flags: JSON_THROW_ON_ERROR);
+
+    expect($response->getStatusCode())->toBe(409)
+        ->and($payload['error']['code'])->toBe('payment_amount_mismatch');
+
+    $this->client->jsonRequest('GET', '/orders/'.$orderId, [], catalogCustomerHeaders());
+    $orderAfter = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+    expect($orderAfter['status'])->toBe('pending');
 });

@@ -34,6 +34,15 @@ final class StripeSdkWebhookParser implements StripeWebhookParser
             throw new InvalidPaymentWebhook();
         }
 
-        return new StripeWebhookEvent((string) $event->type, $sessionId);
+        $amountCents = $event->data->object->amount_total ?? null;
+        if ((string) $event->type === 'checkout.session.completed' && !is_int($amountCents)) {
+            throw new InvalidPaymentWebhook();
+        }
+
+        return new StripeWebhookEvent(
+            (string) $event->type,
+            $sessionId,
+            is_int($amountCents) ? $amountCents : null,
+        );
     }
 }

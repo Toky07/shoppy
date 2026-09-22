@@ -16,6 +16,7 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity]
 #[ORM\Table(name: 'payments')]
 #[ORM\UniqueConstraint(name: 'uniq_payments_order_id', columns: ['order_id'])]
+#[ORM\Index(name: 'idx_payments_provider_reference', columns: ['provider_reference'])]
 class PaymentRecord
 {
     #[ORM\Id]

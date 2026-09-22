@@ -30,6 +30,7 @@ final readonly class StripeWebhookController
         $this->handleStripeWebhook->handle(new HandleStripeWebhookCommand(
             type: $event->type,
             providerReference: $event->sessionId,
+            amountCents: $event->amountCents,
         ));
 
         return new JsonResponse(['received' => true]);

@@ -89,6 +89,8 @@ services:
 
     App\Payment\Application\Port\PayerContact: '@App\Payment\Infrastructure\Customer\UserPayerContact'
 
+    App\Payment\Application\Port\PayableOrder: '@App\Payment\Infrastructure\Order\OrderPayableOrder'
+
     App\Order\Domain\Repository\OrderRepository: '@App\Order\Infrastructure\Persistence\Doctrine\DoctrineOrderRepository'
 
     App\Order\Application\Catalog: '@App\Order\Infrastructure\Catalog\ProductCatalog'

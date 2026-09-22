@@ -16,4 +16,6 @@ interface PaymentGateway
     public function charge(Payment $payment): PaymentChargeResult;
 
     public function startCheckout(Payment $payment, CheckoutContext $context): PaymentCheckoutResult;
+
+    public function expireCheckout(Payment $payment): void;
 }

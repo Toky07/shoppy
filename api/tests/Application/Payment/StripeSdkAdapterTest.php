@@ -24,6 +24,7 @@ it('parses a signed checkout.session.completed webhook', function () {
             'object' => [
                 'id' => 'cs_test_123',
                 'object' => 'checkout.session',
+                'amount_total' => 3998,
             ],
         ],
     ], JSON_THROW_ON_ERROR);
@@ -35,7 +36,8 @@ it('parses a signed checkout.session.completed webhook', function () {
     );
 
     expect($event->type)->toBe('checkout.session.completed')
-        ->and($event->sessionId)->toBe('cs_test_123');
+        ->and($event->sessionId)->toBe('cs_test_123')
+        ->and($event->amountCents)->toBe(3998);
 });
 
 it('rejects a stripe webhook with an invalid signature', function () {
