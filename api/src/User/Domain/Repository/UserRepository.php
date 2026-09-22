@@ -6,6 +6,7 @@ namespace App\User\Domain\Repository;
 
 use App\User\Domain\Entity\User;
 use App\User\Domain\ValueObject\Email;
+use App\User\Domain\ValueObject\Role;
 use App\User\Domain\ValueObject\UserId;
 
 interface UserRepository
@@ -22,4 +23,6 @@ interface UserRepository
     public function findPage(int $offset, int $limit, ?string $search = null): array;
 
     public function countAll(?string $search = null): int;
+
+    public function countWithRole(Role $role): int;
 }

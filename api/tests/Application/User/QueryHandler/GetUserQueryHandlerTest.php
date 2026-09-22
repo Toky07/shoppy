@@ -27,6 +27,7 @@ it('returns a user identity', function () {
         'email' => 'ada@nuvora.test',
         'createdAt' => '2026-08-20T12:00:00+00:00',
         'role' => 'customer',
+        'emailVerified' => false,
     ]);
 });
 

@@ -22,4 +22,9 @@ final class InMemoryCredentialsRepository implements CredentialsRepository
     {
         return $this->credentials[$userId->value()] ?? null;
     }
+
+    public function delete(UserId $userId): void
+    {
+        unset($this->credentials[$userId->value()]);
+    }
 }

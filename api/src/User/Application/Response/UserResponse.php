@@ -14,6 +14,7 @@ final readonly class UserResponse
         public string $email,
         public string $createdAt,
         public string $role,
+        public bool $emailVerified,
     ) {
     }
 
@@ -24,11 +25,12 @@ final readonly class UserResponse
             $user->email()->value(),
             $user->createdAt()->format(DateTimeInterface::ATOM),
             $user->role()->value(),
+            $user->isEmailVerified(),
         );
     }
 
     /**
-     * @return array{id: string, email: string, createdAt: string, role: string}
+     * @return array{id: string, email: string, createdAt: string, role: string, emailVerified: bool}
      */
     public function toArray(): array
     {
@@ -37,6 +39,7 @@ final readonly class UserResponse
             'email' => $this->email,
             'createdAt' => $this->createdAt,
             'role' => $this->role,
+            'emailVerified' => $this->emailVerified,
         ];
     }
 }

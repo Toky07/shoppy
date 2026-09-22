@@ -12,4 +12,6 @@ interface CredentialsRepository
     public function save(Credentials $credentials): void;
 
     public function findByUserId(UserId $userId): ?Credentials;
+
+    public function delete(UserId $userId): void;
 }

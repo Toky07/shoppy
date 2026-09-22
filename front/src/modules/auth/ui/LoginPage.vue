@@ -39,6 +39,11 @@ function onSubmit(credentials: { email: string; password: string }) {
     :error-message="errorMessage"
     @submit="onSubmit"
   >
+    <template #password-aside>
+      <RouterLink to="/forgot-password" class="text-xs font-semibold text-strong underline underline-offset-2">
+        Mot de passe oublié
+      </RouterLink>
+    </template>
     Pas encore de compte ?
     <RouterLink to="/register" class="ml-1 font-semibold text-strong underline underline-offset-2">
       Créer un compte

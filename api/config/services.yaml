@@ -10,6 +10,7 @@ parameters:
     app.media.upload_dir: '%kernel.project_dir%/public/uploads'
     env(MAILER_DSN): 'null://null'
     env(MAILER_FROM): 'noreply@shoppy.test'
+    env(FRONTEND_BASE_URL): 'http://localhost:5173'
 
 services:
     # default configuration for services in *this* file
@@ -55,6 +56,12 @@ services:
     App\Auth\Domain\Repository\CredentialsRepository: '@App\Auth\Infrastructure\Persistence\Doctrine\DoctrineCredentialsRepository'
 
     App\Auth\Domain\Repository\AccessTokenRepository: '@App\Auth\Infrastructure\Persistence\Doctrine\DoctrineAccessTokenRepository'
+
+    App\Auth\Domain\Repository\AccountTokenRepository: '@App\Auth\Infrastructure\Persistence\Doctrine\DoctrineAccountTokenRepository'
+
+    App\Auth\Application\AccountNotifier:
+        arguments:
+            $frontendBaseUrl: '%env(FRONTEND_BASE_URL)%'
 
     App\Auth\Application\PasswordHasher: '@App\Auth\Infrastructure\Security\NativePasswordHasher'
 

@@ -5,6 +5,7 @@ import { authSessionKey } from '../application/authSessionKey'
 import AccountActivityPanel from './AccountActivityPanel.vue'
 import AccountIdentityCard from './AccountIdentityCard.vue'
 import AccountPreferencesPanel from './AccountPreferencesPanel.vue'
+import AccountSecurityPanel from './AccountSecurityPanel.vue'
 import AuthRequiredPanel from './AuthRequiredPanel.vue'
 
 const session = inject(authSessionKey)
@@ -26,12 +27,15 @@ const isAuthenticated = computed(() => session?.isAuthenticated.value ?? false)
       redirect="/account"
     />
 
-    <div v-else class="mt-10 grid items-start gap-6 lg:grid-cols-[1.15fr_1fr]">
-      <AccountIdentityCard />
-      <div class="grid gap-6">
-        <AccountActivityPanel />
-        <AccountPreferencesPanel />
+    <div v-else class="mt-10 grid items-start gap-6">
+      <div class="grid items-start gap-6 lg:grid-cols-[1.15fr_1fr]">
+        <AccountIdentityCard />
+        <div class="grid gap-6">
+          <AccountActivityPanel />
+          <AccountPreferencesPanel />
+        </div>
       </div>
+      <AccountSecurityPanel />
     </div>
   </section>
 </template>

@@ -14,6 +14,7 @@ it('registers an account without exposing the password', function () {
     expect($response->getStatusCode())->toBe(201)
         ->and($payload['email'])->toBe('ada@nuvora.test')
         ->and($payload['role'])->toBe('customer')
+        ->and($payload['emailVerified'])->toBeFalse()
         ->and($payload)->toHaveKey('id')
         ->and($payload)->toHaveKey('createdAt')
         ->and($payload)->not->toHaveKey('password')

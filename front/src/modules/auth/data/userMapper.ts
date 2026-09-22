@@ -13,6 +13,7 @@ export function mapUser(payload: unknown): User {
     typeof payload.id !== 'string' ||
     typeof payload.email !== 'string' ||
     typeof payload.createdAt !== 'string' ||
+    typeof payload.emailVerified !== 'boolean' ||
     !isRole(payload.role)
   ) {
     throw new InvalidResponseError('Invalid user payload.')
@@ -23,6 +24,7 @@ export function mapUser(payload: unknown): User {
     email: payload.email,
     role: payload.role,
     createdAt: payload.createdAt,
+    emailVerified: payload.emailVerified,
   }
 }
 

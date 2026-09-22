@@ -64,7 +64,10 @@ function onSubmit() {
           </div>
 
           <div>
-            <label class="field-label" for="auth-password">Mot de passe</label>
+            <div class="flex items-center justify-between gap-3">
+              <label class="field-label" for="auth-password">Mot de passe</label>
+              <slot name="password-aside" />
+            </div>
             <div class="relative">
               <span class="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-faint">
                 <AppIcon name="lock" :size="16" />

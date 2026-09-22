@@ -16,6 +16,8 @@ final class User
         private Email $email,
         private DateTimeImmutable $createdAt,
         private Role $role,
+        private ?DateTimeImmutable $emailVerifiedAt = null,
+        private ?DateTimeImmutable $deletedAt = null,
     ) {
     }
 
@@ -24,8 +26,10 @@ final class User
         Email $email,
         DateTimeImmutable $createdAt,
         ?Role $role = null,
+        ?DateTimeImmutable $emailVerifiedAt = null,
+        ?DateTimeImmutable $deletedAt = null,
     ): self {
-        return new self($id, $email, $createdAt, $role ?? Role::customer());
+        return new self($id, $email, $createdAt, $role ?? Role::customer(), $emailVerifiedAt, $deletedAt);
     }
 
     public function id(): UserId
@@ -51,5 +55,44 @@ final class User
     public function assignRole(Role $role): void
     {
         $this->role = $role;
+    }
+
+    public function emailVerifiedAt(): ?DateTimeImmutable
+    {
+        return $this->emailVerifiedAt;
+    }
+
+    public function deletedAt(): ?DateTimeImmutable
+    {
+        return $this->deletedAt;
+    }
+
+    public function isEmailVerified(): bool
+    {
+        return $this->emailVerifiedAt !== null && $this->deletedAt === null;
+    }
+
+    public function isDeleted(): bool
+    {
+        return $this->deletedAt !== null;
+    }
+
+    public function markEmailVerified(DateTimeImmutable $at): void
+    {
+        $this->emailVerifiedAt = $at;
+    }
+
+    public function changeEmail(Email $email): void
+    {
+        $this->email = $email;
+        $this->emailVerifiedAt = null;
+    }
+
+    public function anonymize(DateTimeImmutable $at): void
+    {
+        $this->email = Email::fromString('deleted.'.str_replace('-', '', $this->id->value()).'@users.invalid');
+        $this->role = Role::customer();
+        $this->emailVerifiedAt = null;
+        $this->deletedAt = $at;
     }
 }

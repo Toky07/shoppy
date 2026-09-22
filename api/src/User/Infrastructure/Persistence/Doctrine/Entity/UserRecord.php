@@ -29,6 +29,12 @@ class UserRecord
     #[ORM\Column(length: 32)]
     private string $role;
 
+    #[ORM\Column(name: 'email_verified_at', nullable: true)]
+    private ?DateTimeImmutable $emailVerifiedAt = null;
+
+    #[ORM\Column(name: 'deleted_at', nullable: true)]
+    private ?DateTimeImmutable $deletedAt = null;
+
     public static function fromDomain(User $user): self
     {
         $record = new self();
@@ -39,7 +45,10 @@ class UserRecord
 
     public function updateFromDomain(User $user): void
     {
+        $this->email = $user->email()->value();
         $this->role = $user->role()->value();
+        $this->emailVerifiedAt = $user->emailVerifiedAt();
+        $this->deletedAt = $user->deletedAt();
     }
 
     public function toDomain(): User
@@ -49,6 +58,8 @@ class UserRecord
             Email::fromString($this->email),
             $this->createdAt,
             Role::fromString($this->role),
+            $this->emailVerifiedAt,
+            $this->deletedAt,
         );
     }
 
@@ -58,5 +69,7 @@ class UserRecord
         $this->email = $user->email()->value();
         $this->createdAt = $user->createdAt();
         $this->role = $user->role()->value();
+        $this->emailVerifiedAt = $user->emailVerifiedAt();
+        $this->deletedAt = $user->deletedAt();
     }
 }

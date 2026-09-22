@@ -22,6 +22,8 @@ final readonly class DoctrineCredentialsRepository implements CredentialsReposit
 
         if ($record === null) {
             $this->entityManager->persist(CredentialRecord::fromDomain($credentials));
+        } else {
+            $record->updateFromDomain($credentials);
         }
 
         $this->entityManager->flush();
@@ -32,5 +34,17 @@ final readonly class DoctrineCredentialsRepository implements CredentialsReposit
         $record = $this->entityManager->find(CredentialRecord::class, $userId->value());
 
         return $record?->toDomain();
+    }
+
+    public function delete(UserId $userId): void
+    {
+        $record = $this->entityManager->find(CredentialRecord::class, $userId->value());
+
+        if ($record === null) {
+            return;
+        }
+
+        $this->entityManager->remove($record);
+        $this->entityManager->flush();
     }
 }
