@@ -90,7 +90,9 @@ it('checks out the cart into an order and empties the cart', function () {
     expect($response->getStatusCode())->toBe(201)
         ->and($order['status'])->toBe('pending')
         ->and($order['items'][0]['quantity'])->toBe(2)
-        ->and($order['total'])->toBe(['cents' => 3998, 'currency' => 'EUR'])
+        ->and($order['total'])->toBe(['cents' => 4488, 'currency' => 'EUR'])
+        ->and($order['shipping']['method'])->toBe('standard')
+        ->and($order['shipping']['fee'])->toBe(['cents' => 490, 'currency' => 'EUR'])
         ->and($order['shippingAddress']['city'])->toBe('Paris')
         ->and($order['billingAddress']['recipient'])->toBe('Ada Lovelace')
         ->and($response->headers->get('Location'))->toBe('/orders/'.$order['id']);

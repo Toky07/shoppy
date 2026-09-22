@@ -10,6 +10,7 @@ use App\Order\Domain\ValueObject\OrderId;
 use App\Order\Domain\ValueObject\OrderItem;
 use App\Order\Domain\ValueObject\OrderStatus;
 use App\Order\Domain\ValueObject\PostalAddress;
+use App\Order\Domain\ValueObject\ShippingMethod;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -69,6 +70,15 @@ class OrderRecord
     #[ORM\Column(name: 'billing_country', length: 2, nullable: true)]
     private ?string $billingCountry = null;
 
+    #[ORM\Column(name: 'shipping_method', length: 20, nullable: true)]
+    private ?string $shippingMethod = null;
+
+    #[ORM\Column(name: 'shipping_label', length: 40, nullable: true)]
+    private ?string $shippingLabel = null;
+
+    #[ORM\Column(name: 'shipping_fee_cents', type: 'integer', nullable: true)]
+    private ?int $shippingFeeCents = null;
+
     /** @var Collection<int, OrderItemRecord> */
     #[ORM\OneToMany(targetEntity: OrderItemRecord::class, mappedBy: 'order', cascade: ['persist'], orphanRemoval: true)]
     #[ORM\OrderBy(['position' => 'ASC'])]
@@ -88,6 +98,7 @@ class OrderRecord
         $record->createdAt = $order->createdAt();
         $record->writeAddress('shipping', $order->shippingAddress());
         $record->writeAddress('billing', $order->billingAddress());
+        $record->writeShipping($order->shipping());
 
         foreach ($order->items() as $position => $item) {
             $record->items->add(OrderItemRecord::fromDomain($record, $item, $position));
@@ -113,7 +124,24 @@ class OrderRecord
             $this->createdAt,
             $this->readAddress('shipping'),
             $this->readAddress('billing'),
+            $this->readShipping(),
         );
+    }
+
+    private function writeShipping(?ShippingMethod $shipping): void
+    {
+        $this->shippingMethod = $shipping?->code();
+        $this->shippingLabel = $shipping?->label();
+        $this->shippingFeeCents = $shipping?->feeCents();
+    }
+
+    private function readShipping(): ?ShippingMethod
+    {
+        if ($this->shippingMethod === null || $this->shippingLabel === null || $this->shippingFeeCents === null) {
+            return null;
+        }
+
+        return ShippingMethod::reconstitute($this->shippingMethod, $this->shippingLabel, $this->shippingFeeCents);
     }
 
     private function writeAddress(string $prefix, ?PostalAddress $address): void

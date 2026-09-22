@@ -44,7 +44,7 @@ it('checks out the cart into an order and clears the cart', function () {
             new RecordingEventDispatcher(),
         ),
         new FixedClock($now),
-    ))->handle(new CheckoutCartCommand('11111111-1111-4111-8111-111111111111', sampleOrderAddress(), sampleOrderAddress()));
+    ))->handle(new CheckoutCartCommand('11111111-1111-4111-8111-111111111111', sampleOrderAddress(), sampleOrderAddress(), 'standard'));
 
     $order = $orders->findById($orderId);
     $cart = $carts->findByCustomerId(CustomerId::fromString('11111111-1111-4111-8111-111111111111'));
@@ -52,7 +52,8 @@ it('checks out the cart into an order and clears the cart', function () {
     expect($order)->not->toBeNull()
         ->and($order->items())->toHaveCount(1)
         ->and($order->items()[0]->quantity()->value())->toBe(2)
-        ->and($order->totalCents())->toBe(3998)
+        ->and($order->shipping()?->feeCents())->toBe(490)
+        ->and($order->totalCents())->toBe(4488)
         ->and($order->shippingAddress()?->city())->toBe('Paris')
         ->and($order->billingAddress()?->country())->toBe('FR')
         ->and($cart?->isEmpty())->toBeTrue()
@@ -69,5 +70,5 @@ it('rejects checking out an empty cart', function () {
             new RecordingEventDispatcher(),
         ),
         new FixedClock(new DateTimeImmutable('2026-08-20T12:00:00+00:00')),
-    ))->handle(new CheckoutCartCommand('11111111-1111-4111-8111-111111111111', sampleOrderAddress(), sampleOrderAddress()));
+    ))->handle(new CheckoutCartCommand('11111111-1111-4111-8111-111111111111', sampleOrderAddress(), sampleOrderAddress(), 'standard'));
 })->throws(EmptyCart::class);

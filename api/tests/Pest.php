@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Order\Application\Command\PlaceOrderAddress;
 use App\Order\Domain\ValueObject\PostalAddress;
+use App\Order\Domain\ValueObject\ShippingMethod;
 use App\Product\Application\CommandHandler\CreateProductCommandHandler;
 use App\Product\Application\CommandHandler\UpdateProductCommandHandler;
 use App\Product\Application\UniqueProductSku;
@@ -59,6 +60,11 @@ function sampleOrderAddress(): PlaceOrderAddress
     );
 }
 
+function sampleShippingMethod(): ShippingMethod
+{
+    return ShippingMethod::quote(ShippingMethod::STANDARD, ShippingMethod::FREE_FROM_CENTS);
+}
+
 function samplePostalAddress(): PostalAddress
 {
     return PostalAddress::fromInput(
@@ -73,7 +79,7 @@ function samplePostalAddress(): PostalAddress
 }
 
 /**
- * @return array{shippingAddress: array{recipient: string, line1: string, postalCode: string, city: string, country: string}, billingSameAsShipping: true}
+ * @return array{shippingAddress: array{recipient: string, line1: string, postalCode: string, city: string, country: string}, billingSameAsShipping: true, shippingMethod: string}
  */
 function deliveryFields(): array
 {
@@ -86,6 +92,7 @@ function deliveryFields(): array
             'country' => 'FR',
         ],
         'billingSameAsShipping' => true,
+        'shippingMethod' => 'standard',
     ];
 }
 

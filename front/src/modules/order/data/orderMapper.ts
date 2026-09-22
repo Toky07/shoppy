@@ -6,6 +6,7 @@ import type { OrderItem } from '../domain/OrderItem'
 import type { OrderPage } from '../domain/OrderPage'
 import type { OrderStatus } from '../domain/OrderStatus'
 import type { PostalAddress } from '../domain/PostalAddress'
+import type { OrderShipping } from '../domain/ShippingMethod'
 
 const ORDER_STATUSES: OrderStatus[] = ['pending', 'cancelled', 'paid']
 
@@ -29,6 +30,18 @@ export function mapOrderItem(payload: unknown): OrderItem {
     quantity: payload.quantity,
     unitPrice: mapMoney(payload.unitPrice, 'Invalid order item price.'),
     lineTotal: mapMoney(payload.lineTotal, 'Invalid order item total.'),
+  }
+}
+
+function mapOrderShipping(payload: unknown): OrderShipping {
+  if (!isRecord(payload) || typeof payload.method !== 'string' || typeof payload.label !== 'string') {
+    throw new InvalidResponseError('Invalid shipping payload.')
+  }
+
+  return {
+    method: payload.method,
+    label: payload.label,
+    fee: mapMoney(payload.fee, 'Invalid shipping fee.'),
   }
 }
 
@@ -64,7 +77,9 @@ export function mapOrder(payload: unknown): Order {
     !Array.isArray(payload.items) ||
     typeof payload.createdAt !== 'string' ||
     (payload.shippingAddress !== null && !isRecord(payload.shippingAddress)) ||
-    (payload.billingAddress !== null && !isRecord(payload.billingAddress))
+    (payload.billingAddress !== null && !isRecord(payload.billingAddress)) ||
+    !('shipping' in payload) ||
+    (payload.shipping !== null && !isRecord(payload.shipping))
   ) {
     throw new InvalidResponseError('Invalid order payload.')
   }
@@ -78,6 +93,7 @@ export function mapOrder(payload: unknown): Order {
     createdAt: payload.createdAt,
     shippingAddress: payload.shippingAddress === null ? null : mapPostalAddress(payload.shippingAddress),
     billingAddress: payload.billingAddress === null ? null : mapPostalAddress(payload.billingAddress),
+    shipping: payload.shipping === null ? null : mapOrderShipping(payload.shipping),
   }
 }
 

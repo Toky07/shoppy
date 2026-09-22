@@ -14,6 +14,7 @@ final readonly class PlaceOrderCommand
         public array $items,
         public PlaceOrderAddress $shippingAddress,
         public PlaceOrderAddress $billingAddress,
+        public string $shippingMethod,
     ) {
     }
 }

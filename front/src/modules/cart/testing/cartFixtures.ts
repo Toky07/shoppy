@@ -48,6 +48,7 @@ export const parisCheckout: CheckoutAddresses = {
     country: 'FR',
   },
   billingSameAsShipping: true,
+  shippingMethod: 'standard',
 }
 
 export function createCartItemJson(overrides: Record<string, unknown> = {}) {

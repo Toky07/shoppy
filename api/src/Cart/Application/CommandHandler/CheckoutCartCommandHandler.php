@@ -44,6 +44,7 @@ final readonly class CheckoutCartCommandHandler
             ),
             shippingAddress: $command->shippingAddress,
             billingAddress: $command->billingAddress,
+            shippingMethod: $command->shippingMethod,
         ));
 
         $cart->clear($this->clock->now());

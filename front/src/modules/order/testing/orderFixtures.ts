@@ -1,6 +1,7 @@
 import type { Order } from '../domain/Order'
 import type { OrderItem } from '../domain/OrderItem'
 import type { PostalAddress } from '../domain/PostalAddress'
+import { quoteShipping } from '../domain/ShippingMethod'
 import { visitorUser } from '@/modules/auth/testing/authFixtures'
 import { nuvoraTee } from '@/modules/catalog/testing/productFixtures'
 import { pendingCheckout } from '@/modules/cart/testing/cartFixtures'
@@ -27,10 +28,11 @@ export const pendingOrder: Order = {
   customerId: visitorUser.id,
   status: 'pending',
   items: [orderTeeItem],
-  total: { cents: 3998, currency: 'EUR' },
+  total: { cents: 4488, currency: 'EUR' },
   createdAt: '2026-09-10T12:05:00+00:00',
   shippingAddress: parisAddress,
   billingAddress: parisAddress,
+  shipping: quoteShipping('standard', 3998),
 }
 
 export const paidOrder: Order = {
@@ -66,6 +68,7 @@ export function createOrderJson(overrides: Record<string, unknown> = {}) {
     createdAt: pendingOrder.createdAt,
     shippingAddress: parisAddress,
     billingAddress: parisAddress,
+    shipping: pendingOrder.shipping,
     ...overrides,
   }
 }

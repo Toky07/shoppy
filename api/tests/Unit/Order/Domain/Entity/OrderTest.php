@@ -12,6 +12,7 @@ use App\Order\Domain\ValueObject\OrderItem;
 use App\Order\Domain\ValueObject\OrderedProductName;
 use App\Order\Domain\ValueObject\OrderStatus;
 use App\Order\Domain\ValueObject\Quantity;
+use App\Order\Domain\ValueObject\ShippingMethod;
 use App\Order\Domain\ValueObject\UnitPrice;
 
 function orderLine(
@@ -34,7 +35,7 @@ it('places an order as pending with a customer and line snapshots', function () 
     $createdAt = new DateTimeImmutable('2026-08-20T12:00:00+00:00');
     $item = orderLine(quantity: 2);
 
-    $order = Order::place($id, $customerId, [$item], $createdAt, samplePostalAddress(), samplePostalAddress());
+    $order = Order::place($id, $customerId, [$item], $createdAt, samplePostalAddress(), samplePostalAddress(), sampleShippingMethod());
 
     expect($order->id())->toBe($id)
         ->and($order->customerId())->toBe($customerId)
@@ -58,9 +59,24 @@ it('sums line totals across items', function () {
             ),
         ],
         new DateTimeImmutable('2026-08-20T12:00:00+00:00'),
-    samplePostalAddress(), samplePostalAddress());
+    samplePostalAddress(), samplePostalAddress(), sampleShippingMethod());
 
     expect($order->totalCents())->toBe(8997);
+});
+
+it('adds the shipping fee to the total', function () {
+    $order = Order::place(
+        OrderId::fromString('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'),
+        CustomerId::fromString('11111111-1111-4111-8111-111111111111'),
+        [orderLine(quantity: 2)],
+        new DateTimeImmutable('2026-08-20T12:00:00+00:00'),
+        samplePostalAddress(),
+        samplePostalAddress(),
+        ShippingMethod::quote(ShippingMethod::EXPRESS, 3998),
+    );
+
+    expect($order->shipping()?->code())->toBe('express')
+        ->and($order->totalCents())->toBe(4988);
 });
 
 it('rejects an order without items', function () {
@@ -69,7 +85,7 @@ it('rejects an order without items', function () {
         CustomerId::fromString('11111111-1111-4111-8111-111111111111'),
         [],
         new DateTimeImmutable('2026-08-20T12:00:00+00:00'),
-    samplePostalAddress(), samplePostalAddress());
+    samplePostalAddress(), samplePostalAddress(), sampleShippingMethod());
 })->throws(EmptyOrder::class);
 
 it('cancels a pending order', function () {
@@ -78,7 +94,7 @@ it('cancels a pending order', function () {
         CustomerId::fromString('11111111-1111-4111-8111-111111111111'),
         [orderLine()],
         new DateTimeImmutable('2026-08-20T12:00:00+00:00'),
-    samplePostalAddress(), samplePostalAddress());
+    samplePostalAddress(), samplePostalAddress(), sampleShippingMethod());
 
     $order->cancel();
 
@@ -91,7 +107,7 @@ it('marks a pending order as paid', function () {
         CustomerId::fromString('11111111-1111-4111-8111-111111111111'),
         [orderLine()],
         new DateTimeImmutable('2026-08-20T12:00:00+00:00'),
-    samplePostalAddress(), samplePostalAddress());
+    samplePostalAddress(), samplePostalAddress(), sampleShippingMethod());
 
     $order->markPaid();
 

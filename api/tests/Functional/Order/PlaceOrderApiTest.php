@@ -57,8 +57,16 @@ it('places an order as the authenticated customer with catalog snapshots', funct
                 ],
             ],
         ])
+        ->and($payload['shipping'])->toBe([
+            'method' => 'standard',
+            'label' => 'Standard',
+            'fee' => [
+                'cents' => 490,
+                'currency' => 'EUR',
+            ],
+        ])
         ->and($payload['total'])->toBe([
-            'cents' => 3998,
+            'cents' => 4488,
             'currency' => 'EUR',
         ])
         ->and($response->headers->get('Location'))->toBe('/orders/'.$payload['id']);
@@ -140,6 +148,37 @@ it('rejects an empty items list', function () {
         ->and($payload['error']['violations'])->toBe([
             ['field' => 'items', 'message' => 'An order must contain at least one item.'],
         ]);
+});
+
+it('rejects an unknown shipping method without decrementing stock', function () {
+    $this->client->jsonRequest('POST', '/products', [
+        'name' => 'Nuvora Tee',
+        'priceCents' => 1999,
+        'stock' => 4,
+    ], catalogAdminHeaders());
+    $product = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+
+    $this->client->jsonRequest('POST', '/orders', [
+        ...deliveryFields(),
+        'shippingMethod' => 'drone',
+        'items' => [[
+            'productId' => $product['id'],
+            'quantity' => 1,
+        ]],
+    ], catalogCustomerHeaders());
+
+    $response = $this->client->getResponse();
+    $payload = json_decode((string) $response->getContent(), true, flags: JSON_THROW_ON_ERROR);
+
+    expect($response->getStatusCode())->toBe(400)
+        ->and($payload['error']['code'])->toBe('validation_error')
+        ->and($payload['error']['violations'])->toBe([
+            ['field' => 'shippingMethod', 'message' => 'Shipping method is not available.'],
+        ]);
+
+    $this->client->jsonRequest('GET', '/products/'.$product['id']);
+    $fetched = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+    expect($fetched['stock'])->toBe(4);
 });
 
 it('rejects an unknown catalog product', function () {

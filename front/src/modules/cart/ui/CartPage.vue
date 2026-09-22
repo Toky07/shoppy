@@ -13,8 +13,10 @@ import { cartStateKey } from '../application/cartStateKey'
 import CartLine from './CartLine.vue'
 import CartSummary from './CartSummary.vue'
 import CheckoutAddressForm from './CheckoutAddressForm.vue'
+import CheckoutShippingForm from './CheckoutShippingForm.vue'
 import { cartErrorMessage } from './cartErrorMessage'
 import { emptyAddressDraft, toPostalAddress, type AddressDraft } from '@/modules/order/domain/PostalAddress'
+import { quoteShipping, type ShippingMethodCode } from '@/modules/order/domain/ShippingMethod'
 
 const session = inject(authSessionKey)
 const cartState = inject(cartStateKey)
@@ -33,8 +35,10 @@ const addressError = ref<string>()
 let shipping = reactive<AddressDraft>(emptyAddressDraft())
 let billing = reactive<AddressDraft>(emptyAddressDraft())
 const billingSameAsShipping = ref(true)
+const shippingMethod = ref<ShippingMethodCode>('standard')
 const isAuthenticated = computed(() => authSession.isAuthenticated.value)
 const cart = computed(() => state.cart.value)
+const quotedShipping = computed(() => quoteShipping(shippingMethod.value, cart.value?.total.cents ?? 0))
 const itemCount = computed(() =>
   (cart.value?.items ?? []).reduce((total, item) => total + item.quantity, 0),
 )
@@ -93,6 +97,7 @@ async function onCheckout() {
       shippingAddress: toPostalAddress(shipping),
       billingSameAsShipping: billingSameAsShipping.value,
       billingAddress: billingSameAsShipping.value ? undefined : toPostalAddress(billing),
+      shippingMethod: shippingMethod.value,
     })
     checkoutOrderId.value = result.id
   })
@@ -168,11 +173,16 @@ async function onCheckout() {
                   v-model:billing-same-as-shipping="billingSameAsShipping"
                 />
               </li>
+              <li>
+                <CheckoutShippingForm v-model="shippingMethod" />
+              </li>
             </ul>
 
             <CartSummary
               :item-count="itemCount"
               :total="cart.total"
+              :shipping-label="quotedShipping.label"
+              :shipping-fee-cents="quotedShipping.fee.cents"
               :pending="pending"
               @checkout="onCheckout"
               @clear="onClear"

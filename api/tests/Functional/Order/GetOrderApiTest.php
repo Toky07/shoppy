@@ -58,7 +58,7 @@ it('returns an order to its owner', function () {
         ->and($payload['customerId'])->toBe($owner['user']['id'])
         ->and($payload['items'][0]['productId'])->toBe($product['id'])
         ->and($payload['total'])->toBe([
-            'cents' => 3998,
+            'cents' => 4488,
             'currency' => 'EUR',
         ]);
 });

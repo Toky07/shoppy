@@ -39,6 +39,7 @@ final readonly class CheckoutCartController
             $userId->value(),
             $httpRequest->delivery->shippingAddress,
             $httpRequest->delivery->billingAddress,
+            $httpRequest->delivery->shippingMethod,
         ));
         $order = $this->getOrder->handle(new GetOrderQuery($orderId->value()));
 

@@ -34,7 +34,7 @@ it('creates a pending payment when an order is placed and completes it via event
     expect($this->client->getResponse()->getStatusCode())->toBe(200)
         ->and($pending['status'])->toBe('pending')
         ->and($pending['orderId'])->toBe($order['id'])
-        ->and($pending['amount'])->toBe(['cents' => 3998, 'currency' => 'EUR']);
+        ->and($pending['amount'])->toBe(['cents' => 4488, 'currency' => 'EUR']);
 
     $this->client->jsonRequest('POST', '/payments/complete', [
         'orderId' => $order['id'],

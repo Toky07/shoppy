@@ -30,7 +30,7 @@ it('returns an order by id', function () {
             Quantity::fromInt(2),
         )],
         $createdAt,
-    samplePostalAddress(), samplePostalAddress()));
+    samplePostalAddress(), samplePostalAddress(), sampleShippingMethod()));
 
     $response = (new GetOrderQueryHandler($repository))->handle(
         new GetOrderQuery($id->value()),
@@ -75,6 +75,14 @@ it('returns an order by id', function () {
             'postalCode' => '75002',
             'city' => 'Paris',
             'country' => 'FR',
+        ],
+        'shipping' => [
+            'method' => 'standard',
+            'label' => 'Standard',
+            'fee' => [
+                'cents' => 0,
+                'currency' => 'EUR',
+            ],
         ],
     ]);
 });

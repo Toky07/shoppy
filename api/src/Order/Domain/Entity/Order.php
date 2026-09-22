@@ -11,6 +11,7 @@ use App\Order\Domain\ValueObject\OrderId;
 use App\Order\Domain\ValueObject\OrderItem;
 use App\Order\Domain\ValueObject\OrderStatus;
 use App\Order\Domain\ValueObject\PostalAddress;
+use App\Order\Domain\ValueObject\ShippingMethod;
 use DateTimeImmutable;
 
 final class Order
@@ -26,6 +27,7 @@ final class Order
         private DateTimeImmutable $createdAt,
         private ?PostalAddress $shippingAddress,
         private ?PostalAddress $billingAddress,
+        private ?ShippingMethod $shipping,
     ) {
     }
 
@@ -39,12 +41,13 @@ final class Order
         DateTimeImmutable $createdAt,
         PostalAddress $shippingAddress,
         PostalAddress $billingAddress,
+        ShippingMethod $shipping,
     ): self {
         if ($items === []) {
             throw new EmptyOrder();
         }
 
-        return new self($id, $customerId, $items, OrderStatus::pending(), $createdAt, $shippingAddress, $billingAddress);
+        return new self($id, $customerId, $items, OrderStatus::pending(), $createdAt, $shippingAddress, $billingAddress, $shipping);
     }
 
     /**
@@ -58,12 +61,13 @@ final class Order
         DateTimeImmutable $createdAt,
         ?PostalAddress $shippingAddress = null,
         ?PostalAddress $billingAddress = null,
+        ?ShippingMethod $shipping = null,
     ): self {
         if ($items === []) {
             throw new EmptyOrder();
         }
 
-        return new self($id, $customerId, $items, $status, $createdAt, $shippingAddress, $billingAddress);
+        return new self($id, $customerId, $items, $status, $createdAt, $shippingAddress, $billingAddress, $shipping);
     }
 
     public function id(): OrderId
@@ -104,7 +108,17 @@ final class Order
         return $this->billingAddress;
     }
 
+    public function shipping(): ?ShippingMethod
+    {
+        return $this->shipping;
+    }
+
     public function totalCents(): int
+    {
+        return $this->merchandiseCents() + ($this->shipping?->feeCents() ?? 0);
+    }
+
+    private function merchandiseCents(): int
     {
         return array_reduce(
             $this->items,

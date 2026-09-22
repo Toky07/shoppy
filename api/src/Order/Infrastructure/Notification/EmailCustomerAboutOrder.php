@@ -99,6 +99,13 @@ final readonly class EmailCustomerAboutOrder implements EventSubscriberInterface
         }
 
         $lines[] = 'Total : '.self::euro($order->totalCents());
+        $method = $order->shipping();
+
+        if ($method !== null) {
+            $fee = $method->feeCents() === 0 ? 'offerte' : self::euro($method->feeCents());
+            $lines[] = 'Expédition : '.$method->label().', '.$fee;
+        }
+
         $shipping = $order->shippingAddress();
         $billing = $order->billingAddress();
 

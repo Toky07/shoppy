@@ -112,6 +112,7 @@ function onCancel() {
 
           <OrderCheckoutPanel
             :total="order.total"
+            :shipping="order.shipping"
             :pending="pending"
             :can-pay="canPay"
             :can-cancel="canCancel"

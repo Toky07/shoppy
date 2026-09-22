@@ -17,6 +17,7 @@ use App\Order\Domain\ValueObject\OrderId;
 use App\Order\Domain\ValueObject\OrderItem;
 use App\Order\Domain\ValueObject\OrderedProductName;
 use App\Order\Domain\ValueObject\PostalAddress;
+use App\Order\Domain\ValueObject\ShippingMethod;
 use App\Order\Domain\ValueObject\Quantity;
 use App\Order\Domain\ValueObject\UnitPrice;
 use App\Shared\Application\Event\OrderPlaced;
@@ -42,6 +43,7 @@ final readonly class PlaceOrderCommandHandler
             fn (PlaceOrderLine $line): OrderItem => $this->snapshot($line),
             $command->items,
         );
+        $shipping = ShippingMethod::quote($command->shippingMethod, $this->merchandiseCents($items));
 
         foreach ($this->aggregatedQuantities($command->items) as $line) {
             $this->catalog->decreaseStock(
@@ -58,6 +60,7 @@ final readonly class PlaceOrderCommandHandler
             $this->clock->now(),
             $shippingAddress,
             $billingAddress,
+            $shipping,
         );
 
         $this->orderRepository->save($order);
@@ -69,6 +72,18 @@ final readonly class PlaceOrderCommandHandler
         ));
 
         return $order->id();
+    }
+
+    /**
+     * @param list<OrderItem> $items
+     */
+    private function merchandiseCents(array $items): int
+    {
+        return array_reduce(
+            $items,
+            static fn (int $total, OrderItem $item): int => $total + $item->lineTotalCents(),
+            0,
+        );
     }
 
     private function address(PlaceOrderAddress $address, string $prefix): PostalAddress

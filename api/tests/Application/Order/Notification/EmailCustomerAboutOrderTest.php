@@ -32,7 +32,7 @@ function orderMailFixture(): array
             Quantity::fromInt(2),
         )],
         new DateTimeImmutable('2026-08-20T12:00:00+00:00'),
-    samplePostalAddress(), samplePostalAddress());
+    samplePostalAddress(), samplePostalAddress(), sampleShippingMethod());
 
     return [$orderId, $customerId, $order];
 }
@@ -63,6 +63,7 @@ it('sends an order confirmation with a receipt attachment', function () {
             'Commande aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
             'Nuvora Tee x2 — 39,98 €',
             'Total : 39,98 €',
+            'Expédition : Standard, offerte',
             'Livraison : Ada Lovelace, 10 rue de la Paix, 75002 Paris, FR',
             'Facturation : Ada Lovelace, 10 rue de la Paix, 75002 Paris, FR',
         ]));

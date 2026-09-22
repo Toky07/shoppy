@@ -72,7 +72,7 @@ it('completes a payment and marks the order paid through events', function () {
             Quantity::fromInt(2),
         )],
         $now,
-    samplePostalAddress(), samplePostalAddress()));
+    samplePostalAddress(), samplePostalAddress(), sampleShippingMethod()));
 
     $dispatcher = new EventDispatcher();
     $dispatcher->addSubscriber(new CreatePaymentOnOrderPlaced($payments, new FixedClock($now)));

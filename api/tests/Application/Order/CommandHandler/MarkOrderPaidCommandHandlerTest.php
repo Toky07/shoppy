@@ -32,7 +32,7 @@ function markPaidOrderSeed(
                 Quantity::fromInt(1),
             )],
             new DateTimeImmutable('2026-08-20T12:00:00+00:00'),
-        samplePostalAddress(), samplePostalAddress())
+        samplePostalAddress(), samplePostalAddress(), sampleShippingMethod())
         : Order::reconstitute(
             OrderId::fromString('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'),
             CustomerId::fromString('11111111-1111-4111-8111-111111111111'),

@@ -29,7 +29,7 @@ Déjà en place : inscription / connexion / rôles, sécurité du compte (réini
 ### Achat, livraison, commande
 
 - [x] Adresses de livraison et de facturation (saisies au checkout, figées sur la commande ; la facturation peut reprendre la livraison)
-- [ ] Modes de livraison et frais (le libellé « Livraison : Offerte » est en dur)
+- [x] Modes de livraison et frais (Standard 4,90 €, offert dès 49 € ; Express 9,90 € ; montant figé sur la commande et ajouté au total)
 - [ ] TVA / taxes (le total est une somme de lignes, affiché « TTC » sans calcul)
 - [ ] Codes promo
 - [ ] Commande invité, ou fusion du panier après connexion

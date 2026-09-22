@@ -40,6 +40,8 @@ describe('OrderDetailPage', () => {
       expect(screen.getByText('En attente')).toBeTruthy()
       expect(screen.getByText('Nuvora Tee')).toBeTruthy()
       expect(screen.getAllByText('Ada Lovelace').length).toBe(2)
+      expect(screen.getByText(/Livraison Standard/)).toBeTruthy()
+      expect(screen.getByText(/4,90/)).toBeTruthy()
       expect(screen.getByText('Paiement : En attente de paiement')).toBeTruthy()
     })
     expect(payButton()).toBeTruthy()

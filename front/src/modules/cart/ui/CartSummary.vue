@@ -1,13 +1,25 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import AppIcon from '@/shared/ui/AppIcon.vue'
 import ProductPrice from '@/modules/catalog/ui/ProductPrice.vue'
 import type { Money } from '@/shared/money/Money'
 
-defineProps<{
+const props = defineProps<{
   itemCount: number
   total: Money
+  shippingLabel: string
+  shippingFeeCents: number
   pending: boolean
 }>()
+
+const shippingFee = computed<Money>(() => ({
+  cents: props.shippingFeeCents,
+  currency: props.total.currency,
+}))
+const grandTotal = computed<Money>(() => ({
+  cents: props.total.cents + props.shippingFeeCents,
+  currency: props.total.currency,
+}))
 
 const emit = defineEmits<{
   checkout: []
@@ -29,15 +41,18 @@ const emit = defineEmits<{
         </dd>
       </div>
       <div class="flex items-baseline justify-between gap-4">
-        <dt class="text-muted">Livraison</dt>
-        <dd class="font-semibold text-positive">Offerte</dd>
+        <dt class="text-muted">Livraison {{ shippingLabel }}</dt>
+        <dd v-if="shippingFee.cents === 0" class="font-semibold text-positive">Offerte</dd>
+        <dd v-else class="numeric font-semibold text-strong">
+          <ProductPrice :price="shippingFee" />
+        </dd>
       </div>
     </dl>
 
     <div class="mt-6 flex items-baseline justify-between gap-4 border-t border-line pt-6">
       <span class="font-semibold text-strong">Total TTC</span>
       <span class="numeric font-display text-2xl font-extrabold text-strong">
-        <ProductPrice :price="total" />
+        <ProductPrice :price="grandTotal" />
       </span>
     </div>
 

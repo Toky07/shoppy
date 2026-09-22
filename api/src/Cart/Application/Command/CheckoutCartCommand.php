@@ -12,6 +12,7 @@ final readonly class CheckoutCartCommand
         public string $customerId,
         public PlaceOrderAddress $shippingAddress,
         public PlaceOrderAddress $billingAddress,
+        public string $shippingMethod,
     ) {
     }
 }

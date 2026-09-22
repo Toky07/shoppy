@@ -38,6 +38,7 @@ it('places an order with catalog snapshots, ignoring later catalog prices', func
         )],
         shippingAddress: sampleOrderAddress(),
         billingAddress: sampleOrderAddress(),
+        shippingMethod: 'standard',
     ));
 
     $catalog->add(new CatalogSnapshot(
@@ -58,11 +59,13 @@ it('places an order with catalog snapshots, ignoring later catalog prices', func
         ->and($order->items()[0]->name()->value())->toBe('Nuvora Tee')
         ->and($order->items()[0]->unitPrice()->cents())->toBe(1999)
         ->and($order->items()[0]->quantity()->value())->toBe(2)
-        ->and($order->totalCents())->toBe(3998)
+        ->and($order->shipping()?->code())->toBe('standard')
+        ->and($order->shipping()?->feeCents())->toBe(490)
+        ->and($order->totalCents())->toBe(4488)
         ->and($events->dispatched)->toHaveCount(1)
         ->and($events->dispatched[0])->toBeInstanceOf(OrderPlaced::class)
         ->and($events->dispatched[0]->orderId)->toBe($orderId->value())
-        ->and($events->dispatched[0]->amountCents)->toBe(3998);
+        ->and($events->dispatched[0]->amountCents)->toBe(4488);
 });
 
 it('decrements catalog stock when placing an order', function () {
@@ -88,6 +91,7 @@ it('decrements catalog stock when placing an order', function () {
         )],
         shippingAddress: sampleOrderAddress(),
         billingAddress: sampleOrderAddress(),
+        shippingMethod: 'standard',
     ));
 
     $snapshot = $catalog->findById(CatalogProductId::fromString('550e8400-e29b-41d4-a716-446655440000'));
@@ -120,6 +124,7 @@ it('rejects insufficient stock without persisting the order', function () {
         )],
         shippingAddress: sampleOrderAddress(),
         billingAddress: sampleOrderAddress(),
+        shippingMethod: 'standard',
     )))->toThrow(InsufficientProductStock::class)
         ->and($orders->all())->toBe([])
         ->and($catalog->findById(CatalogProductId::fromString('550e8400-e29b-41d4-a716-446655440000'))?->stock)->toBe(1);
@@ -142,6 +147,7 @@ it('rejects a missing catalog product without persisting', function () {
         )],
         shippingAddress: sampleOrderAddress(),
         billingAddress: sampleOrderAddress(),
+        shippingMethod: 'standard',
     )))->toThrow(CatalogProductNotFound::class)
         ->and($orders->all())->toBe([]);
 });
@@ -159,5 +165,6 @@ it('rejects an order without items', function () {
         items: [],
         shippingAddress: sampleOrderAddress(),
         billingAddress: sampleOrderAddress(),
+        shippingMethod: 'standard',
     ));
 })->throws(EmptyOrder::class);
