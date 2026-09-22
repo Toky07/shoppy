@@ -48,6 +48,9 @@ const imageCount = computed(() => props.product.imageUrls.length)
       </div>
       <div class="min-w-0">
         <p class="truncate font-display text-base font-bold text-strong">{{ product.name }}</p>
+        <p v-if="!product.published" class="mt-1">
+          <span class="badge-warning">Brouillon</span>
+        </p>
         <p v-if="product.slug" class="mt-0.5 truncate text-[0.7rem] font-semibold tracking-[0.12em] text-faint uppercase">
           /{{ product.slug }}
         </p>

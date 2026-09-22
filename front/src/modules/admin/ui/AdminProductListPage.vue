@@ -34,6 +34,7 @@ const query = computed(() => ({
   limit: DEFAULT_PRODUCT_LIMIT,
   search: search.value || undefined,
   sort: parseProductSort(route.query.sort),
+  includeDrafts: true,
 }))
 const { status, page, error, reload } = useProductList(catalogRepository, query)
 const pendingId = ref<string>()

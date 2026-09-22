@@ -13,6 +13,7 @@ final readonly class CartItemResponse
         public int $unitPriceCents,
         public int $lineTotalCents,
         public int $availableStock,
+        public ?string $variantId = null,
     ) {
     }
 
@@ -23,7 +24,8 @@ final readonly class CartItemResponse
      *     quantity: int,
      *     unitPrice: array{cents: int, currency: string},
      *     lineTotal: array{cents: int, currency: string},
-     *     availableStock: int
+     *     availableStock: int,
+     *     variantId: string|null
      * }
      */
     public function toArray(): array
@@ -41,6 +43,7 @@ final readonly class CartItemResponse
                 'currency' => 'EUR',
             ],
             'availableStock' => $this->availableStock,
+            'variantId' => $this->variantId,
         ];
     }
 }

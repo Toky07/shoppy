@@ -12,6 +12,15 @@ final readonly class UpdateProductCommand
         public ?int $priceCents = null,
         public bool $descriptionProvided = false,
         public ?string $description = null,
+        public bool $categoryProvided = false,
+        public ?string $categoryId = null,
+        public bool $skuProvided = false,
+        public ?string $sku = null,
+        public bool $variantsProvided = false,
+        /** @var list<array{id: string|null, sku: string, size: string|null, color: string|null, stock: int}> */
+        public array $variants = [],
+        public bool $publishedProvided = false,
+        public bool $published = true,
     ) {
     }
 }

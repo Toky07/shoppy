@@ -1,5 +1,5 @@
 import { ApiError } from '@/shared/http/ApiError'
-import type { AdminCatalogRepository, CreateProductInput, UpdateProductInput } from '../application/AdminCatalogRepository'
+import type { AdminCatalogRepository, CreateProductInput, ProductImage, UpdateProductInput } from '../application/AdminCatalogRepository'
 import type { Product } from '../domain/Product'
 import { nuvoraTee } from './productFixtures'
 
@@ -12,6 +12,9 @@ export class FakeAdminCatalogRepository implements AdminCatalogRepository {
   public updated: Array<{ id: string; input: UpdateProductInput }> = []
   public stockSets: Array<{ id: string; stock: number }> = []
   public deleted: string[] = []
+  public uploaded: Array<{ productId: string; name: string }> = []
+  public imageOrder: string[][] = []
+  public images: ProductImage[] = []
   public createResult: Product = nuvoraTee
   public createError: Error | null = null
   public updateError: Error | null = null
@@ -69,5 +72,32 @@ export class FakeAdminCatalogRepository implements AdminCatalogRepository {
       throw this.deleteError
     }
     this.products = this.products.filter((item) => item.id !== id)
+  }
+
+  async listImages(): Promise<ProductImage[]> {
+    return this.images.map((image) => ({ ...image }))
+  }
+
+  async uploadImage(productId: string, file: File, position?: number): Promise<ProductImage> {
+    this.uploaded.push({ productId, name: file.name })
+    const image = {
+      id: `media-${this.images.length + 1}`,
+      url: `blob:${file.name}`,
+      position: position ?? this.images.length,
+    }
+    this.images = [...this.images, image]
+    return image
+  }
+
+  async deleteImage(id: string): Promise<void> {
+    this.images = this.images.filter((image) => image.id !== id)
+  }
+
+  async reorderImages(_productId: string, ids: string[]): Promise<void> {
+    this.imageOrder.push(ids)
+    this.images = ids.flatMap((id, position) => {
+      const image = this.images.find((item) => item.id === id)
+      return image ? [{ ...image, position }] : []
+    })
   }
 }

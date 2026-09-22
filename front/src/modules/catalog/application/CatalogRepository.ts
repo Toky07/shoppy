@@ -1,5 +1,7 @@
+import type { Category } from '../domain/Category'
 import type { Product } from '../domain/Product'
 import type { ProductPage } from '../domain/ProductPage'
+import type { ProductReviewList, SubmitReviewInput } from '../domain/ProductReview'
 import type { ProductSort } from './productSort'
 
 export type ListProductsQuery = {
@@ -7,9 +9,19 @@ export type ListProductsQuery = {
   limit: number
   search?: string
   sort?: ProductSort
+  minPriceCents?: number
+  maxPriceCents?: number
+  inStockOnly?: boolean
+  categorySlug?: string
+  includeDrafts?: boolean
 }
 
 export interface CatalogRepository {
   list(query: ListProductsQuery): Promise<ProductPage>
+  listByIds(ids: string[]): Promise<Product[]>
+  listCategories(): Promise<Category[]>
   getById(id: string): Promise<Product>
+  listRelated(id: string): Promise<Product[]>
+  listReviews(productId: string): Promise<ProductReviewList>
+  submitReview(productId: string, input: SubmitReviewInput): Promise<void>
 }

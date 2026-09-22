@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, watch } from 'vue'
 import AppIcon from '@/shared/ui/AppIcon.vue'
 import ImageCarousel from '@/shared/ui/ImageCarousel.vue'
 import StatusNotice from '@/shared/ui/StatusNotice.vue'
 import { formatMoney } from '@/shared/money/formatMoney'
 import { stockLabel } from '@/modules/catalog/ui/stockLabel'
+import type { Category } from '@/modules/catalog/domain/Category'
 import type { ProductDraft } from './productDraft'
 
 const props = defineProps<{
@@ -13,6 +14,7 @@ const props = defineProps<{
   errorMessage?: string
   previewImages?: string[]
   slug?: string | null
+  categories?: Category[]
 }>()
 
 const draft = defineModel<ProductDraft>({ required: true })
@@ -28,6 +30,27 @@ const previewPrice = computed(() =>
 const previewName = computed(() => draft.value.name.trim() || 'Sans nom')
 const gallery = computed(() => props.previewImages ?? [])
 const stockTone = computed(() => (Number(draft.value.stock) > 0 ? 'badge-positive' : 'badge-danger'))
+const hasVariants = computed(() => draft.value.variants.length > 0)
+
+watch(
+  () => draft.value.variants,
+  (variants) => {
+    if (variants.length === 0) {
+      return
+    }
+
+    draft.value.stock = variants.reduce((sum, variant) => sum + (Number(variant.stock) || 0), 0)
+  },
+  { deep: true },
+)
+
+function addVariant() {
+  draft.value.variants.push({ id: '', sku: '', size: '', color: '', stock: 0 })
+}
+
+function removeVariant(index: number) {
+  draft.value.variants.splice(index, 1)
+}
 </script>
 
 <template>
@@ -61,7 +84,31 @@ const stockTone = computed(() => (Number(draft.value.stock) > 0 ? 'badge-positiv
               placeholder="Ce qui rend ce produit utile, en deux phrases."
             />
           </label>
+          <label v-if="(props.categories ?? []).length > 0" class="mt-5 block">
+            <span class="field-label">Catégorie</span>
+            <select v-model="draft.categoryId" class="field">
+              <option value="">Aucune</option>
+              <option v-for="category in props.categories" :key="category.id" :value="category.id">
+                {{ category.name }}
+              </option>
+            </select>
+          </label>
+          <label class="mt-5 block">
+            <span class="field-label">SKU</span>
+            <input v-model="draft.sku" class="field uppercase" placeholder="NUVORA-TEE" maxlength="40" />
+          </label>
+          <label class="mt-5 flex items-start gap-3 rounded-2xl border border-line bg-surface-muted p-4">
+            <input v-model="draft.published" type="checkbox" class="mt-1 size-4 accent-accent" />
+            <span>
+              <span class="block text-sm font-semibold text-strong">Publié</span>
+              <span class="mt-1 block text-sm text-muted">
+                Décochez pour garder le produit en brouillon. Il reste invisible dans la boutique.
+              </span>
+            </span>
+          </label>
         </section>
+
+        <slot name="media" />
 
         <section class="border-t border-line pt-8">
           <p class="text-[0.7rem] font-semibold tracking-[0.14em] text-muted uppercase">Inventaire</p>
@@ -91,9 +138,40 @@ const stockTone = computed(() => (Number(draft.value.stock) > 0 ? 'badge-positiv
                 min="0"
                 step="1"
                 required
-                class="field numeric mt-3 border-transparent bg-surface text-xl font-extrabold"
+                :disabled="hasVariants"
+                class="field numeric mt-3 border-transparent bg-surface text-xl font-extrabold disabled:opacity-60"
               />
             </label>
+          </div>
+          <div class="mt-5">
+            <div class="flex items-center justify-between gap-3">
+              <p class="text-xs font-semibold tracking-[0.12em] text-muted uppercase">Variantes</p>
+              <button type="button" class="btn-outline" @click="addVariant">Ajouter une variante</button>
+            </div>
+            <p v-if="draft.variants.length === 0" class="mt-3 text-sm text-muted">
+              Sans variante, le stock ci-dessus est celui du produit.
+            </p>
+            <div v-for="(variant, index) in draft.variants" :key="`${variant.id}-${index}`" class="mt-3 grid gap-3 rounded-2xl border border-line bg-surface-muted p-4 sm:grid-cols-4">
+              <label class="block">
+                <span class="field-label">Taille</span>
+                <input v-model="variant.size" class="field" placeholder="M" />
+              </label>
+              <label class="block">
+                <span class="field-label">Couleur</span>
+                <input v-model="variant.color" class="field" placeholder="Noir" />
+              </label>
+              <label class="block">
+                <span class="field-label">SKU</span>
+                <input v-model="variant.sku" class="field uppercase" placeholder="NUVORA-TEE-M" />
+              </label>
+              <label class="block">
+                <span class="field-label">Stock</span>
+                <input v-model.number="variant.stock" type="number" min="0" step="1" class="field numeric" />
+              </label>
+              <button type="button" class="btn-danger sm:col-span-4" @click="removeVariant(index)">
+                Retirer
+              </button>
+            </div>
           </div>
         </section>
       </div>

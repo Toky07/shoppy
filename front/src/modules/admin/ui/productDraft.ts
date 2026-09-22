@@ -3,6 +3,18 @@ export type ProductDraft = {
   priceEuros: number
   description: string
   stock: number
+  categoryId: string
+  sku: string
+  variants: VariantDraft[]
+  published: boolean
+}
+
+export type VariantDraft = {
+  id: string
+  sku: string
+  size: string
+  color: string
+  stock: number
 }
 
 export function emptyProductDraft(): ProductDraft {
@@ -11,5 +23,9 @@ export function emptyProductDraft(): ProductDraft {
     priceEuros: 0,
     description: '',
     stock: 0,
+    categoryId: '',
+    sku: '',
+    variants: [],
+    published: true,
   }
 }

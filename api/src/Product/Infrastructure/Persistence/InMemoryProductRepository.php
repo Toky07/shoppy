@@ -9,6 +9,7 @@ use App\Product\Domain\Repository\ProductRepository;
 use App\Product\Domain\ValueObject\ProductId;
 use App\Product\Domain\ValueObject\ProductListCriteria;
 use App\Product\Domain\ValueObject\ProductName;
+use App\Product\Domain\ValueObject\ProductSku;
 use App\Product\Domain\ValueObject\ProductSlug;
 use App\Product\Domain\ValueObject\ProductSort;
 
@@ -49,6 +50,38 @@ final class InMemoryProductRepository implements ProductRepository
         return null;
     }
 
+    public function findBySku(ProductSku $sku): ?Product
+    {
+        foreach ($this->products as $product) {
+            if ($product->sku()->equals($sku)) {
+                return $product;
+            }
+
+            foreach ($product->variants() as $variant) {
+                if ($variant->sku()->equals($sku)) {
+                    return $product;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    public function findByIds(array $ids): array
+    {
+        $products = [];
+
+        foreach ($ids as $id) {
+            $product = $this->findById($id);
+
+            if ($product !== null) {
+                $products[] = $product;
+            }
+        }
+
+        return $products;
+    }
+
     public function findPage(int $offset, int $limit, ?ProductListCriteria $criteria = null): array
     {
         $criteria ??= ProductListCriteria::default();
@@ -74,22 +107,37 @@ final class InMemoryProductRepository implements ProductRepository
     {
         $products = array_values($this->products);
 
-        if ($criteria->search === null) {
-            return $products;
-        }
-
-        $needle = strtolower($criteria->search);
-
         return array_values(array_filter(
             $products,
-            static function (Product $product) use ($needle): bool {
-                if (str_contains(strtolower($product->name()->value()), $needle)) {
-                    return true;
+            static function (Product $product) use ($criteria): bool {
+                if ($criteria->search !== null) {
+                    $needle = strtolower($criteria->search);
+                    $description = $product->description()?->value();
+                    $matchesSearch = str_contains(strtolower($product->name()->value()), $needle)
+                        || ($description !== null && str_contains(strtolower($description), $needle));
+
+                    if (!$matchesSearch) {
+                        return false;
+                    }
                 }
 
-                $description = $product->description()?->value();
+                if ($criteria->minPriceCents !== null && $product->price()->cents() < $criteria->minPriceCents) {
+                    return false;
+                }
 
-                return $description !== null && str_contains(strtolower($description), $needle);
+                if ($criteria->maxPriceCents !== null && $product->price()->cents() > $criteria->maxPriceCents) {
+                    return false;
+                }
+
+                if ($criteria->categoryId !== null && $product->categoryId()?->value() !== $criteria->categoryId->value()) {
+                    return false;
+                }
+
+                if ($criteria->publishedOnly && !$product->isPublished()) {
+                    return false;
+                }
+
+                return !$criteria->inStockOnly || $product->stock()->value() > 0;
             },
         ));
     }
@@ -115,6 +163,30 @@ final class InMemoryProductRepository implements ProductRepository
                 };
             },
         );
+    }
+
+    public function findRelated(Product $product, int $limit): array
+    {
+        $categoryId = $product->categoryId();
+
+        if ($categoryId === null || $limit < 1) {
+            return [];
+        }
+
+        $related = array_values(array_filter(
+            $this->products,
+            static fn (Product $candidate): bool => $candidate->isPublished()
+                && $candidate->id()->value() !== $product->id()->value()
+                && $candidate->categoryId()?->value() === $categoryId->value(),
+        ));
+
+        usort(
+            $related,
+            static fn (Product $left, Product $right): int => $right->createdAt() <=> $left->createdAt()
+                ?: $left->name()->value() <=> $right->name()->value(),
+        );
+
+        return array_values(array_slice($related, 0, $limit));
     }
 
     public function delete(Product $product): void

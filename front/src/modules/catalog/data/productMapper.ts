@@ -1,8 +1,62 @@
 import { mapMoney } from '@/shared/money/mapMoney'
 import { InvalidResponseError } from '@/shared/http/InvalidResponseError'
 import { isRecord } from '@/shared/types/isRecord'
+import type { Category } from '../domain/Category'
 import type { Product } from '../domain/Product'
+import type { ProductReview, ProductReviewList } from '../domain/ProductReview'
 import type { ProductPage } from '../domain/ProductPage'
+
+function mapCategory(payload: Record<string, unknown>): Category | null {
+  if (payload.category === undefined || payload.category === null) {
+    return null
+  }
+
+  if (
+    !isRecord(payload.category) ||
+    typeof payload.category.id !== 'string' ||
+    typeof payload.category.name !== 'string' ||
+    typeof payload.category.slug !== 'string'
+  ) {
+    throw new InvalidResponseError('Invalid product payload.')
+  }
+
+  return {
+    id: payload.category.id,
+    name: payload.category.name,
+    slug: payload.category.slug,
+  }
+}
+
+function mapVariants(payload: Record<string, unknown>) {
+  if (payload.variants === undefined) {
+    return []
+  }
+
+  if (!Array.isArray(payload.variants)) {
+    throw new InvalidResponseError('Invalid product payload.')
+  }
+
+  return payload.variants.map((variant) => {
+    if (
+      !isRecord(variant) ||
+      typeof variant.id !== 'string' ||
+      typeof variant.sku !== 'string' ||
+      (variant.size !== null && typeof variant.size !== 'string') ||
+      (variant.color !== null && typeof variant.color !== 'string') ||
+      typeof variant.stock !== 'number'
+    ) {
+      throw new InvalidResponseError('Invalid product payload.')
+    }
+
+    return {
+      id: variant.id,
+      sku: variant.sku,
+      size: variant.size,
+      color: variant.color,
+      stock: variant.stock,
+    }
+  })
+}
 
 function mapImageUrls(payload: Record<string, unknown>): string[] {
   if (payload.imageUrls === undefined) {
@@ -25,7 +79,9 @@ export function mapProduct(payload: unknown): Product {
     (payload.description !== null && typeof payload.description !== 'string') ||
     typeof payload.stock !== 'number' ||
     (payload.imageUrl !== null && payload.imageUrl !== undefined && typeof payload.imageUrl !== 'string') ||
-    typeof payload.createdAt !== 'string'
+    typeof payload.createdAt !== 'string' ||
+    typeof payload.sku !== 'string' ||
+    typeof payload.published !== 'boolean'
   ) {
     throw new InvalidResponseError('Invalid product payload.')
   }
@@ -42,6 +98,69 @@ export function mapProduct(payload: unknown): Product {
     imageUrl: imageUrls[0] ?? null,
     imageUrls,
     createdAt: payload.createdAt,
+    category: mapCategory(payload),
+    sku: payload.sku,
+    variants: mapVariants(payload),
+    published: payload.published,
+  }
+}
+
+export function mapCategoryList(payload: unknown): Category[] {
+  if (!isRecord(payload) || !Array.isArray(payload.items)) {
+    throw new InvalidResponseError('Invalid category list payload.')
+  }
+
+  return payload.items.map((item) => {
+    if (
+      !isRecord(item) ||
+      typeof item.id !== 'string' ||
+      typeof item.name !== 'string' ||
+      typeof item.slug !== 'string'
+    ) {
+      throw new InvalidResponseError('Invalid category list payload.')
+    }
+
+    return { id: item.id, name: item.name, slug: item.slug }
+  })
+}
+
+export function mapProductReview(payload: unknown): ProductReview {
+  if (
+    !isRecord(payload) ||
+    typeof payload.id !== 'string' ||
+    typeof payload.rating !== 'number' ||
+    typeof payload.body !== 'string' ||
+    typeof payload.author !== 'string' ||
+    typeof payload.createdAt !== 'string' ||
+    typeof payload.mine !== 'boolean'
+  ) {
+    throw new InvalidResponseError('Invalid review payload.')
+  }
+
+  return {
+    id: payload.id,
+    rating: payload.rating,
+    body: payload.body,
+    author: payload.author,
+    createdAt: payload.createdAt,
+    mine: payload.mine,
+  }
+}
+
+export function mapProductReviewList(payload: unknown): ProductReviewList {
+  if (
+    !isRecord(payload) ||
+    !Array.isArray(payload.items) ||
+    typeof payload.count !== 'number' ||
+    (payload.averageRating !== null && typeof payload.averageRating !== 'number')
+  ) {
+    throw new InvalidResponseError('Invalid review list payload.')
+  }
+
+  return {
+    items: payload.items.map(mapProductReview),
+    count: payload.count,
+    averageRating: payload.averageRating,
   }
 }
 

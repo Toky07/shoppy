@@ -9,7 +9,9 @@ use App\Product\Domain\Repository\ProductRepository;
 use App\Product\Domain\ValueObject\ProductId;
 use App\Product\Domain\ValueObject\ProductListCriteria;
 use App\Product\Domain\ValueObject\ProductName;
+use App\Product\Domain\ValueObject\ProductSku;
 use App\Product\Domain\ValueObject\ProductSlug;
+use App\Product\Infrastructure\Persistence\Doctrine\Entity\ProductVariantRecord;
 use App\Product\Domain\ValueObject\ProductSort;
 use App\Product\Infrastructure\Persistence\Doctrine\Entity\ProductRecord;
 use Doctrine\ORM\EntityManagerInterface;
@@ -59,6 +61,57 @@ final readonly class DoctrineProductRepository implements ProductRepository
         return $record?->toDomain();
     }
 
+    public function findBySku(ProductSku $sku): ?Product
+    {
+        $record = $this->entityManager->getRepository(ProductRecord::class)->findOneBy([
+            'sku' => $sku->value(),
+        ]);
+
+        if ($record !== null) {
+            return $record->toDomain();
+        }
+
+        $variant = $this->entityManager->getRepository(ProductVariantRecord::class)->findOneBy([
+            'sku' => $sku->value(),
+        ]);
+
+        return $variant?->product()->toDomain();
+    }
+
+    public function findByIds(array $ids): array
+    {
+        if ($ids === []) {
+            return [];
+        }
+
+        $values = array_map(static fn (ProductId $id): string => $id->value(), $ids);
+        /** @var list<ProductRecord> $records */
+        $records = $this->entityManager->createQueryBuilder()
+            ->select('product')
+            ->from(ProductRecord::class, 'product')
+            ->where('product.id IN (:ids)')
+            ->setParameter('ids', $values)
+            ->getQuery()
+            ->getResult();
+
+        $indexed = [];
+
+        foreach ($records as $record) {
+            $product = $record->toDomain();
+            $indexed[$product->id()->value()] = $product;
+        }
+
+        $ordered = [];
+
+        foreach ($values as $value) {
+            if (isset($indexed[$value])) {
+                $ordered[] = $indexed[$value];
+            }
+        }
+
+        return $ordered;
+    }
+
     public function findPage(int $offset, int $limit, ?ProductListCriteria $criteria = null): array
     {
         $criteria ??= ProductListCriteria::default();
@@ -98,7 +151,62 @@ final readonly class DoctrineProductRepository implements ProductRepository
                 ->setParameter('search', $this->toLikePattern($criteria->search));
         }
 
+        if ($criteria->minPriceCents !== null) {
+            $queryBuilder
+                ->andWhere('product.priceCents >= :minPrice')
+                ->setParameter('minPrice', $criteria->minPriceCents);
+        }
+
+        if ($criteria->maxPriceCents !== null) {
+            $queryBuilder
+                ->andWhere('product.priceCents <= :maxPrice')
+                ->setParameter('maxPrice', $criteria->maxPriceCents);
+        }
+
+        if ($criteria->inStockOnly) {
+            $queryBuilder->andWhere('product.stock > 0');
+        }
+
+        if ($criteria->categoryId !== null) {
+            $queryBuilder
+                ->andWhere('product.categoryId = :categoryId')
+                ->setParameter('categoryId', $criteria->categoryId->value());
+        }
+
+        if ($criteria->publishedOnly) {
+            $queryBuilder->andWhere('product.published = true');
+        }
+
         return $queryBuilder;
+    }
+
+    public function findRelated(Product $product, int $limit): array
+    {
+        $categoryId = $product->categoryId();
+
+        if ($categoryId === null || $limit < 1) {
+            return [];
+        }
+
+        /** @var list<ProductRecord> $records */
+        $records = $this->entityManager->createQueryBuilder()
+            ->select('product')
+            ->from(ProductRecord::class, 'product')
+            ->where('product.categoryId = :categoryId')
+            ->andWhere('product.id != :id')
+            ->andWhere('product.published = true')
+            ->setParameter('categoryId', $categoryId->value())
+            ->setParameter('id', $product->id()->value())
+            ->orderBy('product.createdAt', 'DESC')
+            ->addOrderBy('product.name', 'ASC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+
+        return array_map(
+            static fn (ProductRecord $record): Product => $record->toDomain(),
+            $records,
+        );
     }
 
     private function applySort(QueryBuilder $queryBuilder, ProductSort $sort): void

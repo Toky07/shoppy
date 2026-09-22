@@ -56,6 +56,41 @@ final readonly class DoctrineMediaRepository implements MediaRepository
         );
     }
 
+    public function findByOwners(MediaOwnerType $ownerType, array $ownerIds): array
+    {
+        $grouped = [];
+
+        foreach ($ownerIds as $ownerId) {
+            $grouped[$ownerId->value()] = [];
+        }
+
+        if ($ownerIds === []) {
+            return $grouped;
+        }
+
+        $records = $this->entityManager->createQueryBuilder()
+            ->select('media')
+            ->from(MediaRecord::class, 'media')
+            ->where('media.ownerType = :ownerType')
+            ->andWhere('media.ownerId IN (:ownerIds)')
+            ->setParameter('ownerType', $ownerType->className())
+            ->setParameter('ownerIds', array_map(
+                static fn (MediaOwnerId $ownerId): string => $ownerId->value(),
+                $ownerIds,
+            ))
+            ->orderBy('media.position', 'ASC')
+            ->addOrderBy('media.createdAt', 'ASC')
+            ->getQuery()
+            ->getResult();
+
+        foreach ($records as $record) {
+            $media = $record->toDomain();
+            $grouped[$media->ownerId()->value()][] = $media;
+        }
+
+        return $grouped;
+    }
+
     public function delete(Media $media): void
     {
         $record = $this->entityManager->find(MediaRecord::class, $media->id()->value());

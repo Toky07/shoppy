@@ -13,6 +13,11 @@ final readonly class CreateProductHttpRequest
         public int $priceCents,
         public ?string $description,
         public int $stock,
+        public ?string $categoryId,
+        public ?string $sku,
+        /** @var list<array{id: string|null, sku: string, size: string|null, color: string|null, stock: int}>|null */
+        public ?array $variants,
+        public bool $published,
     ) {
     }
 
@@ -39,6 +44,39 @@ final readonly class CreateProductHttpRequest
             throw InvalidRequest::of('This value must be an integer.', 'stock');
         }
 
-        return new self($payload['name'], $payload['priceCents'], $description, $stock);
+        $categoryId = null;
+        if (array_key_exists('categoryId', $payload) && $payload['categoryId'] !== null) {
+            if (!is_string($payload['categoryId']) || $payload['categoryId'] === '') {
+                throw InvalidRequest::of('This value must be a string.', 'categoryId');
+            }
+            $categoryId = $payload['categoryId'];
+        }
+
+        $sku = null;
+        if (array_key_exists('sku', $payload) && $payload['sku'] !== null) {
+            if (!is_string($payload['sku']) || trim($payload['sku']) === '') {
+                throw InvalidRequest::of('This value must be a string.', 'sku');
+            }
+            $sku = $payload['sku'];
+        }
+
+        $published = true;
+        if (array_key_exists('published', $payload)) {
+            if (!is_bool($payload['published'])) {
+                throw InvalidRequest::of('This value must be a boolean.', 'published');
+            }
+            $published = $payload['published'];
+        }
+
+        return new self(
+            $payload['name'],
+            $payload['priceCents'],
+            $description,
+            $stock,
+            $categoryId,
+            $sku,
+            ProductVariantHttpList::fromPayload($payload),
+            $published,
+        );
     }
 }

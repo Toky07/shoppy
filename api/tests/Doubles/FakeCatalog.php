@@ -20,12 +20,12 @@ final class FakeCatalog implements Catalog
         $this->items[$item->id] = $item;
     }
 
-    public function findById(CatalogProductId $id): ?CatalogSnapshot
+    public function findById(CatalogProductId $id, ?string $variantId = null): ?CatalogSnapshot
     {
         return $this->items[$id->value()] ?? null;
     }
 
-    public function decreaseStock(CatalogProductId $id, int $quantity): void
+    public function decreaseStock(CatalogProductId $id, int $quantity, ?string $variantId = null): void
     {
         $item = $this->items[$id->value()] ?? null;
 
@@ -45,7 +45,7 @@ final class FakeCatalog implements Catalog
         );
     }
 
-    public function increaseStock(CatalogProductId $id, int $quantity): void
+    public function increaseStock(CatalogProductId $id, int $quantity, ?string $variantId = null): void
     {
         $item = $this->items[$id->value()] ?? null;
 

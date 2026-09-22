@@ -20,6 +20,8 @@ it('creates a product', function () {
         ->and($payload['imageUrl'])->toBeNull()
         ->and($payload['imageUrls'])->toBe([])
         ->and($payload['slug'])->toBe('nuvora-tee')
+        ->and($payload['sku'])->toBe('NUVORA-TEE')
+        ->and($payload['variants'])->toBe([])
         ->and($response->headers->get('Location'))->toBe('/products/nuvora-tee');
 });
 
@@ -440,4 +442,102 @@ it('lists products without authentication', function () {
     expect($this->client->getResponse()->getStatusCode())->toBe(200)
         ->and($payload['total'])->toBe(1)
         ->and($payload['items'][0]['name'])->toBe('Nuvora Tee');
+});
+
+it('filters the catalog by price and stock', function () {
+    $this->client->jsonRequest('POST', '/products', [
+        'name' => 'Nuvora Mug',
+        'priceCents' => 1299,
+        'stock' => 0,
+    ], catalogAdminHeaders());
+    $this->client->jsonRequest('POST', '/products', [
+        'name' => 'Nuvora Tee',
+        'priceCents' => 1999,
+        'stock' => 4,
+    ], catalogAdminHeaders());
+    $this->client->jsonRequest('POST', '/products', [
+        'name' => 'Nuvora Hoodie',
+        'priceCents' => 4999,
+        'stock' => 2,
+    ], catalogAdminHeaders());
+
+    $this->client->jsonRequest('GET', '/products?minPrice=1500&maxPrice=3000&inStock=1');
+    $payload = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+
+    expect($this->client->getResponse()->getStatusCode())->toBe(200)
+        ->and(array_column($payload['items'], 'name'))->toBe(['Nuvora Tee']);
+});
+
+it('returns the requested products in order', function () {
+    $this->client->jsonRequest('POST', '/products', [
+        'name' => 'Nuvora Tee',
+        'priceCents' => 1999,
+    ], catalogAdminHeaders());
+    $tee = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+    $this->client->jsonRequest('POST', '/products', [
+        'name' => 'Nuvora Hoodie',
+        'priceCents' => 4999,
+    ], catalogAdminHeaders());
+    $hoodie = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+
+    $this->client->jsonRequest('GET', '/products?ids='.$hoodie['id'].','.$tee['id']);
+    $payload = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+
+    expect($this->client->getResponse()->getStatusCode())->toBe(200)
+        ->and(array_column($payload['items'], 'id'))->toBe([$hoodie['id'], $tee['id']]);
+});
+
+it('filters the catalog by category', function () {
+    $this->client->jsonRequest('POST', '/categories', [
+        'name' => 'Textile',
+    ], catalogAdminHeaders());
+    $created = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+
+    expect($this->client->getResponse()->getStatusCode())->toBe(201)
+        ->and($created['slug'])->toBe('textile');
+
+    $this->client->jsonRequest('POST', '/products', [
+        'name' => 'Nuvora Tee',
+        'priceCents' => 1999,
+        'categoryId' => $created['id'],
+    ], catalogAdminHeaders());
+    $this->client->jsonRequest('POST', '/products', [
+        'name' => 'Nuvora Mug',
+        'priceCents' => 1299,
+    ], catalogAdminHeaders());
+
+    $this->client->jsonRequest('GET', '/categories');
+    $categories = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+
+    $this->client->jsonRequest('GET', '/products?category=textile');
+    $filtered = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+
+    $this->client->jsonRequest('GET', '/products?category=missing');
+    $missing = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+
+    expect($categories['items'][0]['name'])->toBe('Textile')
+        ->and(array_column($filtered['items'], 'name'))->toBe(['Nuvora Tee'])
+        ->and($filtered['items'][0]['category']['slug'])->toBe('textile')
+        ->and($missing['total'])->toBe(0);
+});
+
+it('creates a product with size and color variants', function () {
+    $this->client->jsonRequest('POST', '/products', [
+        'name' => 'Nuvora Tee',
+        'priceCents' => 1999,
+        'sku' => 'NUVORA-TEE',
+        'variants' => [
+            ['sku' => 'NUVORA-TEE-S', 'size' => 'S', 'color' => 'Noir', 'stock' => 1],
+            ['sku' => 'NUVORA-TEE-M', 'size' => 'M', 'color' => 'Noir', 'stock' => 4],
+        ],
+    ], catalogAdminHeaders());
+
+    $payload = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+
+    expect($this->client->getResponse()->getStatusCode())->toBe(201)
+        ->and($payload['sku'])->toBe('NUVORA-TEE')
+        ->and($payload['stock'])->toBe(5)
+        ->and($payload['variants'][0]['size'])->toBe('S')
+        ->and($payload['variants'][1]['sku'])->toBe('NUVORA-TEE-M')
+        ->and($payload['variants'][1]['color'])->toBe('Noir');
 });

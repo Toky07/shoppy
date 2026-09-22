@@ -8,8 +8,10 @@ use App\Order\Application\Catalog;
 use App\Order\Application\Response\CatalogSnapshot;
 use App\Order\Domain\Exception\CatalogProductNotFound;
 use App\Order\Domain\ValueObject\CatalogProductId;
+use App\Product\Domain\Entity\Product;
 use App\Product\Domain\Repository\ProductRepository;
 use App\Product\Domain\ValueObject\ProductId;
+use App\Product\Domain\ValueObject\VariantId;
 
 final readonly class ProductCatalog implements Catalog
 {
@@ -17,45 +19,59 @@ final readonly class ProductCatalog implements Catalog
     {
     }
 
-    public function findById(CatalogProductId $id): ?CatalogSnapshot
+    public function findById(CatalogProductId $id, ?string $variantId = null): ?CatalogSnapshot
     {
         $product = $this->productRepository->findById(ProductId::fromString($id->value()));
 
-        if ($product === null) {
+        if ($product === null || !$product->isPublished()) {
+            return null;
+        }
+
+        if ($variantId === null) {
+            return new CatalogSnapshot(
+                $product->id()->value(),
+                $product->name()->value(),
+                $product->price()->cents(),
+                $product->stock()->value(),
+            );
+        }
+
+        $variant = $product->findVariant(VariantId::fromString($variantId));
+
+        if ($variant === null) {
             return null;
         }
 
         return new CatalogSnapshot(
             $product->id()->value(),
-            $product->name()->value(),
+            $product->name()->value().' — '.$variant->label(),
             $product->price()->cents(),
-            $product->stock()->value(),
+            $variant->stock()->value(),
         );
     }
 
-    public function decreaseStock(CatalogProductId $id, int $quantity): void
+    public function decreaseStock(CatalogProductId $id, int $quantity, ?string $variantId = null): void
     {
-        $productId = ProductId::fromString($id->value());
-        $product = $this->productRepository->findById($productId);
-
-        if ($product === null) {
-            throw new CatalogProductNotFound($id);
-        }
-
-        $product->decreaseStock($quantity);
+        $product = $this->requireProduct($id);
+        $product->decreaseStock($quantity, $variantId === null ? null : VariantId::fromString($variantId));
         $this->productRepository->save($product);
     }
 
-    public function increaseStock(CatalogProductId $id, int $quantity): void
+    public function increaseStock(CatalogProductId $id, int $quantity, ?string $variantId = null): void
     {
-        $productId = ProductId::fromString($id->value());
-        $product = $this->productRepository->findById($productId);
+        $product = $this->requireProduct($id);
+        $product->increaseStock($quantity, $variantId === null ? null : VariantId::fromString($variantId));
+        $this->productRepository->save($product);
+    }
+
+    private function requireProduct(CatalogProductId $id): Product
+    {
+        $product = $this->productRepository->findById(ProductId::fromString($id->value()));
 
         if ($product === null) {
             throw new CatalogProductNotFound($id);
         }
 
-        $product->increaseStock($quantity);
-        $this->productRepository->save($product);
+        return $product;
     }
 }

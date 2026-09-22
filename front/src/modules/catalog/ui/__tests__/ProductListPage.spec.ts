@@ -120,6 +120,67 @@ describe('ProductListPage', () => {
     })
   })
 
+  it('filters products by a minimum price', async () => {
+    await renderApp({
+      repository: createFakeCatalogRepository([nuvoraTee, outOfStockMug]),
+    })
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'Nuvora Mug' })).toBeTruthy()
+    })
+
+    await userEvent.type(screen.getByLabelText('Prix min (€)'), '15')
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'Nuvora Tee' })).toBeTruthy()
+      expect(screen.queryByRole('heading', { name: 'Nuvora Mug' })).toBeNull()
+    })
+  })
+
+  it('hides out of stock products', async () => {
+    await renderApp({
+      repository: createFakeCatalogRepository([nuvoraTee, outOfStockMug]),
+    })
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'Nuvora Mug' })).toBeTruthy()
+    })
+
+    await userEvent.click(screen.getByRole('checkbox', { name: 'En stock seulement' }))
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'Nuvora Tee' })).toBeTruthy()
+      expect(screen.queryByRole('heading', { name: 'Nuvora Mug' })).toBeNull()
+    })
+  })
+
+  it('filters products by category', async () => {
+    const textile = {
+      id: '550e8400-e29b-41d4-a716-446655440010',
+      name: 'Textile',
+      slug: 'textile',
+    }
+
+    await renderApp({
+      repository: createFakeCatalogRepository(
+        [createProduct({ category: textile }), outOfStockMug],
+        [textile],
+      ),
+    })
+
+    await waitFor(() => {
+      expect(screen.getByRole('link', { name: 'Textile' })).toBeTruthy()
+      expect(screen.getByRole('heading', { name: 'Nuvora Mug' })).toBeTruthy()
+    })
+
+    await userEvent.click(screen.getByRole('link', { name: 'Textile' }))
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'Nuvora Tee' })).toBeTruthy()
+      expect(screen.queryByRole('heading', { name: 'Nuvora Mug' })).toBeNull()
+    })
+  })
+
   it('shows an empty search state', async () => {
     await renderApp({
       repository: createFakeCatalogRepository([nuvoraTee]),

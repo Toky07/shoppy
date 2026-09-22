@@ -23,6 +23,7 @@ export function mapCartItem(payload: unknown): CartItem {
     unitPrice: mapMoney(payload.unitPrice, 'Invalid cart item price.'),
     lineTotal: mapMoney(payload.lineTotal, 'Invalid cart item total.'),
     availableStock: payload.availableStock,
+    variantId: typeof payload.variantId === 'string' ? payload.variantId : null,
   }
 }
 

@@ -11,16 +11,28 @@ export class CartHttpRepository implements CartRepository {
     return mapCart(await this.http.get('/cart'))
   }
 
-  async addItem(productId: string, quantity: number): Promise<Cart> {
-    return mapCart(await this.http.post('/cart/items', { productId, quantity }))
+  async addItem(productId: string, quantity: number, variantId?: string | null): Promise<Cart> {
+    return mapCart(
+      await this.http.post('/cart/items', {
+        productId,
+        quantity,
+        ...(variantId ? { variantId } : {}),
+      }),
+    )
   }
 
-  async updateItem(productId: string, quantity: number): Promise<Cart> {
-    return mapCart(await this.http.put(`/cart/items/${encodeURIComponent(productId)}`, { quantity }))
+  async updateItem(productId: string, quantity: number, variantId?: string | null): Promise<Cart> {
+    return mapCart(
+      await this.http.put(`/cart/items/${encodeURIComponent(productId)}`, {
+        quantity,
+        ...(variantId ? { variantId } : {}),
+      }),
+    )
   }
 
-  async removeItem(productId: string): Promise<Cart> {
-    return mapCart(await this.http.delete(`/cart/items/${encodeURIComponent(productId)}`))
+  async removeItem(productId: string, variantId?: string | null): Promise<Cart> {
+    const query = variantId ? `?variantId=${encodeURIComponent(variantId)}` : ''
+    return mapCart(await this.http.delete(`/cart/items/${encodeURIComponent(productId)}${query}`))
   }
 
   async clear(): Promise<Cart> {

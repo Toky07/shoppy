@@ -4,8 +4,18 @@ declare(strict_types=1);
 
 use App\Product\Application\CommandHandler\CreateProductCommandHandler;
 use App\Product\Application\CommandHandler\UpdateProductCommandHandler;
+use App\Product\Application\UniqueProductSku;
 use App\Product\Application\UniqueProductSlug;
+use App\Product\Domain\Entity\Product;
+use App\Product\Domain\Repository\CategoryRepository;
 use App\Product\Domain\Repository\ProductRepository;
+use App\Product\Domain\ValueObject\ProductDescription;
+use App\Product\Domain\ValueObject\ProductId;
+use App\Product\Domain\ValueObject\ProductName;
+use App\Product\Domain\ValueObject\ProductPrice;
+use App\Product\Domain\ValueObject\StockQuantity;
+use App\Product\Infrastructure\Persistence\InMemoryCategoryRepository;
+use App\Product\Infrastructure\Persistence\InMemoryProductRepository;
 use App\Shared\Domain\Clock;
 use App\Tests\Doctrine\DatabaseSchema;
 use App\Tests\Support\FunctionalTestCase;
@@ -14,14 +24,44 @@ use Doctrine\ORM\EntityManagerInterface;
 
 require_once __DIR__.'/Support/AuthHeaders.php';
 
-function createProducts(ProductRepository $repository, Clock $clock): CreateProductCommandHandler
+function createProducts(ProductRepository $repository, Clock $clock, ?CategoryRepository $categories = null): CreateProductCommandHandler
 {
-    return new CreateProductCommandHandler($repository, $clock, new UniqueProductSlug($repository));
+    return new CreateProductCommandHandler(
+        $repository,
+        $clock,
+        new UniqueProductSlug($repository),
+        $categories ?? new InMemoryCategoryRepository(),
+        new UniqueProductSku($repository),
+    );
 }
 
-function updateProducts(ProductRepository $repository): UpdateProductCommandHandler
+function updateProducts(ProductRepository $repository, ?CategoryRepository $categories = null): UpdateProductCommandHandler
 {
-    return new UpdateProductCommandHandler($repository, new UniqueProductSlug($repository));
+    return new UpdateProductCommandHandler(
+        $repository,
+        new UniqueProductSlug($repository),
+        $categories ?? new InMemoryCategoryRepository(),
+        new UniqueProductSku($repository),
+    );
+}
+
+function saveProduct(
+    InMemoryProductRepository $repository,
+    string $id,
+    string $name,
+    DateTimeImmutable $createdAt,
+    int $priceCents = 1999,
+    ?string $description = null,
+    int $stock = 0,
+): void {
+    $repository->save(Product::create(
+        ProductId::fromString($id),
+        ProductName::fromString($name),
+        ProductPrice::fromCents($priceCents),
+        $createdAt,
+        $description === null ? null : ProductDescription::fromString($description),
+        StockQuantity::fromInt($stock),
+    ));
 }
 
 function clearTestUploads(string $directory): void

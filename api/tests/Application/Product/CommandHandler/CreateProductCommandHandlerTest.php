@@ -84,5 +84,32 @@ it('makes duplicate names unique with a numbered slug', function () {
     )));
 
     expect($first?->slug()->value())->toBe('coque-wave')
-        ->and($second?->slug()->value())->toBe('coque-wave-2');
+        ->and($first?->sku()->value())->toBe('COQUE-WAVE')
+        ->and($second?->slug()->value())->toBe('coque-wave-2')
+        ->and($second?->sku()->value())->toBe('COQUE-WAVE-2');
+});
+
+it('attaches size and color variants and sums their stock', function () {
+    $repository = new InMemoryProductRepository();
+    $handler = createProducts(
+        $repository,
+        new FixedClock(new DateTimeImmutable('2026-08-20T12:00:00+00:00')),
+    );
+
+    $productId = $handler->handle(new CreateProductCommand(
+        name: 'Nuvora Tee',
+        priceCents: 1999,
+        stock: 99,
+        sku: 'NUVORA-TEE',
+        variants: [
+            ['id' => null, 'sku' => 'NUVORA-TEE-S', 'size' => 'S', 'color' => 'Noir', 'stock' => 1],
+            ['id' => null, 'sku' => 'NUVORA-TEE-M', 'size' => 'M', 'color' => 'Noir', 'stock' => 4],
+        ],
+    ));
+
+    $product = $repository->findById($productId);
+
+    expect($product?->stock()->value())->toBe(5)
+        ->and($product?->variants()[1]->sku()->value())->toBe('NUVORA-TEE-M')
+        ->and($product?->variants()[1]->label())->toBe('M · Noir');
 });

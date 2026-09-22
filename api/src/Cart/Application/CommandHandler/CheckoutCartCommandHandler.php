@@ -38,6 +38,7 @@ final readonly class CheckoutCartCommandHandler
                 static fn ($item): PlaceOrderLine => new PlaceOrderLine(
                     $item->productId()->value(),
                     $item->quantity()->value(),
+                    $item->variantId()?->value(),
                 ),
                 $cart->items(),
             ),

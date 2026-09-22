@@ -8,8 +8,10 @@ use App\Shared\Presentation\Exception\InvalidRequest;
 
 final readonly class UpdateCartItemHttpRequest
 {
-    public function __construct(public int $quantity)
-    {
+    public function __construct(
+        public int $quantity,
+        public ?string $variantId,
+    ) {
     }
 
     /**
@@ -21,6 +23,6 @@ final readonly class UpdateCartItemHttpRequest
             throw InvalidRequest::of('This field is required.', 'quantity');
         }
 
-        return new self($payload['quantity']);
+        return new self($payload['quantity'], AddToCartHttpRequest::variantId($payload));
     }
 }

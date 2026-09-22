@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Product\Domain\ValueObject;
 
+use App\Product\Domain\Exception\InvalidProductPriceFilter;
 use App\Product\Domain\Exception\InvalidProductSearch;
 
 final readonly class ProductListCriteria
@@ -13,17 +14,54 @@ final readonly class ProductListCriteria
     private function __construct(
         public ?string $search,
         public ProductSort $sort,
+        public ?int $minPriceCents,
+        public ?int $maxPriceCents,
+        public bool $inStockOnly,
+        public ?CategoryId $categoryId,
+        public bool $publishedOnly,
     ) {
     }
 
     public static function default(): self
     {
-        return new self(null, ProductSort::newest());
+        return new self(null, ProductSort::newest(), null, null, false, null, true);
     }
 
-    public static function fromInput(?string $search, ?string $sort): self
+    public static function fromInput(
+        ?string $search,
+        ?string $sort,
+        ?int $minPriceCents = null,
+        ?int $maxPriceCents = null,
+        bool $inStockOnly = false,
+        ?CategoryId $categoryId = null,
+        bool $publishedOnly = true,
+    ): self {
+        self::assertPriceRange($minPriceCents, $maxPriceCents);
+
+        return new self(
+            self::normalizeSearch($search),
+            ProductSort::fromString($sort),
+            $minPriceCents,
+            $maxPriceCents,
+            $inStockOnly,
+            $categoryId,
+            $publishedOnly,
+        );
+    }
+
+    private static function assertPriceRange(?int $minPriceCents, ?int $maxPriceCents): void
     {
-        return new self(self::normalizeSearch($search), ProductSort::fromString($sort));
+        if ($minPriceCents !== null && $minPriceCents < 0) {
+            throw new InvalidProductPriceFilter('minPrice', 'The minimum price cannot be negative.');
+        }
+
+        if ($maxPriceCents !== null && $maxPriceCents < 0) {
+            throw new InvalidProductPriceFilter('maxPrice', 'The maximum price cannot be negative.');
+        }
+
+        if ($minPriceCents !== null && $maxPriceCents !== null && $maxPriceCents < $minPriceCents) {
+            throw new InvalidProductPriceFilter('maxPrice', 'The maximum price must be at least the minimum price.');
+        }
     }
 
     public function hasSearch(): bool

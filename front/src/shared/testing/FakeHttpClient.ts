@@ -4,7 +4,7 @@ export type FakeHttpRequest = {
   method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
   path: string
   query?: HttpQuery
-  body?: HttpBody
+  body?: HttpBody | FormData
 }
 
 export class FakeHttpClient implements HttpClient {
@@ -22,6 +22,10 @@ export class FakeHttpClient implements HttpClient {
     return this.send('POST', path, body)
   }
 
+  async postForm<T>(path: string, body: FormData): Promise<T> {
+    return this.send('POST', path, body)
+  }
+
   async put<T>(path: string, body?: HttpBody): Promise<T> {
     return this.send('PUT', path, body)
   }
@@ -34,7 +38,7 @@ export class FakeHttpClient implements HttpClient {
     return this.send('DELETE', path)
   }
 
-  private async send<T>(method: FakeHttpRequest['method'], path: string, body?: HttpBody): Promise<T> {
+  private async send<T>(method: FakeHttpRequest['method'], path: string, body?: HttpBody | FormData): Promise<T> {
     const request: FakeHttpRequest = { method, path, body }
     this.calls.push(request)
     return (await this.handler(request)) as T

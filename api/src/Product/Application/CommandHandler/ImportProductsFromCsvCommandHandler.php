@@ -9,6 +9,8 @@ use App\Media\Application\CommandHandler\UploadMediaCommandHandler;
 use App\Media\Domain\ValueObject\MediaOwnerType;
 use App\Product\Application\Command\CreateProductCommand;
 use App\Product\Application\Command\ImportProductsFromCsvCommand;
+use App\Product\Application\Command\SetProductStockCommand;
+use App\Product\Application\Command\UpdateProductCommand;
 use App\Product\Application\Csv\ProductCsvReader;
 use App\Product\Application\Image\ProductImageLoader;
 use App\Product\Domain\Repository\ProductRepository;
@@ -22,6 +24,8 @@ final readonly class ImportProductsFromCsvCommandHandler
         private CreateProductCommandHandler $createProduct,
         private ProductRepository $productRepository,
         private UploadMediaCommandHandler $uploadMedia,
+        private UpdateProductCommandHandler $updateProduct,
+        private SetProductStockCommandHandler $setStock,
     ) {
     }
 
@@ -30,7 +34,25 @@ final readonly class ImportProductsFromCsvCommandHandler
         $imported = 0;
 
         foreach ($this->csvReader->read($command->csvPath) as $row) {
-            if ($this->productRepository->findByName(ProductName::fromString($row->name)) !== null) {
+            $existing = $this->productRepository->findByName(ProductName::fromString($row->name));
+
+            if ($existing !== null) {
+                $this->updateProduct->handle(new UpdateProductCommand(
+                    id: $existing->id()->value(),
+                    priceCents: $row->priceCents,
+                    descriptionProvided: true,
+                    description: $row->description,
+                ));
+
+                if (!$existing->hasVariants()) {
+                    $this->setStock->handle(new SetProductStockCommand(
+                        $existing->id()->value(),
+                        $row->stock,
+                    ));
+                }
+
+                ++$imported;
+
                 continue;
             }
 

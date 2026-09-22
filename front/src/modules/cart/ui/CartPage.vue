@@ -53,12 +53,12 @@ async function runCart(action: () => Promise<unknown>) {
   await run(action)
 }
 
-function onUpdateQuantity(productId: string, quantity: number) {
-  return runCart(() => state.updateItem(productId, quantity))
+function onUpdateQuantity(productId: string, quantity: number, variantId?: string | null) {
+  return runCart(() => state.updateItem(productId, quantity, variantId))
 }
 
-function onRemove(productId: string) {
-  return runCart(() => state.removeItem(productId))
+function onRemove(productId: string, variantId?: string | null) {
+  return runCart(() => state.removeItem(productId, variantId))
 }
 
 function onClear() {
@@ -129,10 +129,10 @@ async function onCheckout() {
             <ul class="space-y-3 lg:col-span-2">
               <CartLine
                 v-for="item in cart.items"
-                :key="item.productId"
+                :key="`${item.productId}:${item.variantId ?? ''}`"
                 :item="item"
-                @update-quantity="onUpdateQuantity(item.productId, $event)"
-                @remove="onRemove(item.productId)"
+                @update-quantity="onUpdateQuantity(item.productId, $event, item.variantId)"
+                @remove="onRemove(item.productId, item.variantId)"
               />
             </ul>
 

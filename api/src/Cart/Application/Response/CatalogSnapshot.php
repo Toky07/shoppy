@@ -11,6 +11,7 @@ final readonly class CatalogSnapshot
         public string $name,
         public int $unitPriceCents,
         public int $stock,
+        public bool $requiresVariant = false,
     ) {
     }
 }

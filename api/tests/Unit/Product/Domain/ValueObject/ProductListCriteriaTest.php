@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Product\Domain\Exception\InvalidProductPriceFilter;
 use App\Product\Domain\Exception\InvalidProductSearch;
 use App\Product\Domain\Exception\InvalidProductSort;
 use App\Product\Domain\ValueObject\ProductListCriteria;
@@ -37,3 +38,7 @@ it('rejects an unknown sort', function () {
 it('rejects a search that is too long', function () {
     ProductListCriteria::fromInput(str_repeat('a', 101), null);
 })->throws(InvalidProductSearch::class);
+
+it('rejects a price range whose maximum is below the minimum', function () {
+    ProductListCriteria::fromInput(null, null, 2000, 1000);
+})->throws(InvalidProductPriceFilter::class);

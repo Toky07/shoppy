@@ -10,6 +10,7 @@ import { cartErrorMessage } from '@/modules/cart/ui/cartErrorMessage'
 const props = defineProps<{
   productId: string
   stock: number
+  variantId?: string
 }>()
 
 const session = inject(authSessionKey)
@@ -40,7 +41,7 @@ async function onSubmit() {
 
   pending.value = true
   try {
-    await state.addItem(props.productId, quantity.value)
+    await state.addItem(props.productId, quantity.value, props.variantId)
     successMessage.value = 'Ajouté au panier.'
   } catch (caught) {
     const error = toApiError(caught)

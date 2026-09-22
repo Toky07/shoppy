@@ -10,6 +10,10 @@ export const nuvoraTee: Product = {
   imageUrl: '/media/products/nuvora-tee.svg',
   imageUrls: ['/media/products/nuvora-tee.svg'],
   createdAt: '2026-08-20T12:00:00+00:00',
+  category: null,
+  sku: 'NUVORA-TEE',
+  variants: [],
+  published: true,
 }
 
 export const nuvoraTeeGallery: Product = {
@@ -31,6 +35,10 @@ export const outOfStockMug: Product = {
   imageUrl: null,
   imageUrls: [],
   createdAt: '2026-08-20T12:00:00+00:00',
+  category: null,
+  sku: 'NUVORA-MUG',
+  variants: [],
+  published: true,
 }
 
 export function createProduct(overrides: Partial<Product> = {}): Product {
@@ -48,6 +56,10 @@ export function createProductJson(overrides: Record<string, unknown> = {}) {
     imageUrl: nuvoraTee.imageUrl,
     imageUrls: nuvoraTee.imageUrls,
     createdAt: nuvoraTee.createdAt,
+    category: null,
+    sku: nuvoraTee.sku,
+    variants: [],
+    published: true,
     ...overrides,
   }
 }

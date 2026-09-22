@@ -4,18 +4,19 @@ import AppIcon from '@/shared/ui/AppIcon.vue'
 import AppImage from '@/shared/ui/AppImage.vue'
 import ImageCarousel from '@/shared/ui/ImageCarousel.vue'
 import { useCopyToClipboard } from '@/shared/clipboard/useCopyToClipboard'
-import { shortId } from '@/shared/id/shortId'
 import type { Product } from '../domain/Product'
 import FavoriteButton from './FavoriteButton.vue'
 
 const props = defineProps<{
   product: Product
+  reference: string
+  stock: number
 }>()
 
 const slide = ref(0)
 const images = computed(() => props.product.imageUrls)
 const { copied, copy } = useCopyToClipboard()
-const outOfStock = computed(() => props.product.stock <= 0)
+const outOfStock = computed(() => props.stock <= 0)
 
 function onCopyLink() {
   return copy(window.location.href)
@@ -63,7 +64,7 @@ function onCopyLink() {
     </div>
 
     <div class="mt-4 flex items-center justify-between px-1">
-      <p class="text-xs text-faint">Réf. {{ shortId(product.id) }}</p>
+      <p class="text-xs text-faint">Réf. {{ reference }}</p>
       <button
         type="button"
         class="inline-flex items-center gap-2 text-xs font-semibold link-quiet"

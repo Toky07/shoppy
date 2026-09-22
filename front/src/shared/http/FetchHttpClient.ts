@@ -20,6 +20,10 @@ export class FetchHttpClient implements HttpClient {
     return this.request('POST', path, body)
   }
 
+  postForm<T>(path: string, body: FormData): Promise<T> {
+    return this.request('POST', path, body)
+  }
+
   put<T>(path: string, body?: HttpBody): Promise<T> {
     return this.request('PUT', path, body)
   }
@@ -32,11 +36,11 @@ export class FetchHttpClient implements HttpClient {
     return this.request('DELETE', path)
   }
 
-  private async request<T>(method: HttpMethod, path: string, body?: HttpBody): Promise<T> {
+  private async request<T>(method: HttpMethod, path: string, body?: HttpBody | FormData): Promise<T> {
     const response = await this.fetchFn(joinUrl(this.baseUrl, path), {
       method,
-      headers: this.headers(body !== undefined),
-      ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+      headers: this.headers(body !== undefined && !(body instanceof FormData)),
+      ...(body === undefined ? {} : { body: body instanceof FormData ? body : JSON.stringify(body) }),
     })
 
     if (!response.ok) {

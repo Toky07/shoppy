@@ -39,6 +39,9 @@ class OrderItemRecord
     #[ORM\Column]
     private int $quantity;
 
+    #[ORM\Column(name: 'variant_id', length: 36, nullable: true)]
+    private ?string $variantId = null;
+
     #[ORM\Column]
     private int $position;
 
@@ -51,6 +54,7 @@ class OrderItemRecord
         $record->unitPriceCents = $item->unitPrice()->cents();
         $record->currency = $item->unitPrice()->currency();
         $record->quantity = $item->quantity()->value();
+        $record->variantId = $item->variantId();
         $record->position = $position;
 
         return $record;
@@ -63,6 +67,7 @@ class OrderItemRecord
             OrderedProductName::fromString($this->name),
             UnitPrice::fromCents($this->unitPriceCents),
             Quantity::fromInt($this->quantity),
+            $this->variantId,
         );
     }
 }

@@ -31,7 +31,7 @@ final readonly class GetCartQueryHandler
 
         $items = [];
         foreach ($cart->items() as $item) {
-            $snapshot = $this->catalog->findById($item->productId());
+            $snapshot = $this->catalog->findById($item->productId(), $item->variantId()?->value());
 
             if ($snapshot === null) {
                 throw new CartProductNotFound($item->productId());
@@ -45,6 +45,7 @@ final readonly class GetCartQueryHandler
                 $snapshot->unitPriceCents,
                 $snapshot->unitPriceCents * $quantity,
                 $snapshot->stock,
+                $item->variantId()?->value(),
             );
         }
 

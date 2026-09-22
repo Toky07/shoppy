@@ -48,6 +48,7 @@ it('adds a product to the cart and enriches the response from the catalog', func
             'unitPrice' => ['cents' => 1999, 'currency' => 'EUR'],
             'lineTotal' => ['cents' => 3998, 'currency' => 'EUR'],
             'availableStock' => 10,
+            'variantId' => null,
         ])
         ->and($carts->findByCustomerId(CustomerId::fromString('11111111-1111-4111-8111-111111111111'))?->items()[0]->quantity()->value())->toBe(2);
 });
