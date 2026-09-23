@@ -1,5 +1,9 @@
 parameters:
     app.media.upload_dir: '%kernel.project_dir%/var/test-uploads'
+    app.rate_limit.login: 100000
+    app.rate_limit.register: 100000
+    app.rate_limit.checkout: 100000
+    app.rate_limit.webhook: 100000
 
 services:
     _defaults:

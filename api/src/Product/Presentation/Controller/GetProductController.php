@@ -4,11 +4,9 @@ declare(strict_types=1);
 
 namespace App\Product\Presentation\Controller;
 
-use App\Auth\Application\Query\RequireAdminQuery;
-use App\Auth\Application\QueryHandler\RequireAdminQueryHandler;
 use App\Auth\Domain\Exception\Forbidden;
 use App\Auth\Domain\Exception\Unauthenticated;
-use App\Auth\Presentation\Http\BearerToken;
+use App\Auth\Presentation\Http\CurrentUser;
 use App\Product\Application\Query\GetProductQuery;
 use App\Product\Application\QueryHandler\GetProductQueryHandler;
 use App\Product\Domain\Exception\ProductNotFound;
@@ -20,7 +18,7 @@ final readonly class GetProductController
 {
     public function __construct(
         private GetProductQueryHandler $getProduct,
-        private RequireAdminQueryHandler $requireAdmin,
+        private CurrentUser $currentUser,
     ) {
     }
 
@@ -31,9 +29,7 @@ final readonly class GetProductController
 
         if (!$product->published) {
             try {
-                $this->requireAdmin->handle(new RequireAdminQuery(
-                    BearerToken::fromAuthorizationHeader($request->headers->get('Authorization')),
-                ));
+                $this->currentUser->requireAdmin();
             } catch (Unauthenticated|Forbidden) {
                 throw new ProductNotFound($id);
             }

@@ -107,7 +107,6 @@ function onDelete() {
             type="password"
             autocomplete="current-password"
             required
-            minlength="8"
             class="field"
           />
         </div>
@@ -119,7 +118,7 @@ function onDelete() {
             type="password"
             autocomplete="new-password"
             required
-            minlength="8"
+            minlength="12"
             class="field"
           />
         </div>
@@ -147,7 +146,6 @@ function onDelete() {
             type="password"
             autocomplete="current-password"
             required
-            minlength="8"
             class="field"
           />
         </div>
@@ -188,7 +186,6 @@ function onDelete() {
           type="password"
           autocomplete="current-password"
           required
-          minlength="8"
           class="field"
         />
       </div>

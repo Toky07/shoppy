@@ -8,7 +8,8 @@ export type AuthCredentials = {
 
 export interface AuthRepository {
   login(credentials: AuthCredentials): Promise<Session>
-  register(credentials: AuthCredentials): Promise<User>
+  register(credentials: AuthCredentials): Promise<void>
+  currentUser(): Promise<User>
   logout(): Promise<void>
   requestPasswordReset(email: string): Promise<void>
   resetPassword(token: string, password: string): Promise<void>

@@ -12,16 +12,13 @@ it('registers an account without exposing the password', function () {
     $payload = json_decode((string) $response->getContent(), true, flags: JSON_THROW_ON_ERROR);
 
     expect($response->getStatusCode())->toBe(201)
-        ->and($payload['email'])->toBe('ada@nuvora.test')
-        ->and($payload['role'])->toBe('customer')
-        ->and($payload['emailVerified'])->toBeFalse()
-        ->and($payload)->toHaveKey('id')
-        ->and($payload)->toHaveKey('createdAt')
-        ->and($payload)->not->toHaveKey('password')
-        ->and($payload)->not->toHaveKey('passwordHash')
+        ->and($payload)->toBe(['status' => 'accepted'])
+        ->and($payload)->not->toHaveKey('email')
+        ->and($payload)->not->toHaveKey('id')
         ->and((string) $response->getContent())->not->toContain('secret-secret')
+        ->and((string) $response->getContent())->not->toContain('ada@nuvora.test')
         ->and((string) $response->getContent())->not->toContain('$argon2id$')
-        ->and($response->headers->get('Location'))->toBe('/users/'.$payload['id']);
+        ->and($response->headers->get('Location'))->toBeNull();
 });
 
 it('rejects a missing email', function () {
@@ -51,11 +48,11 @@ it('rejects a weak password', function () {
     expect($response->getStatusCode())->toBe(400)
         ->and($payload['error']['code'])->toBe('validation_error')
         ->and($payload['error']['violations'])->toBe([
-            ['field' => 'password', 'message' => 'Password must be between 8 and 4096 characters.'],
+            ['field' => 'password', 'message' => 'Password must be between 12 and 4096 characters.'],
         ]);
 });
 
-it('rejects a duplicate email without leaking the address in the message', function () {
+it('accepts a duplicate email with the same response as a new account', function () {
     $this->client->jsonRequest('POST', '/users', [
         'email' => 'ada@nuvora.test',
         'password' => 'secret-secret',
@@ -68,11 +65,8 @@ it('rejects a duplicate email without leaking the address in the message', funct
     $response = $this->client->getResponse();
     $payload = json_decode((string) $response->getContent(), true, flags: JSON_THROW_ON_ERROR);
 
-    expect($response->getStatusCode())->toBe(409)
-        ->and($payload['error'])->toBe([
-            'code' => 'email_already_registered',
-            'message' => 'The request conflicts with the current state.',
-        ])
+    expect($response->getStatusCode())->toBe(201)
+        ->and($payload)->toBe(['status' => 'accepted'])
         ->and((string) $response->getContent())->not->toContain('ada@nuvora.test');
 });
 
@@ -87,5 +81,6 @@ it('ignores a client-supplied role and registers as customer', function () {
     $payload = json_decode((string) $response->getContent(), true, flags: JSON_THROW_ON_ERROR);
 
     expect($response->getStatusCode())->toBe(201)
-        ->and($payload['role'])->toBe('customer');
+        ->and($payload)->toBe(['status' => 'accepted'])
+        ->and($payload)->not->toHaveKey('role');
 });

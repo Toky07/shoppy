@@ -55,4 +55,24 @@ final readonly class DoctrineAccessTokenRepository implements AccessTokenReposit
             ->setParameter('userId', $userId->value())
             ->execute();
     }
+
+    public function trimTo(UserId $userId, int $max): void
+    {
+        /** @var list<AccessTokenRecord> $records */
+        $records = $this->entityManager->createQuery(
+            'SELECT token FROM App\Auth\Infrastructure\Persistence\Doctrine\Entity\AccessTokenRecord token WHERE token.userId = :userId ORDER BY token.createdAt ASC',
+        )
+            ->setParameter('userId', $userId->value())
+            ->getResult();
+
+        $excess = count($records) - $max;
+
+        for ($index = 0; $index < $excess; ++$index) {
+            $this->entityManager->remove($records[$index]);
+        }
+
+        if ($excess > 0) {
+            $this->entityManager->flush();
+        }
+    }
 }

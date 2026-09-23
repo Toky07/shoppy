@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace App\Order\Presentation\Controller;
 
-use App\Auth\Application\Query\AuthenticateTokenQuery;
-use App\Auth\Application\QueryHandler\AuthenticateTokenQueryHandler;
-use App\Auth\Presentation\Http\BearerToken;
+use App\Auth\Presentation\Http\CurrentUser;
 use App\Order\Application\Command\CancelOrderCommand;
 use App\Order\Application\CommandHandler\CancelOrderCommandHandler;
 use App\Order\Application\Query\GetOrderQuery;
@@ -18,7 +16,7 @@ use Symfony\Component\Routing\Attribute\Route;
 final readonly class CancelOrderController
 {
     public function __construct(
-        private AuthenticateTokenQueryHandler $authenticateToken,
+        private CurrentUser $currentUser,
         private CancelOrderCommandHandler $cancelOrder,
         private GetOrderQueryHandler $getOrder,
     ) {
@@ -27,13 +25,11 @@ final readonly class CancelOrderController
     #[Route('/orders/{id}/cancel', methods: ['POST'])]
     public function __invoke(string $id, Request $request): JsonResponse
     {
-        $userId = $this->authenticateToken->handle(new AuthenticateTokenQuery(
-            BearerToken::fromAuthorizationHeader($request->headers->get('Authorization')),
-        ));
+        $userId = $this->currentUser->id();
 
         $this->cancelOrder->handle(new CancelOrderCommand(
             orderId: $id,
-            customerId: $userId->value(),
+            customerId: $userId,
         ));
 
         $order = $this->getOrder->handle(new GetOrderQuery($id));

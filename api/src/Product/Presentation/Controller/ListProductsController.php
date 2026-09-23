@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace App\Product\Presentation\Controller;
 
-use App\Auth\Application\Query\RequireAdminQuery;
-use App\Auth\Application\QueryHandler\RequireAdminQueryHandler;
-use App\Auth\Presentation\Http\BearerToken;
+use App\Auth\Presentation\Http\CurrentUser;
 use App\Product\Application\Query\ListProductsByIdsQuery;
 use App\Product\Application\Query\ListProductsQuery;
 use App\Product\Application\QueryHandler\ListProductsByIdsQueryHandler;
@@ -21,7 +19,7 @@ final readonly class ListProductsController
     public function __construct(
         private ListProductsQueryHandler $listProducts,
         private ListProductsByIdsQueryHandler $listProductsByIds,
-        private RequireAdminQueryHandler $requireAdmin,
+        private CurrentUser $currentUser,
     ) {
     }
 
@@ -37,9 +35,7 @@ final readonly class ListProductsController
         $includeDrafts = self::queryFlag($request, 'includeDrafts');
 
         if ($includeDrafts) {
-            $this->requireAdmin->handle(new RequireAdminQuery(
-                BearerToken::fromAuthorizationHeader($request->headers->get('Authorization')),
-            ));
+            $this->currentUser->requireAdmin();
         }
 
         $response = $this->listProducts->handle(new ListProductsQuery(

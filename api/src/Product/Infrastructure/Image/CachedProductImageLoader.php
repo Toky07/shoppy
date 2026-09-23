@@ -35,7 +35,7 @@ final readonly class CachedProductImageLoader implements ProductImageLoader
 
     private function cachedRemote(string $url): string
     {
-        if (!is_dir($this->cacheDirectory) && !mkdir($this->cacheDirectory, 0777, true) && !is_dir($this->cacheDirectory)) {
+        if (!is_dir($this->cacheDirectory) && !mkdir($this->cacheDirectory, 0755, true) && !is_dir($this->cacheDirectory)) {
             throw new RuntimeException('Unable to create product image cache directory.');
         }
 
@@ -43,6 +43,7 @@ final readonly class CachedProductImageLoader implements ProductImageLoader
 
         if (!is_file($cacheFile)) {
             file_put_contents($cacheFile, $this->httpDownloader->get($url));
+            chmod($cacheFile, 0644);
         }
 
         return $this->readLocal($cacheFile);

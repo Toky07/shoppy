@@ -17,6 +17,8 @@ interface ProductRepository
 
     public function findById(ProductId $id): ?Product;
 
+    public function findByIdForUpdate(ProductId $id): ?Product;
+
     public function findByName(ProductName $name): ?Product;
 
     public function findBySlug(ProductSlug $slug): ?Product;

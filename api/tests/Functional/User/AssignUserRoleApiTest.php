@@ -19,14 +19,13 @@ it('lets an admin assign a role', function () {
         ->and($payload)->not->toHaveKey('password');
 });
 
-it('lets a promoted user write to the catalog with the same token', function () {
+it('revokes the previous token when an admin changes the role', function () {
     $target = registerCatalogUser($this->client, 'ada@nuvora.test');
     $this->client->jsonRequest('POST', '/auth/login', [
         'email' => 'ada@nuvora.test',
         'password' => 'secret-secret',
     ]);
-    $login = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
-    $targetHeaders = ['HTTP_AUTHORIZATION' => 'Bearer '.$login['accessToken']];
+    $targetHeaders = ['HTTP_AUTHORIZATION' => 'Bearer '.sessionAccessToken($this->client)];
 
     $this->client->jsonRequest('PATCH', '/users/'.$target['id'], [
         'role' => 'admin',
@@ -36,6 +35,18 @@ it('lets a promoted user write to the catalog with the same token', function () 
         'name' => 'Nuvora Tee',
         'priceCents' => 1999,
     ], $targetHeaders);
+
+    expect($this->client->getResponse()->getStatusCode())->toBe(401);
+
+    $this->client->jsonRequest('POST', '/auth/login', [
+        'email' => 'ada@nuvora.test',
+        'password' => 'secret-secret',
+    ]);
+
+    $this->client->jsonRequest('POST', '/products', [
+        'name' => 'Nuvora Tee',
+        'priceCents' => 1999,
+    ], ['HTTP_AUTHORIZATION' => 'Bearer '.sessionAccessToken($this->client)]);
 
     expect($this->client->getResponse()->getStatusCode())->toBe(201);
 });

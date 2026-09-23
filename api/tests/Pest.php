@@ -163,6 +163,7 @@ uses(FunctionalTestCase::class)
     })
     ->beforeEach(function (): void {
         $this->client = FunctionalTestCase::browser();
+        $this->client->getCookieJar()->clear();
         DatabaseSchema::reset(FunctionalTestCase::getContainer()->get(EntityManagerInterface::class));
         clearCatalogHeaderCache();
         clearTestUploads((string) FunctionalTestCase::getContainer()->getParameter('app.media.upload_dir'));

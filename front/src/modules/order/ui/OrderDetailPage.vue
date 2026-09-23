@@ -53,7 +53,6 @@ function onPay() {
   return run(async () => {
     const checkout = await payments.startCheckout({
       orderId: orderId.value,
-      provider: 'stripe',
       successUrl: `${window.location.origin}/orders/${orderId.value}?payment=success`,
       cancelUrl: `${window.location.origin}/orders/${orderId.value}?payment=cancel`,
     })

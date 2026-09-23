@@ -13,6 +13,8 @@ services:
       DATABASE_URL: sqlite:////app/var/data.db
       DEFAULT_URI: http://localhost:${API_PORT:-8000}
       PAYMENT_PROVIDER: ${PAYMENT_PROVIDER:-local}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:5173}
+      APP_ALLOWED_ORIGINS: ${APP_ALLOWED_ORIGINS:-http://localhost:5173}
       MAILER_DSN: ${MAILER_DSN:-null://null}
       MAILER_FROM: ${MAILER_FROM:-noreply@shoppy.test}
       STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}

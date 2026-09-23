@@ -30,12 +30,15 @@ export class FakeAuthRepository implements AuthRepository {
     return { ...this.loginResult, user: { ...this.loginResult.user, email: credentials.email.toLowerCase() } }
   }
 
-  async register(credentials: AuthCredentials): Promise<User> {
+  async register(credentials: AuthCredentials): Promise<void> {
     this.registrations.push(credentials)
     if (this.registerError) {
       throw this.registerError
     }
-    return { ...this.registerResult, email: credentials.email.toLowerCase() }
+  }
+
+  async currentUser(): Promise<User> {
+    return this.registerResult
   }
 
   async logout(): Promise<void> {

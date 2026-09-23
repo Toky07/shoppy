@@ -6,6 +6,7 @@ namespace App\Shared\Infrastructure\Persistence;
 
 use App\Shared\Application\Transaction\TransactionRunner;
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Platforms\SQLitePlatform;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Throwable;
@@ -13,6 +14,8 @@ use Throwable;
 final class DoctrineTransactionRunner implements TransactionRunner
 {
     private int $depth = 0;
+
+    private bool $sqliteTransaction = false;
 
     /** @var list<object> */
     private array $pendingEvents = [];
@@ -72,19 +75,53 @@ final class DoctrineTransactionRunner implements TransactionRunner
 
     private function begin(Connection $connection): void
     {
+        if ($connection->getDatabasePlatform() instanceof SQLitePlatform) {
+            $connection->executeStatement('BEGIN IMMEDIATE');
+            $this->setNesting($connection, $this->nesting($connection) + 1);
+            $this->sqliteTransaction = true;
+
+            return;
+        }
+
         $connection->beginTransaction();
     }
 
     private function commit(Connection $connection): void
     {
+        if ($this->sqliteTransaction) {
+            $connection->executeStatement('COMMIT');
+            $this->setNesting($connection, 0);
+            $this->sqliteTransaction = false;
+
+            return;
+        }
+
         $connection->commit();
     }
 
     private function rollback(Connection $connection): void
     {
+        if ($this->sqliteTransaction) {
+            $connection->executeStatement('ROLLBACK');
+            $this->setNesting($connection, 0);
+            $this->sqliteTransaction = false;
+
+            return;
+        }
+
         if ($connection->isTransactionActive()) {
             $connection->rollBack();
         }
+    }
+
+    private function nesting(Connection $connection): int
+    {
+        return (int) (new \ReflectionProperty($connection, 'transactionNestingLevel'))->getValue($connection);
+    }
+
+    private function setNesting(Connection $connection, int $level): void
+    {
+        (new \ReflectionProperty($connection, 'transactionNestingLevel'))->setValue($connection, $level);
     }
 
     private function dispatchPending(): void

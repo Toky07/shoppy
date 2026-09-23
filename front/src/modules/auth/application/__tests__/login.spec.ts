@@ -13,7 +13,7 @@ describe('login', () => {
     await login(repository, session, { email: 'Visitor@shoppy.test', password: 'password123' })
 
     expect(session.session.value?.user.email).toBe('visitor@shoppy.test')
-    expect(session.current()).toHaveLength(64)
+    expect(session.isAuthenticated.value).toBe(true)
   })
 
   it('does not store a session when login fails', async () => {

@@ -6,6 +6,7 @@ namespace App\Auth\Presentation\Controller;
 
 use App\Auth\Application\Command\LoginCommand;
 use App\Auth\Application\CommandHandler\LoginCommandHandler;
+use App\Auth\Presentation\Http\SessionCookie;
 use App\Auth\Presentation\Request\LoginHttpRequest;
 use App\User\Application\Query\GetUserQuery;
 use App\User\Application\QueryHandler\GetUserQueryHandler;
@@ -18,6 +19,7 @@ final readonly class LoginController
     public function __construct(
         private LoginCommandHandler $login,
         private GetUserQueryHandler $getUser,
+        private SessionCookie $sessionCookie,
     ) {
     }
 
@@ -32,10 +34,11 @@ final readonly class LoginController
         ));
 
         $user = $this->getUser->handle(new GetUserQuery($result->userId->value()));
-
-        return new JsonResponse([
-            'accessToken' => $result->accessToken,
+        $response = new JsonResponse([
             'user' => $user->toArray(),
         ]);
+        $this->sessionCookie->attach($response, $request, $result->accessToken);
+
+        return $response;
     }
 }

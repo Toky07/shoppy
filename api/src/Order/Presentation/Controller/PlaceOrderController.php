@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace App\Order\Presentation\Controller;
 
-use App\Auth\Application\Query\AuthenticateTokenQuery;
-use App\Auth\Application\QueryHandler\AuthenticateTokenQueryHandler;
-use App\Auth\Presentation\Http\BearerToken;
+use App\Auth\Presentation\Http\CurrentUser;
 use App\Order\Application\Command\PlaceOrderCommand;
 use App\Order\Application\Command\PlaceOrderLine;
 use App\Order\Application\CommandHandler\PlaceOrderCommandHandler;
@@ -21,7 +19,7 @@ use Symfony\Component\Routing\Attribute\Route;
 final readonly class PlaceOrderController
 {
     public function __construct(
-        private AuthenticateTokenQueryHandler $authenticateToken,
+        private CurrentUser $currentUser,
         private PlaceOrderCommandHandler $placeOrder,
         private GetOrderQueryHandler $getOrder,
     ) {
@@ -30,14 +28,12 @@ final readonly class PlaceOrderController
     #[Route('/orders', methods: ['POST'])]
     public function __invoke(Request $request): JsonResponse
     {
-        $userId = $this->authenticateToken->handle(new AuthenticateTokenQuery(
-            BearerToken::fromAuthorizationHeader($request->headers->get('Authorization')),
-        ));
+        $userId = $this->currentUser->id();
 
         $httpRequest = PlaceOrderHttpRequest::fromPayload($request->toArray());
 
         $id = $this->placeOrder->handle(new PlaceOrderCommand(
-            customerId: $userId->value(),
+            customerId: $userId,
             items: array_map(
                 static fn (array $item): PlaceOrderLine => new PlaceOrderLine(
                     $item['productId'],

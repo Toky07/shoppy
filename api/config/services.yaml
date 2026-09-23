@@ -11,6 +11,14 @@ parameters:
     env(MAILER_DSN): 'null://null'
     env(MAILER_FROM): 'noreply@shoppy.test'
     env(FRONTEND_BASE_URL): 'http://localhost:5173'
+    env(APP_ALLOWED_ORIGINS): '%env(FRONTEND_BASE_URL)%'
+    env(CORS_ALLOWED_ORIGINS): ''
+    env(PAYMENT_PROVIDER): 'local'
+    app.rate_limit.login: 20
+    app.rate_limit.register: 10
+    app.rate_limit.checkout: 30
+    app.rate_limit.webhook: 120
+    app.rate_limit.window: 60
 
 services:
     # default configuration for services in *this* file
@@ -126,6 +134,38 @@ services:
         arguments:
             $gateways: !tagged_iterator payment.gateway
             $defaultProvider: '%env(PAYMENT_PROVIDER)%'
+
+    App\Payment\Application\PaymentProviderPolicy:
+        arguments:
+            $provider: '%env(PAYMENT_PROVIDER)%'
+            $environment: '%kernel.environment%'
+
+    App\Payment\Application\AllowedCheckoutUrl:
+        arguments:
+            $allowedOrigins: '%env(APP_ALLOWED_ORIGINS)%'
+
+    App\Order\Application\PendingPayment: '@App\Payment\Infrastructure\Order\OpenPendingPayment'
+
+    App\Shared\Infrastructure\Http\FileRateLimiter:
+        arguments:
+            $directory: '%kernel.cache_dir%/rate-limit'
+
+    App\Shared\Presentation\EventSubscriber\RateLimitSubscriber:
+        arguments:
+            $loginLimit: '%app.rate_limit.login%'
+            $registerLimit: '%app.rate_limit.register%'
+            $checkoutLimit: '%app.rate_limit.checkout%'
+            $webhookLimit: '%app.rate_limit.webhook%'
+            $windowSeconds: '%app.rate_limit.window%'
+
+    App\Shared\Presentation\EventSubscriber\CorsSubscriber:
+        arguments:
+            $allowedOrigins: '%env(CORS_ALLOWED_ORIGINS)%'
+
+    App\Shared\Infrastructure\Security\ProductionSecretGuard:
+        arguments:
+            $environment: '%kernel.environment%'
+            $secret: '%kernel.secret%'
 
     App\Product\Application\Csv\ProductCsvReader: '@App\Product\Infrastructure\Csv\FileProductCsvReader'
 

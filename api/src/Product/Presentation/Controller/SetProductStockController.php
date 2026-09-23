@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace App\Product\Presentation\Controller;
 
-use App\Auth\Application\Query\RequireAdminQuery;
-use App\Auth\Application\QueryHandler\RequireAdminQueryHandler;
-use App\Auth\Presentation\Http\BearerToken;
+use App\Auth\Presentation\Http\CurrentUser;
 use App\Product\Application\Command\SetProductStockCommand;
 use App\Product\Application\CommandHandler\SetProductStockCommandHandler;
 use App\Product\Application\Query\GetProductQuery;
@@ -19,7 +17,7 @@ use Symfony\Component\Routing\Attribute\Route;
 final readonly class SetProductStockController
 {
     public function __construct(
-        private RequireAdminQueryHandler $requireAdmin,
+        private CurrentUser $currentUser,
         private SetProductStockCommandHandler $setProductStock,
         private GetProductQueryHandler $getProduct,
     ) {
@@ -28,9 +26,7 @@ final readonly class SetProductStockController
     #[Route('/products/{id}/stock', methods: ['PUT'])]
     public function __invoke(string $id, Request $request): JsonResponse
     {
-        $this->requireAdmin->handle(new RequireAdminQuery(
-            BearerToken::fromAuthorizationHeader($request->headers->get('Authorization')),
-        ));
+        $this->currentUser->requireAdmin();
 
         $httpRequest = SetProductStockHttpRequest::fromPayload($request->toArray());
 

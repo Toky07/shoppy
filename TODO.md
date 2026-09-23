@@ -93,39 +93,39 @@ Déjà en place : inscription / connexion / rôles, sécurité du compte (réini
 
 ### Critique
 
-- [ ] **`POST /payments/complete` marque toujours le paiement comme réussi.** Le handler injecte `LocalPaymentGateway`, qui accepte toute charge, quel que soit `PAYMENT_PROVIDER`. Un client authentifié peut payer une commande sans encaissement. N’autoriser cet endpoint que si le provider effectif est `local`, et refuser `local` en production.
-- [ ] Interdire au client de choisir le provider (`StartCheckout` prend `provider` dans le body). Forcer le provider configuré côté serveur.
-- [ ] Rate limit sur `POST /auth/login`, `POST /users`, checkout et webhook
-- [ ] Ne plus stocker le Bearer dans `localStorage` (`shoppy.session`) — cookie `httpOnly` + `SameSite`, ou équivalent non lisible par le JS
-- [ ] Valider le contenu réel des uploads (magic bytes), pas `getClientMimeType()`
-- [ ] Interdire ou assainir les SVG (`image/svg+xml` est autorisé et servi depuis la même origine)
-- [ ] Restreindre `successUrl` / `cancelUrl` à des origines autorisées avant de les passer à Stripe
+- [x] **`POST /payments/complete` marque toujours le paiement comme réussi.** Le handler injecte `LocalPaymentGateway`, qui accepte toute charge, quel que soit `PAYMENT_PROVIDER`. Un client authentifié peut payer une commande sans encaissement. N’autoriser cet endpoint que si le provider effectif est `local`, et refuser `local` en production.
+- [x] Interdire au client de choisir le provider (`StartCheckout` prend `provider` dans le body). Forcer le provider configuré côté serveur.
+- [x] Rate limit sur `POST /auth/login`, `POST /users`, checkout et webhook
+- [x] Ne plus stocker le Bearer dans `localStorage` (`shoppy.session`) — cookie `httpOnly` + `SameSite`, ou équivalent non lisible par le JS
+- [x] Valider le contenu réel des uploads (magic bytes), pas `getClientMimeType()`
+- [x] Interdire ou assainir les SVG (`image/svg+xml` est autorisé et servi depuis la même origine)
+- [x] Restreindre `successUrl` / `cancelUrl` à des origines autorisées avant de les passer à Stripe
 
 ### Auth et comptes
 
-- [ ] Politique de mot de passe au-delà de 8 caractères
-- [ ] Même temps de réponse login si l’email n’existe pas (`password_verify` n’est pas appelé)
-- [ ] Ne pas répondre `409 email_already_registered` de façon énumérable, ou l’assumer explicitement
+- [x] Politique de mot de passe au-delà de 8 caractères
+- [x] Même temps de réponse login si l’email n’existe pas (`password_verify` n’est pas appelé)
+- [x] Ne pas répondre `409 email_already_registered` de façon énumérable, ou l’assumer explicitement
 - [x] Révoquer les tokens au changement de mot de passe, à la réinitialisation et à la confirmation d’un nouvel email
-- [ ] Révoquer les tokens au changement de rôle
-- [ ] Plafonner le nombre de sessions par utilisateur
-- [ ] Revalider `/auth/me` au chargement (rôle et expiration viennent du `localStorage`)
-- [ ] Centraliser l’authentification (subscriber) : chaque contrôleur appelle Bearer / `RequireAdmin` à la main
-- [ ] Ne pas seeder `admin@shoppy.test` / `password123` en production
+- [x] Révoquer les tokens au changement de rôle
+- [x] Plafonner le nombre de sessions par utilisateur
+- [x] Revalider `/auth/me` au chargement (rôle et expiration viennent du `localStorage`)
+- [x] Centraliser l’authentification (subscriber) : chaque contrôleur appelle Bearer / `RequireAdmin` à la main
+- [x] Ne pas seeder `admin@shoppy.test` / `password123` en production
 
 ### Fichiers et HTTP
 
-- [ ] `mkdir(..., 0777)` sur les uploads (`FilesystemMediaStorage`) — passer à `0755` / `0644`
-- [ ] Headers qui manquent : `Content-Security-Policy`, `Strict-Transport-Security`, `Permissions-Policy`
-- [ ] Répéter les headers de sécurité dans les `location` nginx qui définissent leur propre `add_header` (`/assets/`, `/uploads/`, `/media/`), sinon nginx n’hérite pas ceux du `server`
-- [ ] Servir `/uploads` sans exécution, avec le `Content-Type` détecté côté serveur
-- [ ] HTTPS en production (`auto_https off`, nginx en clair sur le port 80)
-- [ ] Pas de `APP_SECRET` par défaut `change-me-in-production` ; sortir `api/.env.dev` des secrets versionnés (ou le documenter comme secret de dev uniquement)
-- [ ] CORS explicite si l’API n’est plus same-origin
-- [ ] Endpoint `GET /media` : ne pas lister les médias d’un owner sans contrôle d’accès si d’autres owners que `product` apparaissent
+- [x] `mkdir(..., 0777)` sur les uploads (`FilesystemMediaStorage`) — passer à `0755` / `0644`
+- [x] Headers qui manquent : `Content-Security-Policy`, `Strict-Transport-Security`, `Permissions-Policy`
+- [x] Répéter les headers de sécurité dans les `location` nginx qui définissent leur propre `add_header` (`/assets/`, `/uploads/`, `/media/`), sinon nginx n’hérite pas ceux du `server`
+- [x] Servir `/uploads` sans exécution, avec le `Content-Type` détecté côté serveur
+- [x] HTTPS en production (`auto_https off`, nginx en clair sur le port 80)
+- [x] Pas de `APP_SECRET` par défaut `change-me-in-production` ; sortir `api/.env.dev` des secrets versionnés (ou le documenter comme secret de dev uniquement)
+- [x] CORS explicite si l’API n’est plus same-origin
+- [x] Endpoint `GET /media` : ne pas lister les médias d’un owner sans contrôle d’accès si d’autres owners que `product` apparaissent
 
 ### Cohérence métier
 
-- [ ] Verrou pessimiste (ou version) sur le stock au moment du décrément
-- [ ] Transaction unique : décrément, commande, paiement pending
-- [ ] Après annulation, ignorer un webhook Stripe tardif au lieu de compléter le paiement d’une commande annulée
+- [x] Verrou pessimiste (ou version) sur le stock au moment du décrément
+- [x] Transaction unique : décrément, commande, paiement pending
+- [x] Après annulation, ignorer un webhook Stripe tardif au lieu de compléter le paiement d’une commande annulée

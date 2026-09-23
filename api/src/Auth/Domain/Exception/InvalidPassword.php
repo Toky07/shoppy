@@ -10,7 +10,7 @@ final class InvalidPassword extends \InvalidArgumentException implements Invalid
 {
     public function __construct()
     {
-        parent::__construct('Password must be between 8 and 4096 characters.');
+        parent::__construct('Password must be between 12 and 4096 characters.');
     }
 
     public function errorCode(): string

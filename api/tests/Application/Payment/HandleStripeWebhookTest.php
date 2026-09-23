@@ -53,7 +53,7 @@ it('completes a pending stripe payment when checkout.session.completed is receiv
         $completed[] = $event;
     });
 
-    (new HandleStripeWebhookCommandHandler($payments, new FixedClock($paidAt), $dispatcher))
+    (new HandleStripeWebhookCommandHandler($payments, new FixedClock($paidAt), $dispatcher, new PendingPayableOrder()))
         ->handle(new HandleStripeWebhookCommand(
             type: 'checkout.session.completed',
             providerReference: (string) $checkout->providerReference,
@@ -95,7 +95,7 @@ it('does not complete a payment when the stripe amount differs from the order', 
         cancelUrl: 'http://localhost:5173/orders/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa?payment=cancel',
     ));
 
-    expect(fn () => (new HandleStripeWebhookCommandHandler($payments, new FixedClock($now), $dispatcher))
+    expect(fn () => (new HandleStripeWebhookCommandHandler($payments, new FixedClock($now), $dispatcher, new PendingPayableOrder()))
         ->handle(new HandleStripeWebhookCommand(
             type: 'checkout.session.completed',
             providerReference: (string) $checkout->providerReference,
@@ -104,4 +104,48 @@ it('does not complete a payment when the stripe amount differs from the order', 
 
     $payment = $payments->findByOrderId(OrderReference::fromString('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'));
     expect($payment?->status())->toEqual(PaymentStatus::pending());
+});
+
+it('ignores a late webhook when the order is no longer pending', function () {
+    $payments = new InMemoryPaymentRepository();
+    $dispatcher = new EventDispatcher();
+    $now = new DateTimeImmutable('2026-08-20T12:00:00+00:00');
+    $dispatcher->addSubscriber(new CreatePaymentOnOrderPlaced($payments, new FixedClock($now)));
+    $dispatcher->dispatch(new OrderPlaced(
+        'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+        '11111111-1111-4111-8111-111111111111',
+        3998,
+    ));
+
+    $checkout = (new StartCheckoutCommandHandler(
+        $payments,
+        new PaymentGatewayRegistry([
+            new LocalPaymentGateway(),
+            new StripePaymentGateway(new FakeStripeCheckoutClient(), 'eur'),
+        ], 'local'),
+        new PendingPayableOrder(),
+    ))->handle(new StartCheckoutCommand(
+        orderId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+        customerId: '11111111-1111-4111-8111-111111111111',
+        provider: 'stripe',
+        successUrl: 'http://localhost:5173/orders/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa?payment=success',
+        cancelUrl: 'http://localhost:5173/orders/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa?payment=cancel',
+    ));
+
+    $completed = [];
+    $dispatcher->addListener(PaymentCompleted::class, static function (PaymentCompleted $event) use (&$completed): void {
+        $completed[] = $event;
+    });
+
+    (new HandleStripeWebhookCommandHandler($payments, new FixedClock($now), $dispatcher, new PendingPayableOrder(false)))
+        ->handle(new HandleStripeWebhookCommand(
+            type: 'checkout.session.completed',
+            providerReference: (string) $checkout->providerReference,
+            amountCents: 3998,
+        ));
+
+    $payment = $payments->findByOrderId(OrderReference::fromString('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'));
+
+    expect($payment?->status())->toEqual(PaymentStatus::pending())
+        ->and($completed)->toBe([]);
 });

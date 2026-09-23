@@ -1,12 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import { FakeHttpClient } from '@/shared/testing/FakeHttpClient'
 import { AuthHttpRepository } from '../AuthHttpRepository'
-import { createUserJson, visitorSession, visitorUser } from '../../testing/authFixtures'
+import { createUserJson, visitorSession } from '../../testing/authFixtures'
 
 describe('AuthHttpRepository', () => {
   it('logs in via POST /auth/login', async () => {
     const http = new FakeHttpClient(() => ({
-      accessToken: visitorSession.accessToken,
       user: createUserJson(),
     }))
     const repository = new AuthHttpRepository(http)
@@ -29,7 +28,7 @@ describe('AuthHttpRepository', () => {
 
     await expect(
       repository.register({ email: 'visitor@shoppy.test', password: 'password123' }),
-    ).resolves.toEqual(visitorUser)
+    ).resolves.toBeUndefined()
     expect(http.calls[0]).toMatchObject({ method: 'POST', path: '/users' })
   })
 

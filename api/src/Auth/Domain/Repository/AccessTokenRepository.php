@@ -17,4 +17,6 @@ interface AccessTokenRepository
     public function delete(AccessToken $token): void;
 
     public function deleteByUserId(UserId $userId): void;
+
+    public function trimTo(UserId $userId, int $max): void;
 }

@@ -11,11 +11,9 @@ function getUserLogin(string $email): array
         'password' => 'secret-secret',
     ]);
 
-    $login = json_decode((string) test()->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
-
     return [
         'user' => $user,
-        'headers' => ['HTTP_AUTHORIZATION' => 'Bearer '.$login['accessToken']],
+        'headers' => ['HTTP_AUTHORIZATION' => 'Bearer '.sessionAccessToken(test()->client)],
     ];
 }
 
@@ -89,7 +87,7 @@ it('returns not found for an unknown user when an admin asks', function () {
         ->and($payload['error']['code'])->toBe('user_not_found');
 });
 
-it('follows the registration Location header', function () {
+it('does not publish a new account from the registration response', function () {
     $this->client->jsonRequest('POST', '/users', [
         'email' => 'Ada@Nuvora.test',
         'password' => 'secret-secret',
@@ -97,23 +95,8 @@ it('follows the registration Location header', function () {
 
     $created = $this->client->getResponse();
     $payload = json_decode((string) $created->getContent(), true, flags: JSON_THROW_ON_ERROR);
-    $location = $created->headers->get('Location');
 
-    $this->client->jsonRequest('POST', '/auth/login', [
-        'email' => 'ada@nuvora.test',
-        'password' => 'secret-secret',
-    ]);
-    $login = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
-
-    $this->client->jsonRequest('GET', $location, [], [
-        'HTTP_AUTHORIZATION' => 'Bearer '.$login['accessToken'],
-    ]);
-
-    $response = $this->client->getResponse();
-    $user = json_decode((string) $response->getContent(), true, flags: JSON_THROW_ON_ERROR);
-
-    expect($location)->toBe('/users/'.$payload['id'])
-        ->and($response->getStatusCode())->toBe(200)
-        ->and($user['id'])->toBe($payload['id'])
-        ->and($user['email'])->toBe('ada@nuvora.test');
+    expect($created->getStatusCode())->toBe(201)
+        ->and($payload)->toBe(['status' => 'accepted'])
+        ->and($created->headers->get('Location'))->toBeNull();
 });

@@ -22,9 +22,8 @@ use App\Auth\Application\CommandHandler\RequestEmailVerificationCommandHandler;
 use App\Auth\Application\CommandHandler\RequestPasswordResetCommandHandler;
 use App\Auth\Application\CommandHandler\ResetPasswordCommandHandler;
 use App\Auth\Application\CommandHandler\VerifyEmailCommandHandler;
-use App\Auth\Application\Query\AuthenticateTokenQuery;
-use App\Auth\Application\QueryHandler\AuthenticateTokenQueryHandler;
-use App\Auth\Presentation\Http\BearerToken;
+use App\Auth\Presentation\Http\CurrentUser;
+use App\Auth\Presentation\Http\SessionCookie;
 use App\Auth\Presentation\Request\AccountTokenHttpRequest;
 use App\Auth\Presentation\Request\ChangePasswordHttpRequest;
 use App\Auth\Presentation\Request\EmailChangeHttpRequest;
@@ -38,7 +37,8 @@ use Symfony\Component\Routing\Attribute\Route;
 final readonly class AccountSecurityController
 {
     public function __construct(
-        private AuthenticateTokenQueryHandler $authenticateToken,
+        private CurrentUser $currentUser,
+        private SessionCookie $sessionCookie,
         private RequestPasswordResetCommandHandler $requestPasswordReset,
         private ResetPasswordCommandHandler $resetPassword,
         private VerifyEmailCommandHandler $verifyEmail,
@@ -81,10 +81,8 @@ final readonly class AccountSecurityController
     #[Route('/auth/email-verifications/request', methods: ['POST'])]
     public function requestEmailVerification(Request $request): Response
     {
-        $userId = $this->authenticateToken->handle(new AuthenticateTokenQuery(
-            BearerToken::fromAuthorizationHeader($request->headers->get('Authorization')),
-        ));
-        $this->requestEmailVerification->handle(new RequestEmailVerificationCommand($userId->value()));
+        $userId = $this->currentUser->id();
+        $this->requestEmailVerification->handle(new RequestEmailVerificationCommand($userId));
 
         return new Response(status: Response::HTTP_NO_CONTENT);
     }
@@ -92,28 +90,24 @@ final readonly class AccountSecurityController
     #[Route('/auth/password', methods: ['POST'])]
     public function changePassword(Request $request): Response
     {
-        $userId = $this->authenticateToken->handle(new AuthenticateTokenQuery(
-            BearerToken::fromAuthorizationHeader($request->headers->get('Authorization')),
-        ));
+        $userId = $this->currentUser->id();
         $httpRequest = ChangePasswordHttpRequest::fromPayload($request->toArray());
         $this->changePassword->handle(new ChangePasswordCommand(
-            $userId->value(),
+            $userId,
             $httpRequest->currentPassword,
             $httpRequest->newPassword,
         ));
 
-        return new Response(status: Response::HTTP_NO_CONTENT);
+        return $this->withoutSession($request);
     }
 
     #[Route('/auth/email-changes', methods: ['POST'])]
     public function requestEmailChange(Request $request): Response
     {
-        $userId = $this->authenticateToken->handle(new AuthenticateTokenQuery(
-            BearerToken::fromAuthorizationHeader($request->headers->get('Authorization')),
-        ));
+        $userId = $this->currentUser->id();
         $httpRequest = EmailChangeHttpRequest::fromPayload($request->toArray());
         $this->requestEmailChange->handle(new RequestEmailChangeCommand(
-            $userId->value(),
+            $userId,
             $httpRequest->email,
             $httpRequest->currentPassword,
         ));
@@ -127,29 +121,33 @@ final readonly class AccountSecurityController
         $httpRequest = AccountTokenHttpRequest::fromPayload($request->toArray());
         $this->confirmEmailChange->handle(new ConfirmEmailChangeCommand($httpRequest->token));
 
-        return new Response(status: Response::HTTP_NO_CONTENT);
+        return $this->withoutSession($request);
     }
 
     #[Route('/auth/logout-all', methods: ['POST'])]
     public function logoutAll(Request $request): Response
     {
-        $userId = $this->authenticateToken->handle(new AuthenticateTokenQuery(
-            BearerToken::fromAuthorizationHeader($request->headers->get('Authorization')),
-        ));
-        $this->logoutAll->handle(new LogoutAllCommand($userId->value()));
+        $userId = $this->currentUser->id();
+        $this->logoutAll->handle(new LogoutAllCommand($userId));
 
-        return new Response(status: Response::HTTP_NO_CONTENT);
+        return $this->withoutSession($request);
     }
 
     #[Route('/auth/account/deletion', methods: ['POST'])]
     public function deleteAccount(Request $request): Response
     {
-        $userId = $this->authenticateToken->handle(new AuthenticateTokenQuery(
-            BearerToken::fromAuthorizationHeader($request->headers->get('Authorization')),
-        ));
+        $userId = $this->currentUser->id();
         $httpRequest = PasswordHttpRequest::fromPayload($request->toArray());
-        $this->deleteAccount->handle(new DeleteAccountCommand($userId->value(), $httpRequest->password));
+        $this->deleteAccount->handle(new DeleteAccountCommand($userId, $httpRequest->password));
 
-        return new Response(status: Response::HTTP_NO_CONTENT);
+        return $this->withoutSession($request);
+    }
+
+    private function withoutSession(Request $request): Response
+    {
+        $response = new Response(status: Response::HTTP_NO_CONTENT);
+        $this->sessionCookie->clear($response, $request);
+
+        return $response;
     }
 }

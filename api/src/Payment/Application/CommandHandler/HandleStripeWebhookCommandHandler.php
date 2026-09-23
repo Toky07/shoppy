@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Payment\Application\CommandHandler;
 
 use App\Payment\Application\Command\HandleStripeWebhookCommand;
+use App\Payment\Application\Port\PayableOrder;
 use App\Payment\Domain\Exception\PaymentAmountMismatch;
 use App\Payment\Domain\Repository\PaymentRepository;
 use App\Shared\Application\Event\PaymentCompleted;
@@ -19,6 +20,7 @@ final readonly class HandleStripeWebhookCommandHandler
         private PaymentRepository $paymentRepository,
         private Clock $clock,
         private EventDispatcherInterface $eventDispatcher,
+        private PayableOrder $payableOrder,
     ) {
     }
 
@@ -31,6 +33,10 @@ final readonly class HandleStripeWebhookCommandHandler
         $payment = $this->paymentRepository->findByProviderReference($command->providerReference);
 
         if ($payment === null || !$payment->status()->isPending()) {
+            return;
+        }
+
+        if (!$this->payableOrder->isPending($payment->orderId()->value())) {
             return;
         }
 

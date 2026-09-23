@@ -8,5 +8,5 @@ final class DemoAccounts
 {
     public const ADMIN_EMAIL = 'admin@shoppy.test';
     public const VISITOR_EMAIL = 'visitor@shoppy.test';
-    public const PASSWORD = 'password123';
+    public const PASSWORD = 'password1234';
 }

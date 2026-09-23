@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace App\Product\Presentation\Controller;
 
-use App\Auth\Application\Query\RequireAdminQuery;
-use App\Auth\Application\QueryHandler\RequireAdminQueryHandler;
-use App\Auth\Presentation\Http\BearerToken;
+use App\Auth\Presentation\Http\CurrentUser;
 use App\Product\Application\Command\CreateCategoryCommand;
 use App\Product\Application\CommandHandler\CreateCategoryCommandHandler;
 use App\Product\Application\Response\CategoryResponse;
@@ -19,7 +17,7 @@ use Symfony\Component\Routing\Attribute\Route;
 final readonly class CreateCategoryController
 {
     public function __construct(
-        private RequireAdminQueryHandler $requireAdmin,
+        private CurrentUser $currentUser,
         private CreateCategoryCommandHandler $createCategory,
     ) {
     }
@@ -27,9 +25,7 @@ final readonly class CreateCategoryController
     #[Route('/categories', methods: ['POST'])]
     public function __invoke(Request $request): JsonResponse
     {
-        $this->requireAdmin->handle(new RequireAdminQuery(
-            BearerToken::fromAuthorizationHeader($request->headers->get('Authorization')),
-        ));
+        $this->currentUser->requireAdmin();
 
         $payload = $request->toArray();
         if (!isset($payload['name']) || !is_string($payload['name'])) {

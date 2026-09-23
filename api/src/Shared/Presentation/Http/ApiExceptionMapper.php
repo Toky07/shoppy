@@ -9,6 +9,7 @@ use App\Shared\Domain\Exception\ConflictException;
 use App\Shared\Domain\Exception\ForbiddenException;
 use App\Shared\Domain\Exception\InvalidValue;
 use App\Shared\Domain\Exception\NotFoundException;
+use App\Shared\Domain\Exception\RateLimited;
 use App\Shared\Domain\Exception\UnauthenticatedException;
 use App\Shared\Presentation\Exception\InvalidRequest;
 use JsonException;
@@ -48,6 +49,13 @@ final class ApiExceptionMapper
             return new MappedHttpError(
                 new ErrorResponse($exception->errorCode(), 'The request is not authenticated.'),
                 401,
+            );
+        }
+
+        if ($exception instanceof RateLimited) {
+            return new MappedHttpError(
+                new ErrorResponse($exception->errorCode(), 'Too many requests.'),
+                429,
             );
         }
 

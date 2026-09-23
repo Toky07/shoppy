@@ -48,7 +48,7 @@ function onFiles(event: Event) {
         Ajouter des images
         <input
           type="file"
-          accept="image/jpeg,image/png,image/webp,image/gif,image/svg+xml"
+          accept="image/jpeg,image/png,image/webp,image/gif"
           multiple
           class="sr-only"
           :disabled="pending"

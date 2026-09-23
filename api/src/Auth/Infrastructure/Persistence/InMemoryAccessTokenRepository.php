@@ -37,4 +37,26 @@ final class InMemoryAccessTokenRepository implements AccessTokenRepository
             }
         }
     }
+
+    public function trimTo(UserId $userId, int $max): void
+    {
+        $tokens = [];
+
+        foreach ($this->tokens as $token) {
+            if ($token->userId()->value() === $userId->value()) {
+                $tokens[] = $token;
+            }
+        }
+
+        usort(
+            $tokens,
+            static fn (AccessToken $left, AccessToken $right): int => $left->createdAt() <=> $right->createdAt(),
+        );
+
+        $excess = count($tokens) - $max;
+
+        for ($index = 0; $index < $excess; ++$index) {
+            $this->delete($tokens[$index]);
+        }
+    }
 }

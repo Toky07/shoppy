@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace App\Media\Presentation\Controller;
 
-use App\Auth\Application\Query\RequireAdminQuery;
-use App\Auth\Application\QueryHandler\RequireAdminQueryHandler;
-use App\Auth\Presentation\Http\BearerToken;
+use App\Auth\Presentation\Http\CurrentUser;
 use App\Media\Application\Command\UploadMediaCommand;
 use App\Media\Application\CommandHandler\UploadMediaCommandHandler;
 use App\Media\Application\Query\GetMediaQuery;
@@ -20,7 +18,7 @@ use Symfony\Component\Routing\Attribute\Route;
 final readonly class UploadMediaController
 {
     public function __construct(
-        private RequireAdminQueryHandler $requireAdmin,
+        private CurrentUser $currentUser,
         private UploadMediaCommandHandler $uploadMedia,
         private GetMediaQueryHandler $getMedia,
     ) {
@@ -29,9 +27,7 @@ final readonly class UploadMediaController
     #[Route('/media', methods: ['POST'])]
     public function __invoke(Request $request): JsonResponse
     {
-        $this->requireAdmin->handle(new RequireAdminQuery(
-            BearerToken::fromAuthorizationHeader($request->headers->get('Authorization')),
-        ));
+        $this->currentUser->requireAdmin();
 
         $httpRequest = UploadMediaHttpRequest::fromRequest($request);
         $id = $this->uploadMedia->handle(new UploadMediaCommand(

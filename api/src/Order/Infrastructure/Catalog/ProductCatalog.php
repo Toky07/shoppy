@@ -56,7 +56,7 @@ final readonly class ProductCatalog implements Catalog
 
     public function decreaseStock(CatalogProductId $id, int $quantity, ?string $variantId = null): void
     {
-        $product = $this->requireProduct($id);
+        $product = $this->requireProduct($id, lock: true);
         $physical = $variantId === null
             ? $product->stock()->value()
             : ($product->findVariant(VariantId::fromString($variantId))?->stock()->value() ?? 0);
@@ -78,9 +78,12 @@ final readonly class ProductCatalog implements Catalog
         $this->productRepository->save($product);
     }
 
-    private function requireProduct(CatalogProductId $id): Product
+    private function requireProduct(CatalogProductId $id, bool $lock = false): Product
     {
-        $product = $this->productRepository->findById(ProductId::fromString($id->value()));
+        $productId = ProductId::fromString($id->value());
+        $product = $lock
+            ? $this->productRepository->findByIdForUpdate($productId)
+            : $this->productRepository->findById($productId);
 
         if ($product === null) {
             throw new CatalogProductNotFound($id);

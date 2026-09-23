@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Media\Presentation\Request;
 
+use App\Media\Application\DetectedMediaType;
 use App\Shared\Presentation\Exception\InvalidRequest;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
@@ -46,12 +47,14 @@ final readonly class UploadMediaHttpRequest
             throw InvalidRequest::of('This value must be an integer.', 'position');
         }
 
+        $contents = $file->getContent();
+
         return new self(
             $ownerType,
             $ownerId,
             $file->getClientOriginalName(),
-            $file->getClientMimeType() ?: '',
-            $file->getContent(),
+            DetectedMediaType::fromBinary($contents)->value(),
+            $contents,
             $parsedPosition,
         );
     }

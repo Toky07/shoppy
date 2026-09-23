@@ -2,7 +2,7 @@ import { FetchHttpClient } from '@/shared/http/FetchHttpClient'
 import { AuthHttpRepository } from '@/modules/auth/data/AuthHttpRepository'
 import { createAuthSession } from '@/modules/auth/application/createAuthSession'
 import { createCartState } from '@/modules/cart/application/createCartState'
-import { LocalStorageSessionStore } from '@/modules/auth/data/LocalStorageSessionStore'
+import { restoreAuthSession } from '@/modules/auth/application/restoreAuthSession'
 import { CartHttpRepository } from '@/modules/cart/data/CartHttpRepository'
 import { createLocalGuestCart } from '@/modules/cart/data/guestCartStorage'
 import { OrderHttpRepository } from '@/modules/order/data/OrderHttpRepository'
@@ -11,7 +11,9 @@ import { AdminCatalogHttpRepository } from '@/modules/catalog/data/AdminCatalogH
 import { ProductHttpRepository } from '@/modules/catalog/data/ProductHttpRepository'
 import { UserHttpDirectory } from '@/modules/auth/data/UserHttpDirectory'
 
-export const authSession = createAuthSession(new LocalStorageSessionStore(window.localStorage))
+window.localStorage.removeItem('shoppy.session')
+
+export const authSession = createAuthSession()
 export const httpClient = new FetchHttpClient(
   import.meta.env.VITE_API_URL ?? '/api',
   globalThis.fetch.bind(globalThis),
@@ -19,6 +21,7 @@ export const httpClient = new FetchHttpClient(
 )
 export const catalogRepository = new ProductHttpRepository(httpClient)
 export const authRepository = new AuthHttpRepository(httpClient)
+export const authReady = restoreAuthSession(authRepository, authSession)
 export const cartRepository = new CartHttpRepository(httpClient)
 export const cartState = createCartState(
   cartRepository,

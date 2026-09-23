@@ -8,7 +8,7 @@ use App\Auth\Domain\Exception\InvalidPassword;
 
 final readonly class PlainPassword
 {
-    private const MIN_LENGTH = 8;
+    private const MIN_LENGTH = 12;
     private const MAX_LENGTH = 4096;
 
     private function __construct(private string $value)
@@ -20,6 +20,15 @@ final readonly class PlainPassword
         $length = strlen($value);
 
         if ($length < self::MIN_LENGTH || $length > self::MAX_LENGTH) {
+            throw new InvalidPassword();
+        }
+
+        return new self($value);
+    }
+
+    public static function forVerification(string $value): self
+    {
+        if ($value === '' || strlen($value) > self::MAX_LENGTH) {
             throw new InvalidPassword();
         }
 

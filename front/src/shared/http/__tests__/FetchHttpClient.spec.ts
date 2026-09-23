@@ -16,23 +16,24 @@ describe('FetchHttpClient', () => {
     await expect(client.get('/products')).resolves.toEqual({ ok: true })
     expect(fetchFn).toHaveBeenCalledWith('https://api.test/products', {
       method: 'GET',
+      credentials: 'include',
       headers: { Accept: 'application/json' },
     })
   })
 
-  it('posts JSON and sends a bearer token', async () => {
+  it('posts JSON with the session cookie', async () => {
     const fetchFn = vi.fn().mockResolvedValue(jsonResponse(200, { ok: true }))
-    const client = new FetchHttpClient('/api', fetchFn, { current: () => 'tok-en' })
+    const client = new FetchHttpClient('/api', fetchFn)
 
     await expect(client.post('/auth/login', { email: 'a@b.c', password: 'secret-secret' })).resolves.toEqual({
       ok: true,
     })
     expect(fetchFn).toHaveBeenCalledWith('/api/auth/login', {
       method: 'POST',
+      credentials: 'include',
       headers: {
         Accept: 'application/json',
         'Content-Type': 'application/json',
-        Authorization: 'Bearer tok-en',
       },
       body: JSON.stringify({ email: 'a@b.c', password: 'secret-secret' }),
     })

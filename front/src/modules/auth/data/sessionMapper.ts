@@ -4,12 +4,11 @@ import type { Session } from '../domain/Session'
 import { mapUser } from './userMapper'
 
 export function mapSession(payload: unknown): Session {
-  if (!isRecord(payload) || typeof payload.accessToken !== 'string') {
+  if (!isRecord(payload)) {
     throw new InvalidResponseError('Invalid session payload.')
   }
 
   return {
-    accessToken: payload.accessToken,
     user: mapUser(payload.user),
   }
 }
