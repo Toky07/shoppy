@@ -10,7 +10,6 @@ final readonly class StartCheckoutHttpRequest
 {
     public function __construct(
         public string $orderId,
-        public string $provider,
         public string $successUrl,
         public string $cancelUrl,
     ) {
@@ -23,7 +22,6 @@ final readonly class StartCheckoutHttpRequest
     {
         return new self(
             self::requiredString($payload, 'orderId'),
-            self::requiredString($payload, 'provider'),
             self::requiredString($payload, 'successUrl'),
             self::requiredString($payload, 'cancelUrl'),
         );

@@ -38,7 +38,6 @@ describe('PaymentHttpRepository', () => {
     await expect(
       repository.startCheckout({
         orderId: pendingOrder.id,
-        provider: 'stripe',
         successUrl: `http://localhost:5173/orders/${pendingOrder.id}?payment=success`,
         cancelUrl: `http://localhost:5173/orders/${pendingOrder.id}?payment=cancel`,
       }),
@@ -54,7 +53,6 @@ describe('PaymentHttpRepository', () => {
         path: '/payments/checkout',
         body: {
           orderId: pendingOrder.id,
-          provider: 'stripe',
           successUrl: `http://localhost:5173/orders/${pendingOrder.id}?payment=success`,
           cancelUrl: `http://localhost:5173/orders/${pendingOrder.id}?payment=cancel`,
         },

@@ -36,6 +36,15 @@ final readonly class AccountNotifier
         );
     }
 
+    public function sendEmailAlreadyRegistered(string $email): void
+    {
+        $this->send(
+            $email,
+            'Votre compte existe déjà',
+            "Un compte utilise déjà cette adresse. Connectez-vous, ou demandez un nouveau mot de passe si vous ne vous en souvenez plus.\n".rtrim($this->frontendBaseUrl, '/').'/login',
+        );
+    }
+
     public function sendEmailChange(string $email, string $token): void
     {
         $this->send(

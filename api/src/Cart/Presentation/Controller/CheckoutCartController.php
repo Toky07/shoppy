@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace App\Cart\Presentation\Controller;
 
-use App\Auth\Application\Query\AuthenticateTokenQuery;
-use App\Auth\Application\QueryHandler\AuthenticateTokenQueryHandler;
-use App\Auth\Presentation\Http\BearerToken;
+use App\Auth\Presentation\Http\CurrentUser;
 use App\Cart\Application\Command\CheckoutCartCommand;
 use App\Cart\Application\CommandHandler\CheckoutCartCommandHandler;
 use App\Cart\Presentation\Request\CheckoutCartHttpRequest;
@@ -20,7 +18,7 @@ use Symfony\Component\Routing\Attribute\Route;
 final readonly class CheckoutCartController
 {
     public function __construct(
-        private AuthenticateTokenQueryHandler $authenticateToken,
+        private CurrentUser $currentUser,
         private CheckoutCartCommandHandler $checkoutCart,
         private GetOrderQueryHandler $getOrder,
     ) {
@@ -29,14 +27,12 @@ final readonly class CheckoutCartController
     #[Route('/cart/checkout', methods: ['POST'])]
     public function __invoke(Request $request): JsonResponse
     {
-        $userId = $this->authenticateToken->handle(new AuthenticateTokenQuery(
-            BearerToken::fromAuthorizationHeader($request->headers->get('Authorization')),
-        ));
+        $userId = $this->currentUser->id();
 
         $httpRequest = CheckoutCartHttpRequest::fromPayload($request->toArray());
 
         $orderId = $this->checkoutCart->handle(new CheckoutCartCommand(
-            $userId->value(),
+            $userId,
             $httpRequest->delivery->shippingAddress,
             $httpRequest->delivery->billingAddress,
             $httpRequest->delivery->shippingMethod,

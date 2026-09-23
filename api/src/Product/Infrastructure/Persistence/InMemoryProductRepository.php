@@ -28,6 +28,11 @@ final class InMemoryProductRepository implements ProductRepository
         return $this->products[$id->value()] ?? null;
     }
 
+    public function findByIdForUpdate(ProductId $id): ?Product
+    {
+        return $this->findById($id);
+    }
+
     public function findByName(ProductName $name): ?Product
     {
         foreach ($this->products as $product) {

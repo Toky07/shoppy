@@ -75,7 +75,6 @@ describe('OrderDetailPage', () => {
       expect(paymentRepository.checkouts).toEqual([
         {
           orderId: pendingOrder.id,
-          provider: 'stripe',
           successUrl: `http://localhost:5173/orders/${pendingOrder.id}?payment=success`,
           cancelUrl: `http://localhost:5173/orders/${pendingOrder.id}?payment=cancel`,
         },

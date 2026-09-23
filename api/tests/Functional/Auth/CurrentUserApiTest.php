@@ -15,9 +15,7 @@ function loginAccessToken(KernelBrowser $client): string
         'password' => 'secret-secret',
     ]);
 
-    $payload = json_decode((string) $client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
-
-    return $payload['accessToken'];
+    return sessionAccessToken($client);
 }
 
 it('returns the current user for a valid bearer token', function () {

@@ -102,6 +102,17 @@ function catalogAuthHeaders(string $emailAddress, Role $role): array
     return $headers;
 }
 
+function sessionAccessToken(KernelBrowser $client): string
+{
+    $cookie = $client->getCookieJar()->get('shoppy_session');
+
+    if (!$cookie instanceof \Symfony\Component\BrowserKit\Cookie || $cookie->getValue() === '') {
+        throw new RuntimeException('Missing session cookie.');
+    }
+
+    return $cookie->getValue();
+}
+
 function registerCatalogUser(KernelBrowser $client, string $email): array
 {
     $client->jsonRequest('POST', '/users', [
@@ -109,5 +120,19 @@ function registerCatalogUser(KernelBrowser $client, string $email): array
         'password' => 'secret-secret',
     ]);
 
-    return json_decode((string) $client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+    if ($client->getResponse()->getStatusCode() !== 201) {
+        throw new RuntimeException('Registration failed: '.$client->getResponse()->getContent());
+    }
+
+    $user = $client->getContainer()->get(UserRepository::class)->findByEmail(Email::fromString($email));
+
+    if ($user === null) {
+        throw new RuntimeException('Registered user was not stored.');
+    }
+
+    return [
+        'id' => $user->id()->value(),
+        'email' => $user->email()->value(),
+        'role' => $user->role()->value(),
+    ];
 }

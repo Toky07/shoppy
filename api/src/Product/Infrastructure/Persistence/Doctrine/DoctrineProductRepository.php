@@ -14,6 +14,8 @@ use App\Product\Domain\ValueObject\ProductSlug;
 use App\Product\Infrastructure\Persistence\Doctrine\Entity\ProductVariantRecord;
 use App\Product\Domain\ValueObject\ProductSort;
 use App\Product\Infrastructure\Persistence\Doctrine\Entity\ProductRecord;
+use Doctrine\DBAL\LockMode;
+use Doctrine\DBAL\Platforms\SQLitePlatform;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\QueryBuilder;
 
@@ -39,6 +41,21 @@ final readonly class DoctrineProductRepository implements ProductRepository
     public function findById(ProductId $id): ?Product
     {
         $record = $this->entityManager->find(ProductRecord::class, $id->value());
+
+        return $record?->toDomain();
+    }
+
+    public function findByIdForUpdate(ProductId $id): ?Product
+    {
+        if ($this->entityManager->getConnection()->getDatabasePlatform() instanceof SQLitePlatform) {
+            return $this->findById($id);
+        }
+
+        $record = $this->entityManager->find(
+            ProductRecord::class,
+            $id->value(),
+            LockMode::PESSIMISTIC_WRITE,
+        );
 
         return $record?->toDomain();
     }

@@ -12,8 +12,12 @@ export class AuthHttpRepository implements AuthRepository {
     return mapSession(await this.http.post('/auth/login', credentials))
   }
 
-  async register(credentials: AuthCredentials): Promise<User> {
-    return mapUser(await this.http.post('/users', credentials))
+  async register(credentials: AuthCredentials): Promise<void> {
+    await this.http.post('/users', credentials)
+  }
+
+  async currentUser(): Promise<User> {
+    return mapUser(await this.http.get('/auth/me'))
   }
 
   async logout(): Promise<void> {

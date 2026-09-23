@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Order\Application\CommandHandler;
 
 use App\Order\Application\Catalog;
+use App\Order\Application\PendingPayment;
 use App\Order\Application\Command\PlaceOrderAddress;
 use App\Order\Application\Command\PlaceOrderCommand;
 use App\Order\Application\Command\PlaceOrderLine;
@@ -31,6 +32,7 @@ final readonly class PlaceOrderCommandHandler
         private Catalog $catalog,
         private Clock $clock,
         private TransactionRunner $transactions,
+        private ?PendingPayment $pendingPayment = null,
     ) {
     }
 
@@ -71,6 +73,11 @@ final readonly class PlaceOrderCommandHandler
         );
 
         $this->orderRepository->save($order);
+        $this->pendingPayment?->open(
+            $order->id()->value(),
+            $order->customerId()->value(),
+            $order->totalCents(),
+        );
 
         $this->transactions->afterCommit(new OrderPlaced(
             orderId: $order->id()->value(),

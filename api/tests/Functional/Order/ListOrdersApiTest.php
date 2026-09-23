@@ -22,11 +22,9 @@ function loginListOrdersUser(string $email): array
         'password' => 'secret-secret',
     ]);
 
-    $login = json_decode((string) test()->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
-
     return [
         'user' => $user,
-        'headers' => ['HTTP_AUTHORIZATION' => 'Bearer '.$login['accessToken']],
+        'headers' => ['HTTP_AUTHORIZATION' => 'Bearer '.sessionAccessToken(test()->client)],
     ];
 }
 

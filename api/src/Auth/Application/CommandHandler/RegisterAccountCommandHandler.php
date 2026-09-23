@@ -14,6 +14,7 @@ use App\Auth\Domain\ValueObject\AccountTokenPurpose;
 use App\Auth\Domain\ValueObject\PlainPassword;
 use App\User\Application\Command\RegisterUserCommand;
 use App\User\Application\CommandHandler\RegisterUserCommandHandler;
+use App\User\Domain\Exception\EmailAlreadyRegistered;
 use App\User\Domain\Repository\UserRepository;
 use App\User\Domain\ValueObject\UserId;
 
@@ -29,10 +30,17 @@ final readonly class RegisterAccountCommandHandler
     ) {
     }
 
-    public function handle(RegisterAccountCommand $command): UserId
+    public function handle(RegisterAccountCommand $command): ?UserId
     {
         $hashedPassword = $this->passwordHasher->hash(PlainPassword::fromString($command->password));
-        $userId = $this->registerUser->handle(new RegisterUserCommand($command->email));
+
+        try {
+            $userId = $this->registerUser->handle(new RegisterUserCommand($command->email));
+        } catch (EmailAlreadyRegistered) {
+            $this->notifier->sendEmailAlreadyRegistered($command->email);
+
+            return null;
+        }
 
         $this->credentialsRepository->save(Credentials::create($userId, $hashedPassword));
 

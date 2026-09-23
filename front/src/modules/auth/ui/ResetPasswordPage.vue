@@ -29,7 +29,7 @@ function onSubmit() {
 </script>
 
 <template>
-  <AuthPanel title="Nouveau mot de passe" subtitle="Choisissez un mot de passe d'au moins 8 caractères.">
+  <AuthPanel title="Nouveau mot de passe" subtitle="Choisissez un mot de passe d'au moins 12 caractères.">
     <StatusNotice v-if="!token" tone="danger">Ce lien est incomplet.</StatusNotice>
     <StatusNotice v-else-if="saved" tone="positive">
       Mot de passe mis à jour. Vous pouvez vous reconnecter.
@@ -44,7 +44,7 @@ function onSubmit() {
           type="password"
           autocomplete="new-password"
           required
-          minlength="8"
+          minlength="12"
           class="field"
         />
       </div>

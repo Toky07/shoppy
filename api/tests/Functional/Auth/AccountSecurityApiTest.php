@@ -68,7 +68,7 @@ it('anonymizes the signed-in account', function () {
         'email' => 'gone@shoppy.test',
         'password' => 'secret-secret',
     ]);
-    $token = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR)['accessToken'];
+    $token = sessionAccessToken($this->client);
     $headers = ['HTTP_AUTHORIZATION' => 'Bearer '.$token];
 
     $this->client->jsonRequest('POST', '/auth/account/deletion', [

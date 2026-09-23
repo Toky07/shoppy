@@ -39,6 +39,7 @@ export class FetchHttpClient implements HttpClient {
   private async request<T>(method: HttpMethod, path: string, body?: HttpBody | FormData): Promise<T> {
     const response = await this.fetchFn(joinUrl(this.baseUrl, path), {
       method,
+      credentials: 'include',
       headers: this.headers(body !== undefined && !(body instanceof FormData)),
       ...(body === undefined ? {} : { body: body instanceof FormData ? body : JSON.stringify(body) }),
     })
@@ -65,11 +66,6 @@ export class FetchHttpClient implements HttpClient {
 
     if (hasBody) {
       headers['Content-Type'] = 'application/json'
-    }
-
-    const token = this.tokenProvider?.current()
-    if (token) {
-      headers.Authorization = `Bearer ${token}`
     }
 
     return headers

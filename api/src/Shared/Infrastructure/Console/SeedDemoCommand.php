@@ -37,6 +37,8 @@ final class SeedDemoCommand extends Command
         private string $productsCsvPath,
         #[Autowire('%app.media.upload_dir%')]
         private string $uploadDirectory,
+        #[Autowire('%kernel.environment%')]
+        private string $environment,
     ) {
         parent::__construct();
     }
@@ -54,6 +56,12 @@ final class SeedDemoCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
+
+        if ($this->environment === 'prod') {
+            $io->error('Demo accounts cannot be seeded in production.');
+
+            return Command::FAILURE;
+        }
 
         if ($input->getOption('reset') === true) {
             $reset = $this->resetStore($output);

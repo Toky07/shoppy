@@ -121,8 +121,7 @@ async function onLogout() {
                 name="password"
                 autocomplete="current-password"
                 required
-                minlength="8"
-                placeholder="8 caractères minimum"
+                placeholder="Votre mot de passe"
                 class="field px-11"
               />
               <button

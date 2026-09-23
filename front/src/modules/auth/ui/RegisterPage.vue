@@ -1,41 +1,44 @@
 <script setup lang="ts">
-import { inject } from 'vue'
-import { RouterLink, useRouter } from 'vue-router'
+import { inject, ref } from 'vue'
+import { RouterLink } from 'vue-router'
 import { usePendingAction } from '@/shared/async/usePendingAction'
 import { authRepositoryKey } from '../application/authRepositoryKey'
-import { authSessionKey } from '../application/authSessionKey'
 import { register } from '../application/register'
 import AuthCredentialsForm from './AuthCredentialsForm.vue'
 import { authErrorMessage } from './authErrorMessage'
 
 const repository = inject(authRepositoryKey)
-const session = inject(authSessionKey)
 
-if (!repository || !session) {
+if (!repository) {
   throw new Error('Auth dependencies are not provided.')
 }
 
 const authRepository = repository
-const authSession = session
-const router = useRouter()
+const accepted = ref(false)
 const { pending, errorMessage, run } = usePendingAction((error) => authErrorMessage(error))
 
 function onSubmit(credentials: { email: string; password: string }) {
   return run(async () => {
-    await register(authRepository, authSession, credentials)
-    await router.push('/')
+    await register(authRepository, credentials)
+    accepted.value = true
   })
 }
 </script>
 
 <template>
+  <p v-if="accepted" class="mx-auto max-w-md text-sm leading-6 text-muted">
+    Si cette adresse peut recevoir un message, un email vient d'être envoyé. Vous pouvez ensuite
+    <RouterLink to="/login" class="font-semibold text-strong underline underline-offset-2">vous connecter</RouterLink>.
+  </p>
   <AuthCredentialsForm
+    v-else
     title="Inscription"
     subtitle="Deux champs, trente secondes, et c'est fait."
     submit-label="Créer un compte"
     :pending="pending"
     :error-message="errorMessage"
     password-autocomplete="new-password"
+    :password-min-length="12"
     @submit="onSubmit"
   >
     Déjà un compte ?

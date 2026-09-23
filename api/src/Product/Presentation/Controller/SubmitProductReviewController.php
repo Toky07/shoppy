@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace App\Product\Presentation\Controller;
 
-use App\Auth\Application\Query\AuthenticateTokenQuery;
-use App\Auth\Application\QueryHandler\AuthenticateTokenQueryHandler;
-use App\Auth\Presentation\Http\BearerToken;
+use App\Auth\Presentation\Http\CurrentUser;
 use App\Product\Application\Command\SubmitProductReviewCommand;
 use App\Product\Application\CommandHandler\SubmitProductReviewCommandHandler;
 use App\Product\Application\Port\ReviewAuthors;
@@ -19,7 +17,7 @@ use Symfony\Component\Routing\Attribute\Route;
 final readonly class SubmitProductReviewController
 {
     public function __construct(
-        private AuthenticateTokenQueryHandler $authenticateToken,
+        private CurrentUser $currentUser,
         private SubmitProductReviewCommandHandler $submitReview,
         private ReviewAuthors $reviewAuthors,
     ) {
@@ -28,21 +26,19 @@ final readonly class SubmitProductReviewController
     #[Route('/products/{id}/reviews', methods: ['POST'])]
     public function __invoke(string $id, Request $request): JsonResponse
     {
-        $authorId = $this->authenticateToken->handle(new AuthenticateTokenQuery(
-            BearerToken::fromAuthorizationHeader($request->headers->get('Authorization')),
-        ));
+        $authorId = $this->currentUser->id();
         $httpRequest = SubmitProductReviewHttpRequest::fromPayload($request->toArray());
         $review = $this->submitReview->handle(new SubmitProductReviewCommand(
             productId: $id,
-            authorId: $authorId->value(),
+            authorId: $authorId,
             rating: $httpRequest->rating,
             body: $httpRequest->body,
         ));
-        $labels = $this->reviewAuthors->labelsFor([$authorId->value()]);
+        $labels = $this->reviewAuthors->labelsFor([$authorId]);
 
         return new JsonResponse(ProductReviewResponse::fromReview(
             $review,
-            $labels[$authorId->value()] ?? 'Client',
+            $labels[$authorId] ?? 'Client',
             true,
         )->toArray());
     }

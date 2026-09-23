@@ -15,9 +15,7 @@ function logoutLoginAccessToken(KernelBrowser $client): string
         'password' => 'secret-secret',
     ]);
 
-    $payload = json_decode((string) $client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
-
-    return $payload['accessToken'];
+    return sessionAccessToken($client);
 }
 
 it('logs out and revokes the current access token', function () {

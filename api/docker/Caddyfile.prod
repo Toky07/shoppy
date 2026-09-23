@@ -9,12 +9,26 @@
 :80 {
 	root * /app/public
 	encode zstd gzip
-	header {
-		X-Content-Type-Options nosniff
-		Referrer-Policy strict-origin-when-cross-origin
-		-Server
+
+	handle /uploads/* {
+		header {
+			Content-Security-Policy "default-src 'none'; sandbox"
+			X-Content-Type-Options nosniff
+			X-Frame-Options DENY
+			-Server
+		}
+		file_server
 	}
-	php_server {
-		worker /app/public/index.php
+
+	handle {
+		header {
+			X-Content-Type-Options nosniff
+			Referrer-Policy strict-origin-when-cross-origin
+			Permissions-Policy "camera=(), microphone=(), geolocation=()"
+			-Server
+		}
+		php_server {
+			worker /app/public/index.php
+		}
 	}
 }

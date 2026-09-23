@@ -14,7 +14,6 @@ use App\Tests\Doubles\FakeTokenGenerator;
 use App\Tests\Doubles\FixedClock;
 use App\Tests\Doubles\RecordingEventBus;
 use App\User\Application\CommandHandler\RegisterUserCommandHandler;
-use App\User\Domain\Exception\EmailAlreadyRegistered;
 use App\User\Domain\ValueObject\Email;
 use App\User\Domain\ValueObject\Role;
 use App\User\Infrastructure\Persistence\InMemoryUserRepository;
@@ -70,15 +69,20 @@ it('does not create a user when the password is invalid', function () {
         ->and($users->findByEmail(Email::fromString('ada@nuvora.test')))->toBeNull();
 });
 
-it('rejects a duplicate email', function () {
-    $handler = registerAccountHandler(new InMemoryUserRepository());
+it('returns null when the email is already registered', function () {
+    $users = new InMemoryUserRepository();
+    $handler = registerAccountHandler($users);
 
-    $handler->handle(new RegisterAccountCommand(
+    $created = $handler->handle(new RegisterAccountCommand(
         email: 'ada@nuvora.test',
         password: 'secret-secret',
     ));
-    $handler->handle(new RegisterAccountCommand(
+    $duplicate = $handler->handle(new RegisterAccountCommand(
         email: 'ADA@nuvora.test',
         password: 'another-secret',
     ));
-})->throws(EmailAlreadyRegistered::class);
+
+    expect($duplicate)->toBeNull()
+        ->and($created)->not->toBeNull()
+        ->and($users->findByEmail(Email::fromString('ada@nuvora.test'))->id()->value())->toBe($created->value());
+});

@@ -10,7 +10,6 @@ export const visitorUser: User = {
 }
 
 export const visitorSession: Session = {
-  accessToken: 'a'.repeat(64),
   user: visitorUser,
 }
 
@@ -23,7 +22,6 @@ export const adminUser: User = {
 }
 
 export const adminSession: Session = {
-  accessToken: 'b'.repeat(64),
   user: adminUser,
 }
 

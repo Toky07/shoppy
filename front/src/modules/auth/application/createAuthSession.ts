@@ -2,7 +2,13 @@ import { computed, readonly, ref } from 'vue'
 import type { Session } from '../domain/Session'
 import type { SessionStore } from './SessionStore'
 
-export function createAuthSession(store: SessionStore) {
+const ephemeralSession: SessionStore = {
+  read: () => null,
+  write() {},
+  clear() {},
+}
+
+export function createAuthSession(store: SessionStore = ephemeralSession) {
   const session = ref<Session | null>(store.read())
 
   function set(next: Session) {
@@ -21,7 +27,6 @@ export function createAuthSession(store: SessionStore) {
     isAdmin: computed(() => session.value?.user.role === 'admin'),
     set,
     clear,
-    current: (): string | null => session.value?.accessToken ?? null,
   }
 }
 

@@ -1,7 +1,7 @@
 import { createPinia } from 'pinia'
 import { createApp } from 'vue'
 import App from './App.vue'
-import { authRepository, authSession, adminCatalogRepository, cartRepository, cartState, catalogRepository, orderRepository, paymentRepository, userDirectory } from './app/dependencies'
+import { authReady, authRepository, authSession, adminCatalogRepository, cartRepository, cartState, catalogRepository, orderRepository, paymentRepository, userDirectory } from './app/dependencies'
 import { authRepositoryKey } from './modules/auth/application/authRepositoryKey'
 import { authSessionKey } from './modules/auth/application/authSessionKey'
 import { userDirectoryKey } from './modules/auth/application/userDirectoryKey'
@@ -27,4 +27,6 @@ app.provide(orderRepositoryKey, orderRepository)
 app.provide(paymentRepositoryKey, paymentRepository)
 app.provide(adminCatalogRepositoryKey, adminCatalogRepository)
 app.provide(userDirectoryKey, userDirectory)
+
+await authReady
 app.mount('#app')
