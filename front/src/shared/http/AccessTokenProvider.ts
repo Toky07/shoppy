@@ -1,4 +1,4 @@
 export interface AccessTokenProvider {
-  current(): string | null
+  current?(): string | null
   clear?(): void
 }
