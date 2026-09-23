@@ -23,9 +23,9 @@ if (!repository) {
   throw new Error('CatalogRepository is not provided.')
 }
 
-const route = useRoute()
-const { view } = useCatalogView()
-const categories = ref<Category[]>([])
+const route = useRoute();
+const { view } = useCatalogView();
+const categories = ref<Category[]>([]);
 void repository.listCategories().then(
   (items) => {
     categories.value = items
@@ -33,14 +33,14 @@ void repository.listCategories().then(
   () => {
     categories.value = []
   },
-)
-const search = computed(() => parseSearchQuery(route.query.q))
+);
+const search = computed(() => parseSearchQuery(route.query.q));
 const categorySlug = computed(() =>
   typeof route.query.category === 'string' && route.query.category !== '' ? route.query.category : undefined,
-)
-const minPriceCents = computed(() => catalogCentsFromEuros(route.query.min))
-const maxPriceCents = computed(() => catalogCentsFromEuros(route.query.max))
-const inStockOnly = computed(() => isInStockQuery(route.query.stock))
+);
+const minPriceCents = computed(() => catalogCentsFromEuros(route.query.min));
+const maxPriceCents = computed(() => catalogCentsFromEuros(route.query.max));
+const inStockOnly = computed(() => isInStockQuery(route.query.stock));
 const filtered = computed(
   () =>
     search.value !== '' ||
@@ -48,7 +48,7 @@ const filtered = computed(
     minPriceCents.value !== undefined ||
     maxPriceCents.value !== undefined ||
     inStockOnly.value,
-)
+);
 const query = computed(() => ({
   page: parsePageQuery(route.query.page),
   limit: DEFAULT_PRODUCT_LIMIT,
@@ -58,8 +58,8 @@ const query = computed(() => ({
   maxPriceCents: maxPriceCents.value,
   inStockOnly: inStockOnly.value || undefined,
   categorySlug: categorySlug.value,
-}))
-const { status, page, error } = useProductList(repository, query)
+}));
+const { status, page, error } = useProductList(repository, query);
 </script>
 
 <template>
