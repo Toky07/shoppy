@@ -77,7 +77,7 @@ final readonly class DoctrineOrderRepository implements OrderRepository
             ->join(
                 UserRecord::class,
                 'u',
-                'WITH',
+                'ON',
                 'o.customerId = u.id'
             )
             ->addSelect('u.email as customerEmail')
