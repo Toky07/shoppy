@@ -13,7 +13,6 @@ withDefaults(
 </script>
 
 <template>
-  <!-- Chargement : squelettes calqués sur la mise en page réelle -->
   <template v-if="status === 'loading'">
     <p v-if="skeleton !== 'spinner'" class="sr-only">Chargement en cours...</p>
 

@@ -28,6 +28,7 @@ final class Order
         private ?PostalAddress $shippingAddress,
         private ?PostalAddress $billingAddress,
         private ?ShippingMethod $shipping,
+        private ?string $customerEmail,
     ) {
     }
 
@@ -42,12 +43,23 @@ final class Order
         PostalAddress $shippingAddress,
         PostalAddress $billingAddress,
         ShippingMethod $shipping,
+        string $customerEmail,
     ): self {
         if ($items === []) {
             throw new EmptyOrder();
         }
 
-        return new self($id, $customerId, $items, OrderStatus::pending(), $createdAt, $shippingAddress, $billingAddress, $shipping);
+        return new self(
+            $id,
+            $customerId,
+            $items,
+            OrderStatus::pending(),
+            $createdAt,
+            $shippingAddress,
+            $billingAddress,
+            $shipping,
+            $customerEmail,
+        );
     }
 
     /**
@@ -62,12 +74,23 @@ final class Order
         ?PostalAddress $shippingAddress = null,
         ?PostalAddress $billingAddress = null,
         ?ShippingMethod $shipping = null,
+        ?string $customerEmail = null,
     ): self {
         if ($items === []) {
             throw new EmptyOrder();
         }
 
-        return new self($id, $customerId, $items, $status, $createdAt, $shippingAddress, $billingAddress, $shipping);
+        return new self(
+            $id,
+            $customerId,
+            $items,
+            $status,
+            $createdAt,
+            $shippingAddress,
+            $billingAddress,
+            $shipping,
+            $customerEmail,
+        );
     }
 
     public function id(): OrderId
@@ -78,6 +101,11 @@ final class Order
     public function customerId(): CustomerId
     {
         return $this->customerId;
+    }
+
+    public function customerEmail(): string
+    {
+        return $this->customerEmail;
     }
 
     /**

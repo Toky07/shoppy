@@ -71,7 +71,7 @@ const loadError = computed(() => (error.value ? orderErrorMessage(error.value) :
             <tbody>
               <tr v-for="order in page.items" :key="order.id">
                 <td class="font-semibold text-strong">{{ formatDate(order.createdAt) }}</td>
-                <td class="numeric text-xs text-muted">Client {{ order.customerId }}</td>
+                <td class="numeric text-xs text-muted">{{ order.customerEmail }}</td>
                 <td>
                   <span :class="orderStatusStyle(order.status).badge">
                     <AppIcon :name="orderStatusStyle(order.status).icon" :size="12" />

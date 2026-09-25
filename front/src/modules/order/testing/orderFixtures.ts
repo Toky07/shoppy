@@ -26,6 +26,7 @@ export const parisAddress: PostalAddress = {
 export const pendingOrder: Order = {
   id: pendingCheckout.id,
   customerId: visitorUser.id,
+  customerEmail: 'test@test.test',
   status: 'pending',
   items: [orderTeeItem],
   total: { cents: 4488, currency: 'EUR' },

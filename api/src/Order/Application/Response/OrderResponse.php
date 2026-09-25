@@ -28,6 +28,7 @@ final readonly class OrderResponse
     public function __construct(
         public string $id,
         public string $customerId,
+        public string $customerEmail,
         public string $status,
         public array $items,
         public array $total,
@@ -60,6 +61,7 @@ final readonly class OrderResponse
         return new self(
             $order->id()->value(),
             $order->customerId()->value(),
+            $order->customerEmail(),
             $order->status()->value(),
             $items,
             [
@@ -97,6 +99,7 @@ final readonly class OrderResponse
         return [
             'id' => $this->id,
             'customerId' => $this->customerId,
+            'customerEmail' => $this->customerEmail,
             'status' => $this->status,
             'items' => $this->items,
             'total' => $this->total,

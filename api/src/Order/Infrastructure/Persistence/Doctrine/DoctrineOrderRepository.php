@@ -10,6 +10,7 @@ use App\Order\Domain\ValueObject\CustomerId;
 use App\Order\Domain\ValueObject\OrderId;
 use App\Order\Infrastructure\Persistence\Doctrine\Entity\OrderRecord;
 use Doctrine\ORM\EntityManagerInterface;
+use App\User\Infrastructure\Persistence\Doctrine\Entity\UserRecord;
 
 final readonly class DoctrineOrderRepository implements OrderRepository
 {
@@ -73,6 +74,13 @@ final readonly class DoctrineOrderRepository implements OrderRepository
         $records = $this->entityManager->createQueryBuilder()
             ->select('o')
             ->from(OrderRecord::class, 'o')
+            ->join(
+                UserRecord::class,
+                'u',
+                'WITH',
+                'o.customerId = u.id'
+            )
+            ->addSelect('u.email as customerEmail')
             ->orderBy('o.createdAt', 'DESC')
             ->addOrderBy('o.id', 'DESC')
             ->setFirstResult($offset)
@@ -81,7 +89,7 @@ final readonly class DoctrineOrderRepository implements OrderRepository
             ->getResult();
 
         return array_map(
-            static fn (OrderRecord $record): Order => $record->toDomain(),
+            static fn (array $record): Order => $record[0]->toDomain($record['customerEmail']),
             $records,
         );
     }

@@ -87,6 +87,7 @@ export function mapOrder(payload: unknown): Order {
   return {
     id: payload.id,
     customerId: payload.customerId,
+    customerEmail: payload.customerEmail as string,
     status: payload.status,
     items: payload.items.map(mapOrderItem),
     total: mapMoney(payload.total, 'Invalid order total.'),

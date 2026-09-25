@@ -112,7 +112,7 @@ class OrderRecord
         $this->status = $order->status()->value();
     }
 
-    public function toDomain(): Order
+    public function toDomain(string $email = ""): Order
     {
         return Order::reconstitute(
             OrderId::fromString($this->id),
@@ -125,6 +125,7 @@ class OrderRecord
             $this->readAddress('shipping'),
             $this->readAddress('billing'),
             $this->readShipping(),
+            $email,
         );
     }
 
