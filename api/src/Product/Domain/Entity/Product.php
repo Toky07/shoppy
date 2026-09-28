@@ -64,7 +64,7 @@ final class Product
             $price,
             $createdAt,
             $description,
-            $variants === [] ? ($stock ?? StockQuantity::zero()) : StockQuantity::fromInt(self::sum($variants)),
+            $stock,
             $slug ?? ProductSlug::fromName($name),
             $categoryId,
             $sku,

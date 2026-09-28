@@ -142,7 +142,7 @@ final readonly class DoctrineProductRepository implements ProductRepository
         $records = $queryBuilder->getQuery()->getResult();
 
         return array_map(
-            static fn (ProductRecord $record): Product => $record->toDomain(),
+            static fn (ProductRecord $record): Product => $record->toListDomain(),
             $records,
         );
     }

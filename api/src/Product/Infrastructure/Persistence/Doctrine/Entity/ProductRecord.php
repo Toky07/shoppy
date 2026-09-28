@@ -113,6 +113,23 @@ class ProductRecord
         );
     }
 
+    public function toListDomain(): Product
+    {
+        return Product::create(
+            ProductId::fromString($this->id),
+            ProductName::fromString($this->name),
+            ProductPrice::fromCents($this->priceCents),
+            $this->createdAt,
+            $this->description === null ? null : ProductDescription::fromString($this->description),
+            StockQuantity::fromInt($this->stock),
+            ProductSlug::fromString($this->slug),
+            $this->categoryId === null ? null : CategoryId::fromString($this->categoryId),
+            ProductSku::fromString($this->sku),
+            [],
+            $this->published,
+        );
+    }
+
     private function syncFromDomain(Product $product): void
     {
         $this->name = $product->name()->value();
