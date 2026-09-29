@@ -15,6 +15,8 @@ use App\Payment\Presentation\Security\PaymentVoter;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
+use App\Auth\Presentation\Security\AuthenticationAttributes;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 
 final readonly class GetPaymentController
@@ -28,6 +30,7 @@ final readonly class GetPaymentController
     }
 
     #[Route('/payments/by-order/{orderId}', methods: ['GET'])]
+    #[IsGranted(AuthenticationAttributes::IS_AUTHENTICATED)]
     public function __invoke(string $orderId, Request $request): JsonResponse
     {
         $userId = $this->currentUser->id();

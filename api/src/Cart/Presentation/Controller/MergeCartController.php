@@ -13,6 +13,8 @@ use App\Cart\Presentation\Request\MergeCartHttpRequest;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
+use App\Auth\Presentation\Security\AuthenticationAttributes;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 final readonly class MergeCartController
 {
@@ -24,6 +26,7 @@ final readonly class MergeCartController
     }
 
     #[Route('/cart/merge', methods: ['POST'])]
+    #[IsGranted(AuthenticationAttributes::IS_AUTHENTICATED)]
     public function __invoke(Request $request): JsonResponse
     {
         $userId = $this->currentUser->id();

@@ -15,6 +15,8 @@ use App\Order\Presentation\Security\OrderVoter;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
+use App\Auth\Presentation\Security\AuthenticationAttributes;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 
 final readonly class CancelOrderController
@@ -28,6 +30,7 @@ final readonly class CancelOrderController
     }
 
     #[Route('/orders/{id}/cancel', methods: ['POST'])]
+    #[IsGranted(AuthenticationAttributes::IS_AUTHENTICATED)]
     public function __invoke(string $id, Request $request): JsonResponse
     {
         $userId = $this->currentUser->id();

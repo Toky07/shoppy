@@ -13,6 +13,8 @@ use App\Order\Presentation\Security\OrderVoter;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
+use App\Auth\Presentation\Security\AuthenticationAttributes;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 
 final readonly class GetOrderController
@@ -25,6 +27,7 @@ final readonly class GetOrderController
     }
 
     #[Route('/orders/{id}', methods: ['GET'])]
+    #[IsGranted(AuthenticationAttributes::IS_AUTHENTICATED)]
     public function __invoke(string $id, Request $request): JsonResponse
     {
         $this->currentUser->id();

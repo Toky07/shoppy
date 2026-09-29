@@ -20,6 +20,8 @@ use App\Payment\Presentation\Security\PaymentVoter;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
+use App\Auth\Presentation\Security\AuthenticationAttributes;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 
 final readonly class StartCheckoutController
@@ -36,6 +38,7 @@ final readonly class StartCheckoutController
     }
 
     #[Route('/payments/checkout', methods: ['POST'])]
+    #[IsGranted(AuthenticationAttributes::IS_AUTHENTICATED)]
     public function __invoke(Request $request): JsonResponse
     {
         $userId = $this->currentUser->id();

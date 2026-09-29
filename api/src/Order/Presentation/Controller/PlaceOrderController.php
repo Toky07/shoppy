@@ -15,6 +15,8 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use App\Auth\Presentation\Security\AuthenticationAttributes;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 final readonly class PlaceOrderController
 {
@@ -26,6 +28,7 @@ final readonly class PlaceOrderController
     }
 
     #[Route('/orders', methods: ['POST'])]
+    #[IsGranted(AuthenticationAttributes::IS_AUTHENTICATED)]
     public function __invoke(Request $request): JsonResponse
     {
         $userId = $this->currentUser->id();
