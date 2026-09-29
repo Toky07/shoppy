@@ -47,6 +47,16 @@ final readonly class AuthenticatedUser implements UserInterface
         return $this->roles;
     }
 
+    public function isAdmin(): bool
+    {
+        return in_array(self::ROLE_ADMIN, $this->roles, true);
+    }
+
+    public function domainRole(): Role
+    {
+        return $this->isAdmin() ? Role::admin() : Role::customer();
+    }
+
     #[\Deprecated]
     public function eraseCredentials(): void
     {

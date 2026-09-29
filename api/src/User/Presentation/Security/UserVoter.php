@@ -28,7 +28,7 @@ final class UserVoter extends Voter
             return false;
         }
 
-        if (in_array(AuthenticatedUser::ROLE_ADMIN, $user->getRoles(), true)) {
+        if ($user->isAdmin()) {
             return true;
         }
 

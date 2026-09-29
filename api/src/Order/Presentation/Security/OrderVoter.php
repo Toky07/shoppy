@@ -34,7 +34,7 @@ final class OrderVoter extends Voter
         $isOwner = $user->id() === $subject->customerId;
 
         return match ($attribute) {
-            self::VIEW => in_array(AuthenticatedUser::ROLE_ADMIN, $user->getRoles(), true) || $isOwner,
+            self::VIEW => $user->isAdmin() || $isOwner,
             self::CANCEL => $isOwner,
             default => false,
         };

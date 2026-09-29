@@ -30,6 +30,6 @@ final class ProductVoter extends Voter
             return false;
         }
 
-        return in_array(AuthenticatedUser::ROLE_ADMIN, $user->getRoles(), true);
+        return $user->isAdmin();
     }
 }

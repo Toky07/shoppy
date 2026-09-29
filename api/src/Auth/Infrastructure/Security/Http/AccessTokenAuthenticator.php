@@ -11,7 +11,6 @@ use App\Auth\Infrastructure\Security\AuthenticatedUser;
 use App\Auth\Presentation\Http\AccessCredential;
 use App\Auth\Presentation\Http\CurrentUser;
 use App\User\Domain\Repository\UserRepository;
-use App\User\Domain\ValueObject\Role;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
@@ -71,12 +70,7 @@ final class AccessTokenAuthenticator extends AbstractAuthenticator
 
         if ($user instanceof AuthenticatedUser) {
             $request->attributes->set(CurrentUser::USER_ID, $user->id());
-            $request->attributes->set(
-                CurrentUser::ROLE,
-                in_array(AuthenticatedUser::ROLE_ADMIN, $user->getRoles(), true)
-                    ? Role::admin()->value()
-                    : Role::customer()->value(),
-            );
+            $request->attributes->set(CurrentUser::ROLE, $user->domainRole()->value());
             $request->attributes->set(CurrentUser::TOKEN, $user->accessToken());
         }
 

@@ -6,7 +6,6 @@ namespace App\Auth\Presentation\EventSubscriber;
 
 use App\Auth\Infrastructure\Security\AuthenticatedUser;
 use App\Auth\Presentation\Http\CurrentUser;
-use App\User\Domain\ValueObject\Role;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
@@ -44,12 +43,7 @@ final readonly class SyncCurrentUserAttributesSubscriber implements EventSubscri
 
         $request = $event->getRequest();
         $request->attributes->set(CurrentUser::USER_ID, $user->id());
-        $request->attributes->set(
-            CurrentUser::ROLE,
-            in_array(AuthenticatedUser::ROLE_ADMIN, $user->getRoles(), true)
-                ? Role::admin()->value()
-                : Role::customer()->value(),
-        );
+        $request->attributes->set(CurrentUser::ROLE, $user->domainRole()->value());
         $request->attributes->set(CurrentUser::TOKEN, $user->accessToken());
     }
 }
