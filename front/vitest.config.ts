@@ -14,7 +14,7 @@ const shared = {
   },
 }
 
-const jsdomInclude = [
+const domInclude = [
   'src/__tests__/**/*.spec.ts',
   'src/shared/ui/**/*.spec.ts',
   'src/modules/**/ui/__tests__/*Page.spec.ts',
@@ -30,6 +30,9 @@ export default defineConfig({
     css: false,
     pool: 'threads',
     isolate: false,
+    experimental: {
+      fsModuleCache: true,
+    },
     projects: [
       {
         ...shared,
@@ -38,7 +41,7 @@ export default defineConfig({
           root,
           environment: 'node',
           include: ['src/**/*.spec.ts'],
-          exclude: ['e2e/**', 'node_modules/**', ...jsdomInclude],
+          exclude: ['e2e/**', 'node_modules/**', ...domInclude],
           isolate: false,
         },
       },
@@ -47,9 +50,9 @@ export default defineConfig({
         test: {
           name: 'component',
           root,
-          environment: 'jsdom',
+          environment: 'happy-dom',
           setupFiles: [fileURLToPath(new URL('./vitest.setup.ts', import.meta.url))],
-          include: jsdomInclude,
+          include: domInclude,
           isolate: false,
           css: false,
         },

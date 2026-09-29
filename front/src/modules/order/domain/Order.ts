@@ -7,7 +7,7 @@ import type { OrderShipping } from './ShippingMethod'
 export type Order = {
   id: string
   customerId: string
-  customerEmail: string
+  customerEmail: string | null
   status: OrderStatus
   items: OrderItem[]
   total: Money
