@@ -1310,7 +1310,6 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     framework?: FrameworkConfig,
  *     doctrine?: DoctrineConfig,
  *     doctrine_migrations?: DoctrineMigrationsConfig,
- *     twig?: TwigConfig,
  *     security?: SecurityConfig,
  *     "when@dev"?: array{
  *         imports?: ImportsConfig,
@@ -1330,7 +1329,6 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         framework?: FrameworkConfig,
  *         doctrine?: DoctrineConfig,
  *         doctrine_migrations?: DoctrineMigrationsConfig,
- *         twig?: TwigConfig,
  *         security?: SecurityConfig,
  *     },
  *     "when@test"?: array{

@@ -18,24 +18,59 @@ jobs:
     defaults:
       run:
         working-directory: api
+    services:
+      database:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: shoppy
+          POSTGRES_USER: shoppy
+          POSTGRES_PASSWORD: shoppy
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U shoppy -d shoppy"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://shoppy:shoppy@127.0.0.1:5432/shoppy?serverVersion=16&charset=utf8
     steps:
       - uses: actions/checkout@v5
 
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.3'
-          extensions: mbstring, intl, ctype, iconv, pdo_sqlite
+          extensions: mbstring, intl, ctype, iconv, pdo_pgsql
           coverage: none
           tools: composer
 
       - name: Prepare environment
         run: cp .env.test .env
 
+      - name: Get Composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: composer-${{ runner.os }}-${{ hashFiles('api/composer.lock') }}
+          restore-keys: composer-${{ runner.os }}-
+
       - name: Install dependencies
         run: composer install --prefer-dist --no-progress --no-interaction --no-ansi
 
+      - name: Validate migrations
+        env:
+          APP_ENV: dev
+          APP_SECRET: ci-only
+        run: |
+          php bin/console doctrine:migrations:migrate --no-interaction --all-or-nothing
+          php bin/console doctrine:schema:validate
+          php bin/console doctrine:migrations:migrate first --no-interaction
+
       - name: Run tests
-        run: composer test
+        run: composer test:parallel
 
   front:
     name: Front tests
@@ -61,3 +96,32 @@ jobs:
 
       - name: Build
         run: npm run build
+
+  docker:
+    name: Production images
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build API image
+        uses: docker/build-push-action@v6
+        with:
+          context: api
+          file: api/docker/Dockerfile
+          target: production
+          push: false
+          cache-from: type=gha,scope=api
+          cache-to: type=gha,scope=api,mode=max
+
+      - name: Build front image
+        uses: docker/build-push-action@v6
+        with:
+          context: front
+          file: front/docker/Dockerfile
+          target: production
+          push: false
+          cache-from: type=gha,scope=front
+          cache-to: type=gha,scope=front,mode=max

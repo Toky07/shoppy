@@ -1,18 +1,49 @@
 name: shoppy-prod
 
+x-hardening: &hardening
+  restart: unless-stopped
+  security_opt:
+    - no-new-privileges:true
+  cap_drop:
+    - ALL
+
 services:
+  database:
+    <<: *hardening
+    image: postgres:16-alpine
+    # The entrypoint fixes data directory ownership, then drops to the postgres user.
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - FOWNER
+      - SETGID
+      - SETUID
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-shoppy}
+      POSTGRES_USER: ${POSTGRES_USER:-shoppy}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - backend
+    shm_size: 128mb
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 5s
+      timeout: 3s
+      start_period: 10s
+      retries: 10
+
   api:
+    <<: *hardening
     build:
       context: ./api
       dockerfile: docker/Dockerfile
       target: production
-    restart: unless-stopped
     init: true
     environment:
-      APP_ENV: prod
-      APP_DEBUG: "0"
       APP_SECRET: ${APP_SECRET:?APP_SECRET is required}
-      DATABASE_URL: sqlite:////app/var/data.db
+      DATABASE_URL: postgresql://${POSTGRES_USER:-shoppy}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}@database:5432/${POSTGRES_DB:-shoppy}?serverVersion=16&charset=utf8
       DEFAULT_URI: ${DEFAULT_URI:-https://localhost}
       FRONTEND_BASE_URL: ${FRONTEND_BASE_URL:-https://localhost}
       APP_ALLOWED_ORIGINS: ${APP_ALLOWED_ORIGINS:-https://localhost}
@@ -25,17 +56,16 @@ services:
       SYMFONY_TRUSTED_HEADERS: x-forwarded-for,x-forwarded-proto,x-forwarded-port,x-forwarded-host
     volumes:
       - api_uploads:/app/public/uploads
-      - api_var:/app/var
-    expose:
-      - "80"
-    healthcheck:
-      test: ["CMD", "php", "-r", "exit(@file_get_contents('http://127.0.0.1/products') === false ? 1 : 0);"]
-      interval: 10s
-      timeout: 5s
-      start_period: 40s
-      retries: 8
+    # backend reaches the database; frontend serves nginx and allows outbound calls (Stripe, mail).
+    networks:
+      - backend
+      - frontend
+    depends_on:
+      database:
+        condition: service_healthy
 
   front:
+    <<: *hardening
     build:
       context: ./front
       dockerfile: docker/Dockerfile
@@ -43,14 +73,23 @@ services:
       network: host
       args:
         VITE_API_URL: /api
-    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp
     ports:
-      - "${HTTP_PORT:-80}:80"
-      - "${HTTPS_PORT:-443}:443"
+      - "${HTTP_PORT:-80}:8080"
+      - "${HTTPS_PORT:-443}:8443"
+    networks:
+      - frontend
     depends_on:
       api:
         condition: service_healthy
 
+networks:
+  backend:
+    internal: true
+  frontend:
+
 volumes:
+  postgres_data:
   api_uploads:
-  api_var:
