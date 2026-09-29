@@ -63,6 +63,7 @@ export function createOrderJson(overrides: Record<string, unknown> = {}) {
   return {
     id: pendingOrder.id,
     customerId: pendingOrder.customerId,
+    customerEmail: pendingOrder.customerEmail,
     status: pendingOrder.status,
     items: [createOrderItemJson()],
     total: { cents: pendingOrder.total.cents, currency: pendingOrder.total.currency },

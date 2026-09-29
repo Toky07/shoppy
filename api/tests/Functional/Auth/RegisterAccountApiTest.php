@@ -18,6 +18,7 @@ it('registers an account without exposing the password', function () {
         ->and((string) $response->getContent())->not->toContain('secret-secret')
         ->and((string) $response->getContent())->not->toContain('ada@nuvora.test')
         ->and((string) $response->getContent())->not->toContain('$argon2id$')
+        ->and((string) $response->getContent())->not->toContain('hashed:')
         ->and($response->headers->get('Location'))->toBeNull();
 });
 

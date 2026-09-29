@@ -73,6 +73,7 @@ export function mapOrder(payload: unknown): Order {
     !isRecord(payload) ||
     typeof payload.id !== 'string' ||
     typeof payload.customerId !== 'string' ||
+    (payload.customerEmail != null && typeof payload.customerEmail !== 'string') ||
     !isOrderStatus(payload.status) ||
     !Array.isArray(payload.items) ||
     typeof payload.createdAt !== 'string' ||
@@ -87,7 +88,7 @@ export function mapOrder(payload: unknown): Order {
   return {
     id: payload.id,
     customerId: payload.customerId,
-    customerEmail: payload.customerEmail as string,
+    customerEmail: typeof payload.customerEmail === 'string' ? payload.customerEmail : null,
     status: payload.status,
     items: payload.items.map(mapOrderItem),
     total: mapMoney(payload.total, 'Invalid order total.'),

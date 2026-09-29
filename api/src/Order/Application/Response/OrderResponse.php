@@ -28,7 +28,7 @@ final readonly class OrderResponse
     public function __construct(
         public string $id,
         public string $customerId,
-        public string $customerEmail,
+        public ?string $customerEmail,
         public string $status,
         public array $items,
         public array $total,

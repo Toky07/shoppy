@@ -112,7 +112,7 @@ class OrderRecord
         $this->status = $order->status()->value();
     }
 
-    public function toDomain(string $email = ""): Order
+    public function toDomain(?string $email = null): Order
     {
         return Order::reconstitute(
             OrderId::fromString($this->id),

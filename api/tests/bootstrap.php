@@ -1,6 +1,8 @@
 <?php
 
+use Symfony\Component\Config\ConfigCache;
 use Symfony\Component\Dotenv\Dotenv;
+use Symfony\Component\Filesystem\Filesystem;
 
 require dirname(__DIR__).'/vendor/autoload.php';
 
@@ -10,4 +12,14 @@ if (method_exists(Dotenv::class, 'bootEnv')) {
 
 if ($_SERVER['APP_DEBUG']) {
     umask(0000);
+}
+
+// Tests run with APP_DEBUG=0, so the kernel never rebuilds a stale container on its own.
+if (getenv('TEST_TOKEN') === false) {
+    $testCacheDir = dirname(__DIR__).'/var/cache/test';
+    $container = $testCacheDir.'/App_KernelTestContainer.php';
+
+    if (is_file($container) && !(new ConfigCache($container, true))->isFresh()) {
+        (new Filesystem())->remove($testCacheDir);
+    }
 }

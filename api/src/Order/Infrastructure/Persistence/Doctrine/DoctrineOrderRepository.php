@@ -74,7 +74,7 @@ final readonly class DoctrineOrderRepository implements OrderRepository
         $records = $this->entityManager->createQueryBuilder()
             ->select('o')
             ->from(OrderRecord::class, 'o')
-            ->join(
+            ->leftJoin(
                 UserRecord::class,
                 'u',
                 'ON',

@@ -105,7 +105,7 @@ describe('Admin pages', () => {
 
     await waitFor(() => {
       expect(screen.getByText(/En attente/)).toBeTruthy()
-      expect(screen.getByText(`Client ${pendingOrder.customerId}`)).toBeTruthy()
+      expect(screen.getByText('test@test.test')).toBeTruthy()
     })
     expect(orderRepository.listAllCount).toBeGreaterThan(0)
     expect(

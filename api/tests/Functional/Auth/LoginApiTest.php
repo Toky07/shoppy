@@ -37,7 +37,8 @@ it('logs in with valid credentials without exposing the password', function () {
         ->and($payload)->not->toHaveKey('passwordHash')
         ->and($payload['user'])->not->toHaveKey('password')
         ->and((string) $response->getContent())->not->toContain('secret-secret')
-        ->and((string) $response->getContent())->not->toContain('$argon2id$');
+        ->and((string) $response->getContent())->not->toContain('$argon2id$')
+        ->and((string) $response->getContent())->not->toContain('hashed:');
 });
 
 it('rejects a wrong password without leaking the email', function () {

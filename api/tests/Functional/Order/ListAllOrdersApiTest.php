@@ -48,7 +48,7 @@ it('lists all orders for an admin newest first', function () {
     $second = adminListOrdersLogin('admin-list-b@nuvora.test');
 
     $older = adminListOrdersPlace($first['headers'], $olderProduct['id'], 1);
-    usleep(1_100_000);
+    backdateOrder($this->client, $older['id'], '-1 hour');
     $newer = adminListOrdersPlace($second['headers'], $newerProduct['id'], 2);
 
     $this->client->jsonRequest('GET', '/admin/orders', [], catalogAdminHeaders());
@@ -74,9 +74,9 @@ it('paginates all orders for an admin', function () {
     $owner = adminListOrdersLogin('admin-list-owner@nuvora.test');
 
     $oldest = adminListOrdersPlace($owner['headers'], $one['id']);
-    usleep(1_100_000);
-    adminListOrdersPlace($owner['headers'], $two['id']);
-    usleep(1_100_000);
+    backdateOrder($this->client, $oldest['id'], '-2 hours');
+    $middle = adminListOrdersPlace($owner['headers'], $two['id']);
+    backdateOrder($this->client, $middle['id'], '-1 hour');
     adminListOrdersPlace($owner['headers'], $three['id']);
 
     $this->client->jsonRequest('GET', '/admin/orders?page=2&limit=2', [], catalogAdminHeaders());

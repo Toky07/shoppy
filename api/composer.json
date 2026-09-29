@@ -67,6 +67,7 @@
             "@auto-scripts"
         ],
         "test": "pest",
+        "test:parallel": "pest --parallel",
         "seed": "bin/console app:seed-demo"
     },
     "conflict": {

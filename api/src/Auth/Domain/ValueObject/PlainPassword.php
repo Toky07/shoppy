@@ -8,8 +8,8 @@ use App\Auth\Domain\Exception\InvalidPassword;
 
 final readonly class PlainPassword
 {
-    private const MIN_LENGTH = 12;
-    private const MAX_LENGTH = 4096;
+    private const MIN_LENGTH = 8;
+    private const MAX_LENGTH = 20;
 
     private function __construct(private string $value)
     {

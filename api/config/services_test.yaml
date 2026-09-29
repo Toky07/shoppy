@@ -1,5 +1,5 @@
 parameters:
-    app.media.upload_dir: '%kernel.project_dir%/var/test-uploads'
+    app.media.upload_dir: '%kernel.project_dir%/var/test-uploads%env(default::TEST_TOKEN)%'
     app.rate_limit.login: 100000
     app.rate_limit.register: 100000
     app.rate_limit.checkout: 100000
@@ -9,6 +9,12 @@ services:
     _defaults:
         autowire: true
         autoconfigure: true
+
+    App\Tests\Doctrine\FastSqliteMiddleware: ~
+
+    App\Tests\Doubles\FakePasswordHasher: ~
+
+    App\Auth\Application\PasswordHasher: '@App\Tests\Doubles\FakePasswordHasher'
 
     App\Tests\Doubles\FakeStripeCheckoutClient:
         public: true
