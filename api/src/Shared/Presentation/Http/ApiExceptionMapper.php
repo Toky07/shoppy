@@ -15,6 +15,8 @@ use App\Shared\Presentation\Exception\InvalidRequest;
 use JsonException;
 use Symfony\Component\HttpFoundation\Exception\JsonException as HttpJsonException;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Component\Security\Core\Exception\AccessDeniedException;
+use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -63,6 +65,20 @@ final class ApiExceptionMapper
             return new MappedHttpError(
                 new ErrorResponse($exception->errorCode(), 'The request is not authorized.'),
                 403,
+            );
+        }
+
+        if ($exception instanceof AccessDeniedException) {
+            return new MappedHttpError(
+                new ErrorResponse('forbidden', 'The request is not authorized.'),
+                403,
+            );
+        }
+
+        if ($exception instanceof AuthenticationException) {
+            return new MappedHttpError(
+                new ErrorResponse('unauthenticated', 'The request is not authenticated.'),
+                401,
             );
         }
 
