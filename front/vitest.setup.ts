@@ -1,6 +1,29 @@
 import { cleanup } from '@testing-library/vue'
 import { afterEach } from 'vitest'
 
+class MockIntersectionObserver implements IntersectionObserver {
+  readonly root: Element | Document | null = null
+  readonly rootMargin = '0px'
+  readonly scrollMargin = '0px'
+  readonly thresholds: readonly number[] = [0]
+
+  constructor(private callback: IntersectionObserverCallback) {}
+
+  observe(target: Element): void {
+    this.callback([{ isIntersecting: true, target } as IntersectionObserverEntry], this)
+  }
+
+  unobserve(): void {}
+
+  disconnect(): void {}
+
+  takeRecords(): IntersectionObserverEntry[] {
+    return []
+  }
+}
+
+window.IntersectionObserver = MockIntersectionObserver as unknown as typeof IntersectionObserver
+
 // happy-dom has no dialogs; mirror jsdom, where confirm() answers "cancel" unless a test mocks it.
 window.confirm ??= () => false
 

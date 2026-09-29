@@ -28,13 +28,7 @@ function onCopyLink() {
     <div
       class="group relative aspect-4/5 overflow-hidden rounded-panel border border-line bg-surface shadow-lifted"
     >
-      <ImageCarousel
-        v-model="slide"
-        :images="images"
-        :alt="product.name"
-        eager
-        interactive
-      />
+      <ImageCarousel v-model="slide" :images="images" :alt="product.name" interactive />
       <div class="absolute top-5 left-5 z-20 flex flex-col gap-2">
         <span v-if="outOfStock" class="badge-danger">Rupture</span>
         <span v-else class="badge-accent">Disponible</span>

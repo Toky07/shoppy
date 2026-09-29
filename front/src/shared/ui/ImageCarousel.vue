@@ -2,41 +2,71 @@
 import { computed, ref, watch } from 'vue'
 import AppIcon from './AppIcon.vue'
 import AppImage from './AppImage.vue'
+import { useInViewport } from './useInViewport'
 
 const props = withDefaults(
   defineProps<{
     images: string[]
     alt: string
     showArrows?: boolean
-    eager?: boolean
     interactive?: boolean
   }>(),
   {
     showArrows: true,
-    eager: false,
     interactive: false,
   },
 )
 
 const index = defineModel<number>({ default: 0 })
 const direction = ref<'next' | 'prev'>('next')
+const root = ref<HTMLElement | null>(null)
+const inViewport = useInViewport(root, { rootMargin: '80px' })
+
+/** Slide indices whose image URL may be fetched. */
+const fetchedSlides = ref<Set<number>>(new Set())
 
 const sources = computed(() => props.images.filter((url) => url !== ''))
 const current = computed(() => sources.value[index.value] ?? null)
 const canNavigate = computed(() => sources.value.length > 1)
-const currentLoading = computed(() => (props.eager || index.value > 0 ? 'eager' : 'lazy'))
 const currentAlt = computed(() =>
   canNavigate.value ? `${props.alt} (${index.value + 1}/${sources.value.length})` : props.alt,
 )
 const slideName = computed(() => (direction.value === 'next' ? 'media-slide-next' : 'media-slide-prev'))
+const fetchCurrent = computed(() => inViewport.value && fetchedSlides.value.has(index.value))
+
+function markSlideForFetch(slide: number) {
+  if (slide < 0 || slide >= sources.value.length) {
+    return
+  }
+
+  if (fetchedSlides.value.has(slide)) {
+    return
+  }
+
+  fetchedSlides.value = new Set(fetchedSlides.value).add(slide)
+}
 
 watch(sources, (next) => {
+  fetchedSlides.value = new Set()
   if (index.value >= next.length) {
     index.value = 0
+  }
+  if (inViewport.value && next.length > 0) {
+    markSlideForFetch(index.value)
+  }
+})
+
+watch(inViewport, (visible) => {
+  if (visible && sources.value.length > 0) {
+    markSlideForFetch(index.value)
   }
 })
 
 watch(index, (next, previous) => {
+  if (inViewport.value) {
+    markSlideForFetch(next)
+  }
+
   if (previous === undefined || next === previous) {
     return
   }
@@ -95,6 +125,7 @@ function onPointerUp(event: PointerEvent) {
 
 <template>
   <div
+    ref="root"
     class="relative h-full w-full"
     role="group"
     :aria-roledescription="canNavigate ? 'carrousel' : undefined"
@@ -103,7 +134,7 @@ function onPointerUp(event: PointerEvent) {
     <div class="relative h-full w-full overflow-hidden" @pointerdown="onPointerDown" @pointerup="onPointerUp">
       <Transition :name="slideName">
         <div :key="index" class="absolute inset-0">
-          <AppImage :src="current" :alt="currentAlt" :loading="currentLoading" />
+          <AppImage :src="current" :alt="currentAlt" :fetch="fetchCurrent" :viewport="false" loading="lazy" />
         </div>
       </Transition>
     </div>
@@ -193,4 +224,3 @@ function onPointerUp(event: PointerEvent) {
   opacity: 0;
 }
 </style>
-
