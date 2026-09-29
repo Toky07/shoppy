@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Order\Presentation\Controller;
 
 use App\Auth\Domain\Exception\Forbidden;
-use App\Auth\Presentation\Http\CurrentUser;
 use App\Order\Application\Query\GetOrderQuery;
 use App\Order\Application\QueryHandler\GetOrderQueryHandler;
 use App\Order\Presentation\Security\OrderAccessSubject;
@@ -20,7 +19,6 @@ use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 final readonly class GetOrderController
 {
     public function __construct(
-        private CurrentUser $currentUser,
         private AuthorizationCheckerInterface $authorizationChecker,
         private GetOrderQueryHandler $getOrder,
     ) {
@@ -30,7 +28,6 @@ final readonly class GetOrderController
     #[IsGranted(AuthenticationAttributes::IS_AUTHENTICATED)]
     public function __invoke(string $id, Request $request): JsonResponse
     {
-        $this->currentUser->id();
         $order = $this->getOrder->handle(new GetOrderQuery($id));
 
         if (!$this->authorizationChecker->isGranted(

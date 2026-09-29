@@ -17,6 +17,8 @@ security:
             lazy: true
             stateless: true
             provider: app_authenticated_user
+            custom_authenticators:
+                - App\Auth\Infrastructure\Security\Http\AccessTokenAuthenticator
 
 when@test:
     security:

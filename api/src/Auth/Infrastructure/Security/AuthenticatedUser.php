@@ -47,6 +47,7 @@ final readonly class AuthenticatedUser implements UserInterface
         return $this->roles;
     }
 
+    #[\Deprecated]
     public function eraseCredentials(): void
     {
     }

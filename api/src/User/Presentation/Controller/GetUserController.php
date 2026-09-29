@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\User\Presentation\Controller;
 
 use App\Auth\Domain\Exception\Forbidden;
-use App\Auth\Presentation\Http\CurrentUser;
 use App\User\Application\Query\GetUserQuery;
 use App\User\Application\QueryHandler\GetUserQueryHandler;
 use App\User\Presentation\Security\UserAccessSubject;
@@ -20,7 +19,6 @@ use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 final readonly class GetUserController
 {
     public function __construct(
-        private CurrentUser $currentUser,
         private AuthorizationCheckerInterface $authorizationChecker,
         private GetUserQueryHandler $getUser,
     ) {
@@ -30,8 +28,6 @@ final readonly class GetUserController
     #[IsGranted(AuthenticationAttributes::IS_AUTHENTICATED)]
     public function __invoke(string $id, Request $request): JsonResponse
     {
-        $this->currentUser->id();
-
         if (!$this->authorizationChecker->isGranted(
             UserVoter::VIEW,
             new UserAccessSubject($id),
