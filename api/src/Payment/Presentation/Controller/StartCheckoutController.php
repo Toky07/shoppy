@@ -33,10 +33,8 @@ final readonly class StartCheckoutController
     #[Route('/payments/checkout', methods: ['POST'])]
     #[IsGranted(AuthorizationAttributes::IS_AUTHENTICATED)]
     #[IsGranted(AuthorizationAttributes::PAYMENT_ACCESS, subject: 'paymentAccess')]
-    public function __invoke(
-        PaymentAccessSubject $paymentAccess,
-        Request $request,
-    ): JsonResponse {
+    public function __invoke(PaymentAccessSubject $paymentAccess, Request $request): JsonResponse
+    {
         $userId = $this->currentUser->id();
 
         $httpRequest = StartCheckoutHttpRequest::fromPayload($request->toArray());

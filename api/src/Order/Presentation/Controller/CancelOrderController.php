@@ -13,7 +13,6 @@ use App\Order\Application\QueryHandler\GetOrderQueryHandler;
 use App\Order\Application\Response\OrderResponse;
 use App\Order\Presentation\Security\OrderAccessSubject;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -29,11 +28,8 @@ final readonly class CancelOrderController
     #[Route('/orders/{id}/cancel', methods: ['POST'])]
     #[IsGranted(AuthorizationAttributes::IS_AUTHENTICATED)]
     #[IsGranted(AuthorizationAttributes::ORDER_CANCEL, subject: 'orderAccess')]
-    public function __invoke(
-        OrderResponse $order,
-        OrderAccessSubject $orderAccess,
-        Request $request,
-    ): JsonResponse {
+    public function __invoke(OrderResponse $order, OrderAccessSubject $orderAccess): JsonResponse
+    {
         $this->cancelOrder->handle(new CancelOrderCommand(
             orderId: $order->id,
             customerId: $this->currentUser->id(),

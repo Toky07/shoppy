@@ -25,7 +25,7 @@ final readonly class OrderArgumentValueResolver implements ValueResolverInterfac
             return [];
         }
 
-        $orderId = $request->attributes->get('id');
+        $orderId = $request->attributes->get('id') ?? $request->attributes->get('orderId');
 
         if (!is_string($orderId) || $orderId === '') {
             return [];

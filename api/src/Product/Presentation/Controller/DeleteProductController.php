@@ -7,7 +7,6 @@ namespace App\Product\Presentation\Controller;
 use App\Auth\Presentation\Security\AuthorizationAttributes;
 use App\Product\Application\Command\DeleteProductCommand;
 use App\Product\Application\CommandHandler\DeleteProductCommandHandler;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
@@ -21,7 +20,7 @@ final readonly class DeleteProductController
 
     #[Route('/products/{id}', methods: ['DELETE'])]
     #[IsGranted(AuthorizationAttributes::ROLE_ADMIN)]
-    public function __invoke(string $id, Request $request): Response
+    public function __invoke(string $id): Response
     {
         $this->deleteProduct->handle(new DeleteProductCommand($id));
 

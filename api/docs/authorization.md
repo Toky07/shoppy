@@ -54,10 +54,12 @@ Use `GrantChecker` for checks that depend on optional query flags (draft product
 
 | Resolver | Resolves | Route / input |
 |----------|----------|---------------|
-| `OrderArgumentValueResolver` | `OrderResponse`, `OrderAccessSubject` | `{id}` |
+| `OrderArgumentValueResolver` | `OrderResponse`, `OrderAccessSubject` | `{id}` or `{orderId}` |
 | `UserAccessSubjectValueResolver` | `UserAccessSubject` | `/users/{id}` |
 | `PaymentAccessSubjectValueResolver` | `PaymentAccessSubject` | `{orderId}` or JSON `orderId` |
 | `MediaListArgumentValueResolver` | `ListMediaHttpRequest`, `MediaListSubject` | query `ownerType`, `ownerId` |
+
+Some actions declare a voter subject argument only for `#[IsGranted(subject: …)]`; it is not used in the handler body.
 
 Denied `MEDIA_LIST` votes on anonymous callers become **401** via `ApiExceptionSubscriber` (same as `GrantChecker::denyUnlessGrantedOrRequireAuthentication`).
 

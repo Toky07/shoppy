@@ -10,7 +10,6 @@ use App\Order\Application\CommandHandler\MarkOrderPaidCommandHandler;
 use App\Order\Application\Query\GetOrderQuery;
 use App\Order\Application\QueryHandler\GetOrderQueryHandler;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -24,7 +23,7 @@ final readonly class MarkOrderPaidController
 
     #[Route('/orders/{id}/mark-paid', methods: ['POST'])]
     #[IsGranted(AuthorizationAttributes::ROLE_ADMIN)]
-    public function __invoke(string $id, Request $request): JsonResponse
+    public function __invoke(string $id): JsonResponse
     {
         $this->markOrderPaid->handle(new MarkOrderPaidCommand($id));
 

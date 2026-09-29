@@ -12,7 +12,6 @@ use App\Product\Application\QueryHandler\GetProductQueryHandler;
 use App\Product\Domain\Exception\ProductNotFound;
 use App\Auth\Presentation\Security\AuthorizationAttributes;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 
 final readonly class GetProductController
@@ -24,7 +23,7 @@ final readonly class GetProductController
     }
 
     #[Route('/products/{id}', methods: ['GET'])]
-    public function __invoke(string $id, Request $request): JsonResponse
+    public function __invoke(string $id): JsonResponse
     {
         $product = $this->getProduct->handle(new GetProductQuery($id));
 
