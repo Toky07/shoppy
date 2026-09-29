@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Order\Presentation\Controller;
 
-use App\Auth\Domain\Exception\Forbidden;
 use App\Auth\Presentation\Http\CurrentUser;
+use App\Auth\Presentation\Security\GrantChecker;
 use App\Order\Application\Command\CancelOrderCommand;
 use App\Order\Application\CommandHandler\CancelOrderCommandHandler;
 use App\Order\Application\Query\GetOrderQuery;
@@ -16,13 +16,12 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use App\Auth\Presentation\Security\AuthorizationAttributes;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
-use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 
 final readonly class CancelOrderController
 {
     public function __construct(
         private CurrentUser $currentUser,
-        private AuthorizationCheckerInterface $authorizationChecker,
+        private GrantChecker $grantChecker,
         private CancelOrderCommandHandler $cancelOrder,
         private GetOrderQueryHandler $getOrder,
     ) {
@@ -35,12 +34,10 @@ final readonly class CancelOrderController
         $userId = $this->currentUser->id();
         $order = $this->getOrder->handle(new GetOrderQuery($id));
 
-        if (!$this->authorizationChecker->isGranted(
+        $this->grantChecker->denyUnlessGranted(
             AuthorizationAttributes::ORDER_CANCEL,
             new OrderAccessSubject($order->customerId),
-        )) {
-            throw new Forbidden();
-        }
+        );
 
         $this->cancelOrder->handle(new CancelOrderCommand(
             orderId: $id,

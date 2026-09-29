@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace App\Media\Presentation\Controller;
 
-use App\Auth\Domain\Exception\Forbidden;
-use App\Auth\Presentation\Http\CurrentUser;
+use App\Auth\Presentation\Security\GrantChecker;
 use App\Media\Application\Query\ListMediaByOwnerQuery;
 use App\Media\Application\QueryHandler\ListMediaByOwnerQueryHandler;
 use App\Media\Presentation\Request\ListMediaHttpRequest;
@@ -14,14 +13,12 @@ use App\Auth\Presentation\Security\AuthorizationAttributes;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 
 final readonly class ListMediaController
 {
     public function __construct(
         private ListMediaByOwnerQueryHandler $listMedia,
-        private CurrentUser $currentUser,
-        private AuthorizationCheckerInterface $authorizationChecker,
+        private GrantChecker $grantChecker,
     ) {
     }
 
@@ -31,11 +28,7 @@ final readonly class ListMediaController
         $httpRequest = ListMediaHttpRequest::fromRequest($request);
         $subject = new MediaListSubject($httpRequest->ownerType);
 
-        if (!$this->authorizationChecker->isGranted(AuthorizationAttributes::MEDIA_LIST, $subject)) {
-            $this->currentUser->id();
-
-            throw new Forbidden();
-        }
+        $this->grantChecker->denyUnlessGrantedOrRequireAuthentication(AuthorizationAttributes::MEDIA_LIST, $subject);
 
         $list = $this->listMedia->handle(new ListMediaByOwnerQuery(
             $httpRequest->ownerType,

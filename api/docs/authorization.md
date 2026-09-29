@@ -37,7 +37,7 @@ Symfony roles on `AuthenticatedUser` map to domain roles via `domainRole()` (`ad
 
 ## Resource voters
 
-Use `AuthorizationCheckerInterface::isGranted($attribute, $subject)` or the constants in `AuthorizationAttributes`.
+Inject `GrantChecker` in controllers that load a resource before voting. It wraps `AuthorizationCheckerInterface` and throws domain `Forbidden` / `Unauthenticated` exceptions using the constants in `AuthorizationAttributes`.
 
 | Attribute        | Voter          | Subject              | Rule                                      |
 |------------------|----------------|----------------------|-------------------------------------------|
@@ -61,4 +61,7 @@ Ownership rules that belong to the business model live on aggregates (e.g. `Orde
 
 `ApiExceptionSubscriber` maps Symfony `AccessDeniedException` to 401 when the caller is not authenticated.
 
-On routes that combine a **voter** with optional anonymity (e.g. draft products, restricted media), controllers call `CurrentUser::id()` after a denied vote so anonymous callers get **401** and authenticated but unauthorized callers get **403**.
+| Method | When to use |
+|--------|-------------|
+| `denyUnlessGranted($attribute, $subject?)` | Route already has `IS_AUTHENTICATED` — denial → **403** |
+| `denyUnlessGrantedOrRequireAuthentication($attribute, $subject?)` | Public route with voter — anonymous denial → **401**, else **403** |
