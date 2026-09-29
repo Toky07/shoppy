@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Media\Presentation\Controller;
 
+use App\Auth\Presentation\Security\AuthorizationAttributes;
 use App\Media\Application\Command\DeleteMediaCommand;
 use App\Media\Application\CommandHandler\DeleteMediaCommandHandler;
 use Symfony\Component\HttpFoundation\Request;
@@ -19,7 +20,7 @@ final readonly class DeleteMediaController
     }
 
     #[Route('/media/{id}', methods: ['DELETE'])]
-    #[IsGranted('ROLE_ADMIN')]
+    #[IsGranted(AuthorizationAttributes::ROLE_ADMIN)]
     public function __invoke(string $id, Request $request): Response
     {
         $this->deleteMedia->handle(new DeleteMediaCommand($id));

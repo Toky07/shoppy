@@ -18,7 +18,7 @@ The API separates **authentication** (who is calling) from **authorization** (wh
 
 Admin implies user (`role_hierarchy` in `security.yaml`).
 
-Global admin routes use `#[IsGranted('ROLE_ADMIN')]` on controllers.
+Global admin routes use `#[IsGranted(AuthorizationAttributes::ROLE_ADMIN)]` on controllers.
 
 ## Resource voters
 

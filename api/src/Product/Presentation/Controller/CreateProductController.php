@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Product\Presentation\Controller;
 
+use App\Auth\Presentation\Security\AuthorizationAttributes;
 use App\Product\Application\Command\CreateProductCommand;
 use App\Product\Application\CommandHandler\CreateProductCommandHandler;
 use App\Product\Application\Query\GetProductQuery;
@@ -24,7 +25,7 @@ final readonly class CreateProductController
     }
 
     #[Route('/products', methods: ['POST'])]
-    #[IsGranted('ROLE_ADMIN')]
+    #[IsGranted(AuthorizationAttributes::ROLE_ADMIN)]
     public function __invoke(Request $request): JsonResponse
     {
         $httpRequest = CreateProductHttpRequest::fromPayload($request->toArray());

@@ -10,7 +10,7 @@ use App\Media\Application\Query\ListMediaByOwnerQuery;
 use App\Media\Application\QueryHandler\ListMediaByOwnerQueryHandler;
 use App\Media\Presentation\Request\ListMediaHttpRequest;
 use App\Media\Presentation\Security\MediaListSubject;
-use App\Media\Presentation\Security\MediaVoter;
+use App\Auth\Presentation\Security\AuthorizationAttributes;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
@@ -31,7 +31,7 @@ final readonly class ListMediaController
         $httpRequest = ListMediaHttpRequest::fromRequest($request);
         $subject = new MediaListSubject($httpRequest->ownerType);
 
-        if (!$this->authorizationChecker->isGranted(MediaVoter::LIST, $subject)) {
+        if (!$this->authorizationChecker->isGranted(AuthorizationAttributes::MEDIA_LIST, $subject)) {
             $this->currentUser->id();
 
             throw new Forbidden();

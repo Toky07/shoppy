@@ -10,7 +10,7 @@ use App\Auth\Presentation\Http\CurrentUser;
 use App\Product\Application\Query\GetProductQuery;
 use App\Product\Application\QueryHandler\GetProductQueryHandler;
 use App\Product\Domain\Exception\ProductNotFound;
-use App\Product\Presentation\Security\ProductVoter;
+use App\Auth\Presentation\Security\AuthorizationAttributes;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
@@ -34,7 +34,7 @@ final readonly class GetProductController
             try {
                 $this->currentUser->id();
 
-                if (!$this->authorizationChecker->isGranted(ProductVoter::ADMIN)) {
+                if (!$this->authorizationChecker->isGranted(AuthorizationAttributes::PRODUCT_ADMIN)) {
                     throw new Forbidden();
                 }
             } catch (Unauthenticated|Forbidden) {

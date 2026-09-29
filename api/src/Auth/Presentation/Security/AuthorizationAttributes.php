@@ -10,6 +10,7 @@ use App\Order\Presentation\Security\OrderVoter;
 use App\Payment\Presentation\Security\PaymentVoter;
 use App\Product\Presentation\Security\ProductVoter;
 use App\User\Presentation\Security\UserVoter;
+use Symfony\Component\Security\Core\Authorization\Voter\AuthenticatedVoter;
 
 /**
  * Registry of Symfony authorization attributes used by the API.
@@ -18,7 +19,7 @@ use App\User\Presentation\Security\UserVoter;
  */
 final class AuthorizationAttributes
 {
-    public const IS_AUTHENTICATED = AuthenticationAttributes::IS_AUTHENTICATED;
+    public const IS_AUTHENTICATED = AuthenticatedVoter::IS_AUTHENTICATED;
 
     public const ROLE_ADMIN = AuthenticatedUser::ROLE_ADMIN;
 

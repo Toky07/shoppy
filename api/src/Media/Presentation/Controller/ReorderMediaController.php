@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Media\Presentation\Controller;
 
+use App\Auth\Presentation\Security\AuthorizationAttributes;
 use App\Media\Application\Command\ReorderMediaCommand;
 use App\Media\Application\CommandHandler\ReorderMediaCommandHandler;
 use App\Media\Presentation\Request\ReorderMediaHttpRequest;
@@ -20,7 +21,7 @@ final readonly class ReorderMediaController
     }
 
     #[Route('/media/order', methods: ['PUT'])]
-    #[IsGranted('ROLE_ADMIN')]
+    #[IsGranted(AuthorizationAttributes::ROLE_ADMIN)]
     public function __invoke(Request $request): Response
     {
         $httpRequest = ReorderMediaHttpRequest::fromPayload($request->toArray());

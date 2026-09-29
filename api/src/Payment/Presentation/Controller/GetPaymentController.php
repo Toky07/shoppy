@@ -11,11 +11,10 @@ use App\Order\Application\QueryHandler\GetOrderQueryHandler;
 use App\Payment\Application\Query\GetPaymentByOrderQuery;
 use App\Payment\Application\QueryHandler\GetPaymentByOrderQueryHandler;
 use App\Payment\Presentation\Security\PaymentAccessSubject;
-use App\Payment\Presentation\Security\PaymentVoter;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
-use App\Auth\Presentation\Security\AuthenticationAttributes;
+use App\Auth\Presentation\Security\AuthorizationAttributes;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 
@@ -30,14 +29,14 @@ final readonly class GetPaymentController
     }
 
     #[Route('/payments/by-order/{orderId}', methods: ['GET'])]
-    #[IsGranted(AuthenticationAttributes::IS_AUTHENTICATED)]
+    #[IsGranted(AuthorizationAttributes::IS_AUTHENTICATED)]
     public function __invoke(string $orderId, Request $request): JsonResponse
     {
         $userId = $this->currentUser->id();
         $order = $this->getOrder->handle(new GetOrderQuery($orderId));
 
         if (!$this->authorizationChecker->isGranted(
-            PaymentVoter::ACCESS,
+            AuthorizationAttributes::PAYMENT_ACCESS,
             new PaymentAccessSubject($order->customerId),
         )) {
             throw new Forbidden();

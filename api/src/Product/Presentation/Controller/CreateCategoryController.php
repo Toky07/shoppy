@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Product\Presentation\Controller;
 
+use App\Auth\Presentation\Security\AuthorizationAttributes;
 use App\Product\Application\Command\CreateCategoryCommand;
 use App\Product\Application\CommandHandler\CreateCategoryCommandHandler;
 use App\Product\Application\Response\CategoryResponse;
@@ -22,7 +23,7 @@ final readonly class CreateCategoryController
     }
 
     #[Route('/categories', methods: ['POST'])]
-    #[IsGranted('ROLE_ADMIN')]
+    #[IsGranted(AuthorizationAttributes::ROLE_ADMIN)]
     public function __invoke(Request $request): JsonResponse
     {
         $payload = $request->toArray();

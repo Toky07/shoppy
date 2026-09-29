@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Product\Presentation\Controller;
 
+use App\Auth\Presentation\Security\AuthorizationAttributes;
 use App\Product\Application\Command\UpdateProductCommand;
 use App\Product\Application\CommandHandler\UpdateProductCommandHandler;
 use App\Product\Application\Query\GetProductQuery;
@@ -23,7 +24,7 @@ final readonly class UpdateProductController
     }
 
     #[Route('/products/{id}', methods: ['PATCH'])]
-    #[IsGranted('ROLE_ADMIN')]
+    #[IsGranted(AuthorizationAttributes::ROLE_ADMIN)]
     public function __invoke(string $id, Request $request): JsonResponse
     {
         $httpRequest = UpdateProductHttpRequest::fromPayload($request->toArray());

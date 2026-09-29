@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\User\Presentation\Controller;
 
+use App\Auth\Presentation\Security\AuthorizationAttributes;
 use App\User\Application\Command\AssignUserRoleCommand;
 use App\User\Application\CommandHandler\AssignUserRoleCommandHandler;
 use App\User\Application\Query\GetUserQuery;
@@ -23,7 +24,7 @@ final readonly class AssignUserRoleController
     }
 
     #[Route('/users/{id}', methods: ['PATCH'])]
-    #[IsGranted('ROLE_ADMIN')]
+    #[IsGranted(AuthorizationAttributes::ROLE_ADMIN)]
     public function __invoke(string $id, Request $request): JsonResponse
     {
         $httpRequest = AssignUserRoleHttpRequest::fromPayload($request->toArray());

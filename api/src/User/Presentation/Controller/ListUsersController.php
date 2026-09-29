@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\User\Presentation\Controller;
 
+use App\Auth\Presentation\Security\AuthorizationAttributes;
 use App\User\Application\Query\ListUsersQuery;
 use App\User\Application\QueryHandler\ListUsersQueryHandler;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -19,7 +20,7 @@ final readonly class ListUsersController
     }
 
     #[Route('/admin/users', methods: ['GET'])]
-    #[IsGranted('ROLE_ADMIN')]
+    #[IsGranted(AuthorizationAttributes::ROLE_ADMIN)]
     public function __invoke(Request $request): JsonResponse
     {
         $search = $request->query->get('q');

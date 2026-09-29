@@ -10,7 +10,7 @@ use App\Product\Application\Query\ListProductsByIdsQuery;
 use App\Product\Application\Query\ListProductsQuery;
 use App\Product\Application\QueryHandler\ListProductsByIdsQueryHandler;
 use App\Product\Application\QueryHandler\ListProductsQueryHandler;
-use App\Product\Presentation\Security\ProductVoter;
+use App\Auth\Presentation\Security\AuthorizationAttributes;
 use App\Shared\Presentation\Exception\InvalidRequest;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -41,7 +41,7 @@ final readonly class ListProductsController
         if ($includeDrafts) {
             $this->currentUser->id();
 
-            if (!$this->authorizationChecker->isGranted(ProductVoter::ADMIN)) {
+            if (!$this->authorizationChecker->isGranted(AuthorizationAttributes::PRODUCT_ADMIN)) {
                 throw new Forbidden();
             }
         }

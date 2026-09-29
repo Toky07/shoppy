@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Media\Presentation\Controller;
 
+use App\Auth\Presentation\Security\AuthorizationAttributes;
 use App\Media\Application\Command\UploadMediaCommand;
 use App\Media\Application\CommandHandler\UploadMediaCommandHandler;
 use App\Media\Application\Query\GetMediaQuery;
@@ -24,7 +25,7 @@ final readonly class UploadMediaController
     }
 
     #[Route('/media', methods: ['POST'])]
-    #[IsGranted('ROLE_ADMIN')]
+    #[IsGranted(AuthorizationAttributes::ROLE_ADMIN)]
     public function __invoke(Request $request): JsonResponse
     {
         $httpRequest = UploadMediaHttpRequest::fromRequest($request);

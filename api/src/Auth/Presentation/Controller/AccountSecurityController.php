@@ -24,7 +24,7 @@ use App\Auth\Application\CommandHandler\ResetPasswordCommandHandler;
 use App\Auth\Application\CommandHandler\VerifyEmailCommandHandler;
 use App\Auth\Presentation\Http\CurrentUser;
 use App\Auth\Presentation\Http\SessionCookie;
-use App\Auth\Presentation\Security\AuthenticationAttributes;
+use App\Auth\Presentation\Security\AuthorizationAttributes;
 use App\Auth\Presentation\Request\AccountTokenHttpRequest;
 use App\Auth\Presentation\Request\ChangePasswordHttpRequest;
 use App\Auth\Presentation\Request\EmailChangeHttpRequest;
@@ -81,7 +81,7 @@ final readonly class AccountSecurityController
     }
 
     #[Route('/auth/email-verifications/request', methods: ['POST'])]
-    #[IsGranted(AuthenticationAttributes::IS_AUTHENTICATED)]
+    #[IsGranted(AuthorizationAttributes::IS_AUTHENTICATED)]
     public function requestEmailVerification(Request $request): Response
     {
         $userId = $this->currentUser->id();
@@ -91,7 +91,7 @@ final readonly class AccountSecurityController
     }
 
     #[Route('/auth/password', methods: ['POST'])]
-    #[IsGranted(AuthenticationAttributes::IS_AUTHENTICATED)]
+    #[IsGranted(AuthorizationAttributes::IS_AUTHENTICATED)]
     public function changePassword(Request $request): Response
     {
         $userId = $this->currentUser->id();
@@ -106,7 +106,7 @@ final readonly class AccountSecurityController
     }
 
     #[Route('/auth/email-changes', methods: ['POST'])]
-    #[IsGranted(AuthenticationAttributes::IS_AUTHENTICATED)]
+    #[IsGranted(AuthorizationAttributes::IS_AUTHENTICATED)]
     public function requestEmailChange(Request $request): Response
     {
         $userId = $this->currentUser->id();
@@ -130,7 +130,7 @@ final readonly class AccountSecurityController
     }
 
     #[Route('/auth/logout-all', methods: ['POST'])]
-    #[IsGranted(AuthenticationAttributes::IS_AUTHENTICATED)]
+    #[IsGranted(AuthorizationAttributes::IS_AUTHENTICATED)]
     public function logoutAll(Request $request): Response
     {
         $userId = $this->currentUser->id();
@@ -140,7 +140,7 @@ final readonly class AccountSecurityController
     }
 
     #[Route('/auth/account/deletion', methods: ['POST'])]
-    #[IsGranted(AuthenticationAttributes::IS_AUTHENTICATED)]
+    #[IsGranted(AuthorizationAttributes::IS_AUTHENTICATED)]
     public function deleteAccount(Request $request): Response
     {
         $userId = $this->currentUser->id();

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Order\Presentation\Controller;
 
+use App\Auth\Presentation\Security\AuthorizationAttributes;
 use App\Order\Application\Command\MarkOrderPaidCommand;
 use App\Order\Application\CommandHandler\MarkOrderPaidCommandHandler;
 use App\Order\Application\Query\GetOrderQuery;
@@ -22,7 +23,7 @@ final readonly class MarkOrderPaidController
     }
 
     #[Route('/orders/{id}/mark-paid', methods: ['POST'])]
-    #[IsGranted('ROLE_ADMIN')]
+    #[IsGranted(AuthorizationAttributes::ROLE_ADMIN)]
     public function __invoke(string $id, Request $request): JsonResponse
     {
         $this->markOrderPaid->handle(new MarkOrderPaidCommand($id));

@@ -13,7 +13,7 @@ use App\Cart\Presentation\Request\AddToCartHttpRequest;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
-use App\Auth\Presentation\Security\AuthenticationAttributes;
+use App\Auth\Presentation\Security\AuthorizationAttributes;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 final readonly class AddToCartController
@@ -26,7 +26,7 @@ final readonly class AddToCartController
     }
 
     #[Route('/cart/items', methods: ['POST'])]
-    #[IsGranted(AuthenticationAttributes::IS_AUTHENTICATED)]
+    #[IsGranted(AuthorizationAttributes::IS_AUTHENTICATED)]
     public function __invoke(Request $request): JsonResponse
     {
         $userId = $this->currentUser->id();

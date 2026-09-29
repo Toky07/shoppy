@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Product\Presentation\Controller;
 
+use App\Auth\Presentation\Security\AuthorizationAttributes;
 use App\Product\Application\Command\SetProductStockCommand;
 use App\Product\Application\CommandHandler\SetProductStockCommandHandler;
 use App\Product\Application\Query\GetProductQuery;
@@ -23,7 +24,7 @@ final readonly class SetProductStockController
     }
 
     #[Route('/products/{id}/stock', methods: ['PUT'])]
-    #[IsGranted('ROLE_ADMIN')]
+    #[IsGranted(AuthorizationAttributes::ROLE_ADMIN)]
     public function __invoke(string $id, Request $request): JsonResponse
     {
         $httpRequest = SetProductStockHttpRequest::fromPayload($request->toArray());
