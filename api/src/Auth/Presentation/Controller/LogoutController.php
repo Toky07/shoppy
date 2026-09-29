@@ -11,6 +11,8 @@ use App\Auth\Presentation\Http\SessionCookie;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use App\Auth\Presentation\Security\AuthorizationAttributes;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 final readonly class LogoutController
 {
@@ -22,6 +24,7 @@ final readonly class LogoutController
     }
 
     #[Route('/auth/logout', methods: ['POST'])]
+    #[IsGranted(AuthorizationAttributes::IS_AUTHENTICATED)]
     public function __invoke(Request $request): Response
     {
         $this->logout->handle(new LogoutCommand($this->currentUser->token()));

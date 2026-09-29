@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Auth\Presentation\Http;
 
-use App\Auth\Domain\Exception\Forbidden;
 use App\Auth\Domain\Exception\Unauthenticated;
-use App\User\Domain\ValueObject\Role;
+use App\Auth\Infrastructure\Security\AuthenticatedUser;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 final readonly class CurrentUser
 {
@@ -17,47 +17,51 @@ final readonly class CurrentUser
 
     public const TOKEN = 'auth.token';
 
-    public function __construct(private RequestStack $requests)
-    {
+    public function __construct(
+        private RequestStack $requests,
+        private TokenStorageInterface $tokenStorage,
+    ) {
     }
 
     public function id(): string
     {
-        return $this->attribute(self::USER_ID) ?? throw new Unauthenticated();
+        return $this->idOrNull() ?? throw new Unauthenticated();
     }
 
     public function idOrNull(): ?string
     {
+        $user = $this->securityUser();
+
+        if ($user !== null) {
+            return $user->id();
+        }
+
         return $this->attribute(self::USER_ID);
+    }
+
+    public function isAuthenticated(): bool
+    {
+        return $this->idOrNull() !== null;
     }
 
     public function token(): string
     {
+        $user = $this->securityUser();
+
+        if ($user !== null) {
+            return $user->accessToken();
+        }
+
         $this->id();
 
         return $this->attribute(self::TOKEN) ?? throw new Unauthenticated();
     }
 
-    public function requireAdmin(): string
+    private function securityUser(): ?AuthenticatedUser
     {
-        $id = $this->id();
+        $user = $this->tokenStorage->getToken()?->getUser();
 
-        if ($this->attribute(self::ROLE) !== Role::admin()->value()) {
-            throw new Forbidden();
-        }
-
-        return $id;
-    }
-
-    public function assertSelfOrAdmin(string $userId): void
-    {
-        if ($this->id() === $userId) {
-            return;
-        }
-
-        if ($this->attribute(self::ROLE) !== Role::admin()->value()) {
-            throw new Forbidden();
-        }
+        return $user instanceof AuthenticatedUser ? $user : null;
     }
 
     private function attribute(string $name): ?string

@@ -4,18 +4,24 @@ declare(strict_types=1);
 
 namespace App\Shared\Presentation\EventSubscriber;
 
+use App\Auth\Domain\Exception\Unauthenticated;
+use App\Auth\Infrastructure\Security\AuthenticatedUser;
+use App\Auth\Presentation\Http\CurrentUser;
 use App\Shared\Presentation\Http\ApiExceptionMapper;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
 final readonly class ApiExceptionSubscriber implements EventSubscriberInterface
 {
     public function __construct(
         private ApiExceptionMapper $mapper,
         private LoggerInterface $logger,
+        private TokenStorageInterface $tokenStorage,
     ) {
     }
 
@@ -27,6 +33,11 @@ final readonly class ApiExceptionSubscriber implements EventSubscriberInterface
     public function onException(ExceptionEvent $event): void
     {
         $exception = $event->getThrowable();
+
+        if ($exception instanceof AccessDeniedException && !$this->isAuthenticated($event)) {
+            $exception = new Unauthenticated();
+        }
+
         $mapped = $this->mapper->map($exception);
 
         if ($mapped->unexpected) {
@@ -34,5 +45,18 @@ final readonly class ApiExceptionSubscriber implements EventSubscriberInterface
         }
 
         $event->setResponse(new JsonResponse($mapped->body->toArray(), $mapped->status));
+    }
+
+    private function isAuthenticated(ExceptionEvent $event): bool
+    {
+        $user = $this->tokenStorage->getToken()?->getUser();
+
+        if ($user instanceof AuthenticatedUser) {
+            return true;
+        }
+
+        $userId = $event->getRequest()->attributes->get(CurrentUser::USER_ID);
+
+        return is_string($userId) && $userId !== '';
     }
 }

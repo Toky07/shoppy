@@ -13,6 +13,8 @@ use App\Product\Presentation\Request\SubmitProductReviewHttpRequest;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
+use App\Auth\Presentation\Security\AuthorizationAttributes;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 final readonly class SubmitProductReviewController
 {
@@ -24,6 +26,7 @@ final readonly class SubmitProductReviewController
     }
 
     #[Route('/products/{id}/reviews', methods: ['POST'])]
+    #[IsGranted(AuthorizationAttributes::IS_AUTHENTICATED)]
     public function __invoke(string $id, Request $request): JsonResponse
     {
         $authorId = $this->currentUser->id();

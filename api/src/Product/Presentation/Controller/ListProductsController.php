@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace App\Product\Presentation\Controller;
 
-use App\Auth\Presentation\Http\CurrentUser;
+use App\Auth\Presentation\Security\GrantChecker;
 use App\Product\Application\Query\ListProductsByIdsQuery;
 use App\Product\Application\Query\ListProductsQuery;
 use App\Product\Application\QueryHandler\ListProductsByIdsQueryHandler;
 use App\Product\Application\QueryHandler\ListProductsQueryHandler;
+use App\Auth\Presentation\Security\AuthorizationAttributes;
 use App\Shared\Presentation\Exception\InvalidRequest;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -19,7 +20,7 @@ final readonly class ListProductsController
     public function __construct(
         private ListProductsQueryHandler $listProducts,
         private ListProductsByIdsQueryHandler $listProductsByIds,
-        private CurrentUser $currentUser,
+        private GrantChecker $grantChecker,
     ) {
     }
 
@@ -35,7 +36,7 @@ final readonly class ListProductsController
         $includeDrafts = self::queryFlag($request, 'includeDrafts');
 
         if ($includeDrafts) {
-            $this->currentUser->requireAdmin();
+            $this->grantChecker->denyUnlessGrantedOrRequireAuthentication(AuthorizationAttributes::PRODUCT_ADMIN);
         }
 
         $response = $this->listProducts->handle(new ListProductsQuery(

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Product\Presentation\Controller;
 
-use App\Auth\Presentation\Http\CurrentUser;
+use App\Auth\Presentation\Security\AuthorizationAttributes;
 use App\Product\Application\Command\UpdateProductCommand;
 use App\Product\Application\CommandHandler\UpdateProductCommandHandler;
 use App\Product\Application\Query\GetProductQuery;
@@ -13,21 +13,20 @@ use App\Product\Presentation\Request\UpdateProductHttpRequest;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 final readonly class UpdateProductController
 {
     public function __construct(
-        private CurrentUser $currentUser,
         private UpdateProductCommandHandler $updateProduct,
         private GetProductQueryHandler $getProduct,
     ) {
     }
 
     #[Route('/products/{id}', methods: ['PATCH'])]
+    #[IsGranted(AuthorizationAttributes::ROLE_ADMIN)]
     public function __invoke(string $id, Request $request): JsonResponse
     {
-        $this->currentUser->requireAdmin();
-
         $httpRequest = UpdateProductHttpRequest::fromPayload($request->toArray());
 
         $this->updateProduct->handle(new UpdateProductCommand(

@@ -103,6 +103,11 @@ final class Order
         return $this->customerId;
     }
 
+    public function belongsTo(CustomerId $customerId): bool
+    {
+        return $this->customerId->value() === $customerId->value();
+    }
+
     public function customerEmail(): ?string
     {
         return $this->customerEmail;

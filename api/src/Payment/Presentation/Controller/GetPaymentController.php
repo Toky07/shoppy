@@ -5,11 +5,14 @@ declare(strict_types=1);
 namespace App\Payment\Presentation\Controller;
 
 use App\Auth\Presentation\Http\CurrentUser;
+use App\Auth\Presentation\Security\AuthorizationAttributes;
 use App\Payment\Application\Query\GetPaymentByOrderQuery;
 use App\Payment\Application\QueryHandler\GetPaymentByOrderQueryHandler;
+use App\Payment\Presentation\Security\PaymentAccessSubject;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 final readonly class GetPaymentController
 {
@@ -20,13 +23,16 @@ final readonly class GetPaymentController
     }
 
     #[Route('/payments/by-order/{orderId}', methods: ['GET'])]
-    public function __invoke(string $orderId, Request $request): JsonResponse
-    {
-        $userId = $this->currentUser->id();
-
+    #[IsGranted(AuthorizationAttributes::IS_AUTHENTICATED)]
+    #[IsGranted(AuthorizationAttributes::PAYMENT_ACCESS, subject: 'paymentAccess')]
+    public function __invoke(
+        string $orderId,
+        PaymentAccessSubject $paymentAccess,
+        Request $request,
+    ): JsonResponse {
         $payment = $this->getPaymentByOrder->handle(new GetPaymentByOrderQuery(
             orderId: $orderId,
-            customerId: $userId,
+            customerId: $this->currentUser->id(),
         ));
 
         return new JsonResponse($payment->toArray());

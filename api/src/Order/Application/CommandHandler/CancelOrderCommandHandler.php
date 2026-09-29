@@ -9,6 +9,7 @@ use App\Order\Application\Command\CancelOrderCommand;
 use App\Order\Domain\Exception\OrderAccessForbidden;
 use App\Order\Domain\Exception\OrderNotFound;
 use App\Order\Domain\Repository\OrderRepository;
+use App\Order\Domain\ValueObject\CustomerId;
 use App\Order\Domain\ValueObject\OrderId;
 use App\Shared\Application\Event\OrderCancelled;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -31,7 +32,7 @@ final readonly class CancelOrderCommandHandler
             throw new OrderNotFound($id);
         }
 
-        if ($order->customerId()->value() !== $command->customerId) {
+        if (!$order->belongsTo(CustomerId::fromString($command->customerId))) {
             throw new OrderAccessForbidden();
         }
 

@@ -5,16 +5,19 @@ declare(strict_types=1);
 namespace App\Payment\Presentation\Controller;
 
 use App\Auth\Presentation\Http\CurrentUser;
+use App\Auth\Presentation\Security\AuthorizationAttributes;
 use App\Payment\Application\AllowedCheckoutUrl;
 use App\Payment\Application\Command\StartCheckoutCommand;
-use App\Payment\Application\PaymentProviderPolicy;
 use App\Payment\Application\CommandHandler\StartCheckoutCommandHandler;
+use App\Payment\Application\PaymentProviderPolicy;
 use App\Payment\Application\Query\GetPaymentByOrderQuery;
 use App\Payment\Application\QueryHandler\GetPaymentByOrderQueryHandler;
 use App\Payment\Presentation\Request\StartCheckoutHttpRequest;
+use App\Payment\Presentation\Security\PaymentAccessSubject;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 final readonly class StartCheckoutController
 {
@@ -28,11 +31,16 @@ final readonly class StartCheckoutController
     }
 
     #[Route('/payments/checkout', methods: ['POST'])]
-    public function __invoke(Request $request): JsonResponse
-    {
+    #[IsGranted(AuthorizationAttributes::IS_AUTHENTICATED)]
+    #[IsGranted(AuthorizationAttributes::PAYMENT_ACCESS, subject: 'paymentAccess')]
+    public function __invoke(
+        PaymentAccessSubject $paymentAccess,
+        Request $request,
+    ): JsonResponse {
         $userId = $this->currentUser->id();
 
         $httpRequest = StartCheckoutHttpRequest::fromPayload($request->toArray());
+
         $this->paymentPolicy->assertCheckoutAllowed();
         $this->allowedCheckoutUrl->assertAllowed($httpRequest->successUrl, 'successUrl');
         $this->allowedCheckoutUrl->assertAllowed($httpRequest->cancelUrl, 'cancelUrl');
