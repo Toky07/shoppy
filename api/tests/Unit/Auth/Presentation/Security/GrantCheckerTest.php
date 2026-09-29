@@ -34,7 +34,7 @@ function grantChecker(
 }
 
 it('does nothing when access is granted', function () {
-    $checker = $this->createMock(AuthorizationCheckerInterface::class);
+    $checker = $this->createStub(AuthorizationCheckerInterface::class);
     $checker->method('isGranted')->willReturn(true);
 
     grantChecker($checker)->denyUnlessGranted(AuthorizationAttributes::ORDER_VIEW);
@@ -43,21 +43,21 @@ it('does nothing when access is granted', function () {
 });
 
 it('throws forbidden when access is denied on an authenticated route', function () {
-    $checker = $this->createMock(AuthorizationCheckerInterface::class);
+    $checker = $this->createStub(AuthorizationCheckerInterface::class);
     $checker->method('isGranted')->willReturn(false);
 
     grantChecker($checker)->denyUnlessGranted(AuthorizationAttributes::ORDER_VIEW);
 })->throws(Forbidden::class);
 
 it('throws unauthenticated when access is denied and the caller is anonymous', function () {
-    $checker = $this->createMock(AuthorizationCheckerInterface::class);
+    $checker = $this->createStub(AuthorizationCheckerInterface::class);
     $checker->method('isGranted')->willReturn(false);
 
     grantChecker($checker)->denyUnlessGrantedOrRequireAuthentication(AuthorizationAttributes::PRODUCT_ADMIN);
 })->throws(Unauthenticated::class);
 
 it('throws forbidden when access is denied for a logged-in non-admin', function () {
-    $checker = $this->createMock(AuthorizationCheckerInterface::class);
+    $checker = $this->createStub(AuthorizationCheckerInterface::class);
     $checker->method('isGranted')->willReturn(false);
 
     $user = AuthenticatedUser::fromDomainRole(

@@ -39,7 +39,7 @@ Symfony roles on `AuthenticatedUser` map to domain roles via `domainRole()` (`ad
 
 When the voter **subject** comes from the URL (or a known request field), use `#[IsGranted(..., subject: '…')]` on the controller action together with **argument value resolvers** that build `OrderAccessSubject`, `UserAccessSubject`, or `PaymentAccessSubject`. Order loads are deduplicated via `OrderResponseRequestCache`.
 
-Use `GrantChecker` for checks that depend on query flags or optional anonymity (draft products, media list) where declarative attributes are not practical.
+Use `GrantChecker` for checks that depend on optional query flags (draft products) or that must map auth failures to another domain error (unpublished product → `ProductNotFound`).
 
 | Attribute        | Voter          | Subject              | Rule                                      |
 |------------------|----------------|----------------------|-------------------------------------------|
@@ -57,6 +57,9 @@ Use `GrantChecker` for checks that depend on query flags or optional anonymity (
 | `OrderArgumentValueResolver` | `OrderResponse`, `OrderAccessSubject` | `{id}` |
 | `UserAccessSubjectValueResolver` | `UserAccessSubject` | `/users/{id}` |
 | `PaymentAccessSubjectValueResolver` | `PaymentAccessSubject` | `{orderId}` or JSON `orderId` |
+| `MediaListArgumentValueResolver` | `ListMediaHttpRequest`, `MediaListSubject` | query `ownerType`, `ownerId` |
+
+Denied `MEDIA_LIST` votes on anonymous callers become **401** via `ApiExceptionSubscriber` (same as `GrantChecker::denyUnlessGrantedOrRequireAuthentication`).
 
 ## Domain
 

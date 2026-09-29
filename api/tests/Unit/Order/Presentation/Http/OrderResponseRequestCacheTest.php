@@ -5,8 +5,13 @@ declare(strict_types=1);
 use App\Auth\Domain\Exception\Unauthenticated;
 use App\Order\Application\QueryHandler\GetOrderQueryHandler;
 use App\Order\Domain\Entity\Order;
+use App\Order\Domain\ValueObject\CatalogProductId;
 use App\Order\Domain\ValueObject\CustomerId;
 use App\Order\Domain\ValueObject\OrderId;
+use App\Order\Domain\ValueObject\OrderItem;
+use App\Order\Domain\ValueObject\OrderedProductName;
+use App\Order\Domain\ValueObject\Quantity;
+use App\Order\Domain\ValueObject\UnitPrice;
 use App\Order\Infrastructure\Persistence\InMemoryOrderRepository;
 use App\Order\Presentation\Http\OrderResponseRequestCache;
 use Symfony\Component\HttpFoundation\Request;
@@ -18,7 +23,12 @@ it('loads an order only once per request', function () {
     $repository->save(Order::place(
         $orderId,
         CustomerId::fromString('22222222-2222-4222-8222-222222222222'),
-        [orderLine()],
+        [OrderItem::of(
+            CatalogProductId::fromString('550e8400-e29b-41d4-a716-446655440000'),
+            OrderedProductName::fromString('Nuvora Tee'),
+            UnitPrice::fromCents(1999),
+            Quantity::fromInt(1),
+        )],
         new DateTimeImmutable('2026-01-01T00:00:00+00:00'),
         samplePostalAddress(),
         samplePostalAddress(),
