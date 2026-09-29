@@ -39,6 +39,7 @@ it('returns an order by id', function () {
     expect($response->toArray())->toBe([
         'id' => 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
         'customerId' => '11111111-1111-4111-8111-111111111111',
+        'customerEmail' => null,
         'status' => 'pending',
         'items' => [
             [

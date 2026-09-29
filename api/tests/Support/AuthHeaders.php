@@ -15,6 +15,8 @@ use App\User\Domain\ValueObject\Email;
 use App\User\Domain\ValueObject\Role;
 use App\User\Domain\ValueObject\UserId;
 use App\Auth\Domain\ValueObject\PlainPassword;
+use App\Order\Infrastructure\Persistence\Doctrine\Entity\OrderRecord;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 
 final class CatalogHeaderCache
@@ -100,6 +102,15 @@ function catalogAuthHeaders(string $emailAddress, Role $role): array
     $cache[$client] = $entry;
 
     return $headers;
+}
+
+function backdateOrder(KernelBrowser $client, string $orderId, string $modifier): void
+{
+    $client->getContainer()->get(EntityManagerInterface::class)
+        ->createQuery('UPDATE '.OrderRecord::class.' o SET o.createdAt = :createdAt WHERE o.id = :id')
+        ->setParameter('createdAt', new DateTimeImmutable($modifier))
+        ->setParameter('id', $orderId)
+        ->execute();
 }
 
 function sessionAccessToken(KernelBrowser $client): string

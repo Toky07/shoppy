@@ -43,7 +43,7 @@ final class Order
         PostalAddress $shippingAddress,
         PostalAddress $billingAddress,
         ShippingMethod $shipping,
-        string $customerEmail,
+        ?string $customerEmail = null,
     ): self {
         if ($items === []) {
             throw new EmptyOrder();
@@ -103,7 +103,7 @@ final class Order
         return $this->customerId;
     }
 
-    public function customerEmail(): string
+    public function customerEmail(): ?string
     {
         return $this->customerEmail;
     }

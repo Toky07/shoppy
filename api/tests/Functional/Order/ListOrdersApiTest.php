@@ -48,7 +48,7 @@ it('lists the current customer orders newest first', function () {
     $other = loginListOrdersUser('other@nuvora.test');
 
     $older = placeListedOrder($owner['headers'], $olderProduct['id'], 1);
-    usleep(1_100_000);
+    backdateOrder($this->client, $older['id'], '-1 hour');
     $newer = placeListedOrder($owner['headers'], $newerProduct['id'], 2);
     placeListedOrder($other['headers'], $olderProduct['id'], 1);
 
@@ -79,9 +79,9 @@ it('paginates the current customer orders', function () {
     $owner = loginListOrdersUser('owner@nuvora.test');
 
     $oldest = placeListedOrder($owner['headers'], $one['id'], 1);
-    usleep(1_100_000);
-    placeListedOrder($owner['headers'], $two['id'], 1);
-    usleep(1_100_000);
+    backdateOrder($this->client, $oldest['id'], '-2 hours');
+    $middle = placeListedOrder($owner['headers'], $two['id'], 1);
+    backdateOrder($this->client, $middle['id'], '-1 hour');
     placeListedOrder($owner['headers'], $three['id'], 1);
 
     $this->client->jsonRequest('GET', '/orders?page=2&limit=2', [], $owner['headers']);
