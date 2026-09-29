@@ -6,7 +6,7 @@ namespace App\Product\Presentation\Controller;
 
 use App\Auth\Domain\Exception\Forbidden;
 use App\Auth\Domain\Exception\Unauthenticated;
-use App\Auth\Presentation\Http\CurrentUser;
+use App\Auth\Presentation\Http\RequireAdminRole;
 use App\Product\Application\Query\GetProductQuery;
 use App\Product\Application\QueryHandler\GetProductQueryHandler;
 use App\Product\Domain\Exception\ProductNotFound;
@@ -18,7 +18,7 @@ final readonly class GetProductController
 {
     public function __construct(
         private GetProductQueryHandler $getProduct,
-        private CurrentUser $currentUser,
+        private RequireAdminRole $requireAdminRole,
     ) {
     }
 
@@ -29,7 +29,7 @@ final readonly class GetProductController
 
         if (!$product->published) {
             try {
-                $this->currentUser->requireAdmin();
+                $this->requireAdminRole->invoke();
             } catch (Unauthenticated|Forbidden) {
                 throw new ProductNotFound($id);
             }

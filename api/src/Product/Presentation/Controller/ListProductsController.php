@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Product\Presentation\Controller;
 
-use App\Auth\Presentation\Http\CurrentUser;
+use App\Auth\Presentation\Http\RequireAdminRole;
 use App\Product\Application\Query\ListProductsByIdsQuery;
 use App\Product\Application\Query\ListProductsQuery;
 use App\Product\Application\QueryHandler\ListProductsByIdsQueryHandler;
@@ -19,7 +19,7 @@ final readonly class ListProductsController
     public function __construct(
         private ListProductsQueryHandler $listProducts,
         private ListProductsByIdsQueryHandler $listProductsByIds,
-        private CurrentUser $currentUser,
+        private RequireAdminRole $requireAdminRole,
     ) {
     }
 
@@ -35,7 +35,7 @@ final readonly class ListProductsController
         $includeDrafts = self::queryFlag($request, 'includeDrafts');
 
         if ($includeDrafts) {
-            $this->currentUser->requireAdmin();
+            $this->requireAdminRole->invoke();
         }
 
         $response = $this->listProducts->handle(new ListProductsQuery(

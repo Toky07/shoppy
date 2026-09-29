@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Product\Presentation\Controller;
 
-use App\Auth\Presentation\Http\CurrentUser;
 use App\Product\Application\Command\SetProductStockCommand;
 use App\Product\Application\CommandHandler\SetProductStockCommandHandler;
 use App\Product\Application\Query\GetProductQuery;
@@ -13,21 +12,20 @@ use App\Product\Presentation\Request\SetProductStockHttpRequest;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 final readonly class SetProductStockController
 {
     public function __construct(
-        private CurrentUser $currentUser,
         private SetProductStockCommandHandler $setProductStock,
         private GetProductQueryHandler $getProduct,
     ) {
     }
 
     #[Route('/products/{id}/stock', methods: ['PUT'])]
+    #[IsGranted('ROLE_ADMIN')]
     public function __invoke(string $id, Request $request): JsonResponse
     {
-        $this->currentUser->requireAdmin();
-
         $httpRequest = SetProductStockHttpRequest::fromPayload($request->toArray());
 
         $this->setProductStock->handle(new SetProductStockCommand(

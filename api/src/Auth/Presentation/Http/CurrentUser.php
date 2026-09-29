@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace App\Auth\Presentation\Http;
 
-use App\Auth\Domain\Exception\Forbidden;
 use App\Auth\Domain\Exception\Unauthenticated;
-use App\User\Domain\ValueObject\Role;
 use Symfony\Component\HttpFoundation\RequestStack;
 
 final readonly class CurrentUser
@@ -31,33 +29,16 @@ final readonly class CurrentUser
         return $this->attribute(self::USER_ID);
     }
 
+    public function isAuthenticated(): bool
+    {
+        return $this->idOrNull() !== null;
+    }
+
     public function token(): string
     {
         $this->id();
 
         return $this->attribute(self::TOKEN) ?? throw new Unauthenticated();
-    }
-
-    public function requireAdmin(): string
-    {
-        $id = $this->id();
-
-        if ($this->attribute(self::ROLE) !== Role::admin()->value()) {
-            throw new Forbidden();
-        }
-
-        return $id;
-    }
-
-    public function assertSelfOrAdmin(string $userId): void
-    {
-        if ($this->id() === $userId) {
-            return;
-        }
-
-        if ($this->attribute(self::ROLE) !== Role::admin()->value()) {
-            throw new Forbidden();
-        }
     }
 
     private function attribute(string $name): ?string

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Media\Presentation\Controller;
 
-use App\Auth\Presentation\Http\CurrentUser;
+use App\Auth\Presentation\Http\RequireAdminRole;
 use App\Media\Application\Query\ListMediaByOwnerQuery;
 use App\Media\Domain\ValueObject\MediaOwnerType;
 use App\Media\Application\QueryHandler\ListMediaByOwnerQueryHandler;
@@ -17,7 +17,7 @@ final readonly class ListMediaController
 {
     public function __construct(
         private ListMediaByOwnerQueryHandler $listMedia,
-        private CurrentUser $currentUser,
+        private RequireAdminRole $requireAdminRole,
     ) {
     }
 
@@ -27,7 +27,7 @@ final readonly class ListMediaController
         $httpRequest = ListMediaHttpRequest::fromRequest($request);
 
         if ($httpRequest->ownerType !== MediaOwnerType::PRODUCT_ALIAS) {
-            $this->currentUser->requireAdmin();
+            $this->requireAdminRole->invoke();
         }
 
         $list = $this->listMedia->handle(new ListMediaByOwnerQuery(
