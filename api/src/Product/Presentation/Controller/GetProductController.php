@@ -6,19 +6,22 @@ namespace App\Product\Presentation\Controller;
 
 use App\Auth\Domain\Exception\Forbidden;
 use App\Auth\Domain\Exception\Unauthenticated;
-use App\Auth\Presentation\Http\RequireAdminRole;
+use App\Auth\Presentation\Http\CurrentUser;
 use App\Product\Application\Query\GetProductQuery;
 use App\Product\Application\QueryHandler\GetProductQueryHandler;
 use App\Product\Domain\Exception\ProductNotFound;
+use App\Product\Presentation\Security\ProductVoter;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 
 final readonly class GetProductController
 {
     public function __construct(
         private GetProductQueryHandler $getProduct,
-        private RequireAdminRole $requireAdminRole,
+        private CurrentUser $currentUser,
+        private AuthorizationCheckerInterface $authorizationChecker,
     ) {
     }
 
@@ -29,7 +32,11 @@ final readonly class GetProductController
 
         if (!$product->published) {
             try {
-                $this->requireAdminRole->invoke();
+                $this->currentUser->id();
+
+                if (!$this->authorizationChecker->isGranted(ProductVoter::ADMIN)) {
+                    throw new Forbidden();
+                }
             } catch (Unauthenticated|Forbidden) {
                 throw new ProductNotFound($id);
             }

@@ -4,22 +4,26 @@ declare(strict_types=1);
 
 namespace App\Product\Presentation\Controller;
 
-use App\Auth\Presentation\Http\RequireAdminRole;
+use App\Auth\Domain\Exception\Forbidden;
+use App\Auth\Presentation\Http\CurrentUser;
 use App\Product\Application\Query\ListProductsByIdsQuery;
 use App\Product\Application\Query\ListProductsQuery;
 use App\Product\Application\QueryHandler\ListProductsByIdsQueryHandler;
 use App\Product\Application\QueryHandler\ListProductsQueryHandler;
+use App\Product\Presentation\Security\ProductVoter;
 use App\Shared\Presentation\Exception\InvalidRequest;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 
 final readonly class ListProductsController
 {
     public function __construct(
         private ListProductsQueryHandler $listProducts,
         private ListProductsByIdsQueryHandler $listProductsByIds,
-        private RequireAdminRole $requireAdminRole,
+        private CurrentUser $currentUser,
+        private AuthorizationCheckerInterface $authorizationChecker,
     ) {
     }
 
@@ -35,7 +39,11 @@ final readonly class ListProductsController
         $includeDrafts = self::queryFlag($request, 'includeDrafts');
 
         if ($includeDrafts) {
-            $this->requireAdminRole->invoke();
+            $this->currentUser->id();
+
+            if (!$this->authorizationChecker->isGranted(ProductVoter::ADMIN)) {
+                throw new Forbidden();
+            }
         }
 
         $response = $this->listProducts->handle(new ListProductsQuery(
