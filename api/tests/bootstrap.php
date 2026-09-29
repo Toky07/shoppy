@@ -10,7 +10,7 @@ if (method_exists(Dotenv::class, 'bootEnv')) {
     (new Dotenv())->bootEnv(dirname(__DIR__).'/.env');
 }
 
-// Paratest sets TEST_TOKEN per worker (see .env.test DATABASE_URL and Kernel::getCacheDir).
+// Paratest sets TEST_TOKEN per worker (see the doctrine dbname_suffix and Kernel::getCacheDir).
 if (is_string($testToken = getenv('TEST_TOKEN')) && $testToken !== '') {
     $_SERVER['TEST_TOKEN'] = $testToken;
     $_ENV['TEST_TOKEN'] = $testToken;

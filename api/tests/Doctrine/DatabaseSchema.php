@@ -5,8 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Doctrine;
 
 use Doctrine\DBAL\Connection;
-use Doctrine\DBAL\Exception;
-use Doctrine\DBAL\Platforms\SQLitePlatform;
+use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Tools\SchemaTool;
 
@@ -46,74 +45,69 @@ final class DatabaseSchema
         $entityManager->clear();
     }
 
-    /**
-     * @deprecated Prefer initialize() + beginTransaction()/rollback() for faster test isolation.
-     */
     public static function reset(EntityManagerInterface $entityManager): void
     {
         $entityManager->clear();
 
-        if (!self::hasMappedTables($entityManager)) {
-            self::create($entityManager);
-            self::$initialized = true;
+        if (!self::$initialized) {
+            self::initialize($entityManager);
 
             return;
         }
 
-        self::truncate($entityManager->getConnection());
+        self::truncate($entityManager);
     }
 
     private static function create(EntityManagerInterface $entityManager): void
     {
+        self::ensureDatabaseExists($entityManager->getConnection());
+
         $metadata = $entityManager->getMetadataFactory()->getAllMetadata();
         $schemaTool = new SchemaTool($entityManager);
         $schemaTool->dropSchema($metadata);
         $schemaTool->createSchema($metadata);
     }
 
-    private static function hasMappedTables(EntityManagerInterface $entityManager): bool
+    /**
+     * Each Paratest worker gets its own database (see dbname_suffix), created on first use.
+     */
+    private static function ensureDatabaseExists(Connection $connection): void
     {
-        $tables = [];
+        $params = $connection->getParams();
+        $name = $params['dbname'] ?? null;
 
-        foreach ($entityManager->getMetadataFactory()->getAllMetadata() as $metadata) {
-            $tables[] = $metadata->getTableName();
-        }
-
-        if ($tables === []) {
-            return false;
-        }
-
-        return $entityManager->getConnection()->createSchemaManager()->tablesExist($tables);
-    }
-
-    private static function truncate(Connection $connection): void
-    {
-        $platform = $connection->getDatabasePlatform();
-        $tables = $connection->createSchemaManager()->listTableNames();
-
-        if ($tables === []) {
+        if (!is_string($name) || $name === '') {
             return;
         }
 
-        $sqlite = $platform instanceof SQLitePlatform;
+        unset($params['dbname'], $params['url']);
+        $server = DriverManager::getConnection([...$params, 'dbname' => 'postgres']);
 
-        if ($sqlite) {
-            $connection->executeStatement('PRAGMA foreign_keys = OFF');
+        try {
+            if (!in_array($name, $server->createSchemaManager()->listDatabases(), true)) {
+                $server->createSchemaManager()->createDatabase($server->quoteSingleIdentifier($name));
+            }
+        } finally {
+            $server->close();
+        }
+    }
+
+    private static function truncate(EntityManagerInterface $entityManager): void
+    {
+        $connection = $entityManager->getConnection();
+        $tables = [];
+
+        foreach ($entityManager->getMetadataFactory()->getAllMetadata() as $metadata) {
+            if (!$metadata->isMappedSuperclass && !$metadata->isEmbeddedClass) {
+                $tables[] = $connection->quoteSingleIdentifier($metadata->getTableName());
+            }
         }
 
-        $connection->transactional(function () use ($connection, $platform, $tables): void {
-            foreach ($tables as $table) {
-                $connection->executeStatement($platform->getTruncateTableSQL($table, true));
+        // DELETE instead of TRUNCATE: TRUNCATE recreates every table file (~400 ms per call on tiny tables).
+        $connection->transactional(static function (Connection $connection) use ($tables): void {
+            foreach (array_unique($tables) as $table) {
+                $connection->executeStatement('DELETE FROM '.$table);
             }
         });
-
-        if ($sqlite) {
-            try {
-                $connection->executeStatement('DELETE FROM sqlite_sequence');
-            } catch (Exception) {
-            }
-
-            $connection->executeStatement('PRAGMA foreign_keys = ON');
-        }
     }
 }

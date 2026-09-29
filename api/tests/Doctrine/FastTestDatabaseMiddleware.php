@@ -11,9 +11,9 @@ use Doctrine\DBAL\Driver\Middleware\AbstractDriverMiddleware;
 use SensitiveParameter;
 
 /**
- * The test database is disposable: skipping fsync on every commit keeps the suite fast on slow disks.
+ * The test database is disposable: not waiting for the WAL flush on every commit keeps the suite fast.
  */
-final class FastSqliteMiddleware implements Middleware
+final class FastTestDatabaseMiddleware implements Middleware
 {
     public function wrap(Driver $driver): Driver
     {
@@ -21,11 +21,7 @@ final class FastSqliteMiddleware implements Middleware
             public function connect(#[SensitiveParameter] array $params): Connection
             {
                 $connection = parent::connect($params);
-
-                if (str_contains((string) ($params['driver'] ?? ''), 'sqlite')) {
-                    $connection->exec('PRAGMA synchronous = OFF');
-                    $connection->exec('PRAGMA journal_mode = MEMORY');
-                }
+                $connection->exec('SET synchronous_commit TO OFF');
 
                 return $connection;
             }

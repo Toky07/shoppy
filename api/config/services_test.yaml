@@ -10,7 +10,7 @@ services:
         autowire: true
         autoconfigure: true
 
-    App\Tests\Doctrine\FastSqliteMiddleware: ~
+    App\Tests\Doctrine\FastTestDatabaseMiddleware: ~
 
     App\Tests\Doubles\FakePasswordHasher: ~
 

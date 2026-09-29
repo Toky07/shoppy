@@ -79,22 +79,26 @@ final readonly class DoctrineCartRepository implements CartRepository
         ?CartVariantId $variantId,
         CustomerId $exceptCustomerId,
     ): int {
+        $parameters = [
+            'productId' => $productId->value(),
+            'customerId' => $exceptCustomerId->value(),
+        ];
+
+        if ($variantId === null) {
+            $variantCondition = 'i.variant_id IS NULL';
+        } else {
+            $variantCondition = 'i.variant_id = :variantId';
+            $parameters['variantId'] = $variantId->value();
+        }
+
         $reserved = $this->entityManager->getConnection()->fetchOne(
-            'SELECT COALESCE(SUM(i.quantity), 0)
+            "SELECT COALESCE(SUM(i.quantity), 0)
              FROM cart_items i
              INNER JOIN carts c ON c.id = i.cart_id
              WHERE i.product_id = :productId
                AND c.customer_id != :customerId
-               AND (
-                    (:variantId IS NULL AND i.variant_id IS NULL)
-                    OR i.variant_id = :variantIdMatch
-               )',
-            [
-                'productId' => $productId->value(),
-                'customerId' => $exceptCustomerId->value(),
-                'variantId' => $variantId?->value(),
-                'variantIdMatch' => $variantId?->value(),
-            ],
+               AND {$variantCondition}",
+            $parameters,
         );
 
         return (int) $reserved;

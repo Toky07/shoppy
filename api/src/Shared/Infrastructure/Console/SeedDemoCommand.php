@@ -9,8 +9,6 @@ use App\Product\Application\CommandHandler\ImportProductsFromCsvCommandHandler;
 use App\User\Application\Command\SeedDemoUsersCommand;
 use App\User\Application\CommandHandler\SeedDemoUsersCommandHandler;
 use App\User\Application\DemoAccounts;
-use Doctrine\DBAL\Platforms\SQLitePlatform;
-use Doctrine\ORM\EntityManagerInterface;
 use FilesystemIterator;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -32,7 +30,6 @@ final class SeedDemoCommand extends Command
     public function __construct(
         private SeedDemoUsersCommandHandler $seedDemoUsers,
         private ImportProductsFromCsvCommandHandler $importProducts,
-        private EntityManagerInterface $entityManager,
         #[Autowire('%kernel.project_dir%/fixtures/products.csv')]
         private string $productsCsvPath,
         #[Autowire('%app.media.upload_dir%')]
@@ -49,7 +46,7 @@ final class SeedDemoCommand extends Command
             'reset',
             null,
             InputOption::VALUE_NONE,
-            'Drop the database, rerun migrations, and clear uploaded files.',
+            'Empty the database, rerun migrations, and clear uploaded files.',
         );
     }
 
@@ -93,25 +90,16 @@ final class SeedDemoCommand extends Command
         }
 
         $application->setAutoExit(false);
-        $connection = $this->entityManager->getConnection();
 
-        if ($connection->getDatabasePlatform() instanceof SQLitePlatform) {
-            $path = $connection->getParams()['path'] ?? null;
-            $connection->close();
+        $drop = $application->run(new ArrayInput([
+            'command' => 'doctrine:schema:drop',
+            '--full-database' => true,
+            '--force' => true,
+            '--no-interaction' => true,
+        ]), $output);
 
-            if (is_string($path) && $path !== '' && is_file($path)) {
-                unlink($path);
-            }
-        } else {
-            foreach ([
-                ['command' => 'doctrine:database:drop', '--force' => true, '--if-exists' => true, '--no-interaction' => true],
-                ['command' => 'doctrine:database:create', '--no-interaction' => true],
-            ] as $arguments) {
-                $code = $application->run(new ArrayInput($arguments), $output);
-                if ($code !== Command::SUCCESS) {
-                    return $code;
-                }
-            }
+        if ($drop !== Command::SUCCESS) {
+            return $drop;
         }
 
         $migrate = $application->run(new ArrayInput([

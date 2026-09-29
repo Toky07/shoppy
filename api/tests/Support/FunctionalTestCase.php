@@ -22,9 +22,4 @@ abstract class FunctionalTestCase extends WebTestCase
     {
         parent::ensureKernelShutdown();
     }
-
-    protected static function ensureKernelShutdown(): void
-    {
-        // Keep the kernel booted between tests in the same file.
-    }
 }

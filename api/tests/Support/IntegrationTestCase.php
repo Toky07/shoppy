@@ -19,9 +19,4 @@ abstract class IntegrationTestCase extends KernelTestCase
     {
         parent::ensureKernelShutdown();
     }
-
-    protected static function ensureKernelShutdown(): void
-    {
-        // Keep the kernel booted between tests in the same file.
-    }
 }
