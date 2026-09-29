@@ -15,9 +15,12 @@ final class OrderVoter extends Voter
 {
     public const VIEW = 'ORDER_VIEW';
 
+    public const CANCEL = 'ORDER_CANCEL';
+
     protected function supports(string $attribute, mixed $subject): bool
     {
-        return $attribute === self::VIEW && $subject instanceof OrderAccessSubject;
+        return in_array($attribute, [self::VIEW, self::CANCEL], true)
+            && $subject instanceof OrderAccessSubject;
     }
 
     protected function voteOnAttribute(string $attribute, mixed $subject, TokenInterface $token): bool
@@ -28,10 +31,12 @@ final class OrderVoter extends Voter
             return false;
         }
 
-        if (in_array(AuthenticatedUser::ROLE_ADMIN, $user->getRoles(), true)) {
-            return true;
-        }
+        $isOwner = $user->id() === $subject->customerId;
 
-        return $user->id() === $subject->customerId;
+        return match ($attribute) {
+            self::VIEW => in_array(AuthenticatedUser::ROLE_ADMIN, $user->getRoles(), true) || $isOwner,
+            self::CANCEL => $isOwner,
+            default => false,
+        };
     }
 }
