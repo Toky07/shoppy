@@ -37,7 +37,9 @@ Symfony roles on `AuthenticatedUser` map to domain roles via `domainRole()` (`ad
 
 ## Resource voters
 
-Inject `GrantChecker` in controllers that load a resource before voting. It wraps `AuthorizationCheckerInterface` and throws domain `Forbidden` / `Unauthenticated` exceptions using the constants in `AuthorizationAttributes`.
+When the voter **subject** comes from the URL (or a known request field), use `#[IsGranted(..., subject: '…')]` on the controller action together with **argument value resolvers** that build `OrderAccessSubject`, `UserAccessSubject`, or `PaymentAccessSubject`. Order loads are deduplicated via `OrderResponseRequestCache`.
+
+Use `GrantChecker` for checks that depend on query flags or optional anonymity (draft products, media list) where declarative attributes are not practical.
 
 | Attribute        | Voter          | Subject              | Rule                                      |
 |------------------|----------------|----------------------|-------------------------------------------|
@@ -47,6 +49,14 @@ Inject `GrantChecker` in controllers that load a resource before voting. It wrap
 | `PAYMENT_ACCESS` | `PaymentVoter` | `PaymentAccessSubject` | Owner only (no admin bypass)          |
 | `PRODUCT_ADMIN`  | `ProductVoter` | `null`               | Admin (drafts, unpublished products)      |
 | `MEDIA_LIST`     | `MediaVoter`   | `MediaListSubject`   | Public for `ownerType=product`; else admin |
+
+### Declarative checks (value resolvers)
+
+| Resolver | Resolves | Route / input |
+|----------|----------|---------------|
+| `OrderArgumentValueResolver` | `OrderResponse`, `OrderAccessSubject` | `{id}` |
+| `UserAccessSubjectValueResolver` | `UserAccessSubject` | `/users/{id}` |
+| `PaymentAccessSubjectValueResolver` | `PaymentAccessSubject` | `{orderId}` or JSON `orderId` |
 
 ## Domain
 
