@@ -59,3 +59,16 @@ Paiement : `PAYMENT_PROVIDER=local` par défaut en développement, ou `stripe` a
 Emails : `MAILER_DSN=null://null` par défaut (aucun envoi). Expéditeur : `MAILER_FROM`. Les autres modules demandent un envoi en publiant `EmailRequested` sur le bus d’événements. L’événement accepte des pièces jointes. Une commande confirmée joint `recu.txt`.
 
 Les Dockerfiles sont dans `api/docker/` et `front/docker/`.
+
+## Structure des modules front
+
+Chaque domaine (`auth`, `catalog`, `cart`, `order`, `admin`, `payment`) suit le même découpage :
+
+- `domain/` — modèles et règles métier
+- `data/` — API HTTP, mappers
+- `application/` — ports, use cases, composables (`use…`), clés d’injection
+- `testing/` — fakes et fixtures
+- `ui/pages/` — écrans routés (`*Page.vue`)
+- `ui/components/` — composants réutilisables du module
+- `ui/layouts/` — layouts (ex. admin)
+- `ui/lib/` — helpers UI (labels, messages d’erreur, brouillons)

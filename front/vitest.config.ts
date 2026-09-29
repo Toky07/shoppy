@@ -17,9 +17,8 @@ const shared = {
 const domInclude = [
   'src/__tests__/**/*.spec.ts',
   'src/shared/ui/**/*.spec.ts',
-  'src/modules/**/ui/__tests__/*Page.spec.ts',
-  'src/modules/**/ui/__tests__/AdminPages.spec.ts',
-  'src/modules/catalog/ui/__tests__/ProductCard.spec.ts',
+  'src/modules/**/ui/pages/__tests__/**/*.spec.ts',
+  'src/modules/**/ui/components/__tests__/**/*.spec.ts',
   'src/modules/cart/application/__tests__/createCartState.spec.ts',
 ]
 
