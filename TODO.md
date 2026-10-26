@@ -1,131 +1,91 @@
 # TODO
 
-Audit du 22 septembre 2026. Cocher au fur et à mesure.
+Audit du 26 octobre 2026. Cocher au fur et à mesure.
 
-Déjà en place : inscription / connexion / rôles, sécurité du compte (réinitialisation, vérification d’email, changement de mot de passe et d’email, déconnexion de toutes les sessions, suppression anonymisée, refus de supprimer le dernier admin), catalogue paginé (recherche, tri, slug, stock, catégories, filtres prix et « en stock seulement », SKU et variantes, favoris locaux), panier authentifié, commande avec prix serveur, annulation qui restaure le stock, Stripe (session + webhook signé), admin produits / commandes / utilisateurs, emails transactionnels, tests Pest et Vitest.
+Déjà en place : inscription / connexion (cookie `httpOnly`), rôles, sécurité du compte (reset, vérif email, sessions, anonymisation), catalogue paginé (recherche, tri, catégories, filtres, variantes, avis, favoris locaux), panier auth + invité (fusion à la connexion, photos produit), commande avec prix serveur, livraison Standard / Express, Stripe + webhook signé, admin produits / commandes / utilisateurs, emails transactionnels, Postgres, tests Pest et Vitest.
 
-## Fonctionnalités manquantes
+Récent : avatar seul dans le header, filtres décollés sur mobile, scroll en haut à la navigation, swipe tactile du carrousel, photos dans le panier.
+
+## Fonctionnalités
 
 ### Compte
 
-- [x] Réinitialisation du mot de passe (demande, email, token à usage unique, expiration)
-- [x] Vérification de l’adresse email à l’inscription
-- [x] Changement de mot de passe et d’email depuis le compte
-- [x] Suppression / anonymisation du compte
-- [x] Déconnexion de toutes les sessions (le logout d’un seul appareil ne révoque toujours qu’un token)
-- [ ] Favoris rattachés au compte (aujourd’hui `localStorage`, perdus en changeant d’appareil)
+- [ ] Favoris rattachés au compte (aujourd’hui `localStorage` `shoppy.favorites`, perdus en changeant d’appareil)
+- [ ] Checkout invité réel (le panier invité existe, la commande exige encore une connexion)
+- [ ] Carnet d’adresses réutilisable (saisie uniquement au checkout)
 
 ### Catalogue
 
-- [x] Catégories (navigation, filtre, rattachement produit)
-- [x] Variantes (taille, couleur) et SKU métier (l’UI affiche un UUID tronqué)
-- [x] Filtres prix et « en stock seulement »
-- [x] Produits associés sur la fiche (autres produits publiés de la même catégorie)
-- [x] Statut publié / brouillon
-- [x] Upload, ordre et suppression d’images dans le formulaire admin
-- [x] Mise à jour à l’import CSV (prix, description et stock ; les images déjà présentes sont conservées)
-- [x] Avis clients (une note et un commentaire par client, modifiables)
+- [ ] Modération des avis côté admin (pas d’écran, pas de signalement)
+- [ ] SEO par produit : title, meta, Open Graph, `sitemap.xml`, `robots.txt` (seul `index.html` a une description statique)
 
 ### Achat, livraison, commande
 
-- [x] Adresses de livraison et de facturation (saisies au checkout, figées sur la commande ; la facturation peut reprendre la livraison)
-- [x] Modes de livraison et frais (Standard 4,90 €, offert dès 49 € ; Express 9,90 € ; montant figé sur la commande et ajouté au total)
 - [ ] TVA / taxes (le total est une somme de lignes, affiché « TTC » sans calcul)
 - [ ] Codes promo
-- [x] Commande invité, ou fusion du panier après connexion
-- [x] Réserver le stock entre panier et paiement (le décrément n’a lieu qu’à la création de la commande, sans verrou)
-- [x] Rendre atomiques stock + création de commande (si le second produit échoue, le premier est déjà décrémenté ; pas de transaction)
-- [x] Empêcher un double checkout du même panier (le panier est réservé par une version avant de créer la commande ; la seconde demande est refusée)
-- [x] Clarifier le parcours : « Payer ma commande » sur le panier crée seulement la commande ; le paiement est sur `/orders/:id`
-- [ ] Photo produit dans le panier (icône générique aujourd’hui)
-- [ ] Retour visuel Stripe (`?payment=success` / `?payment=cancel` sont dans l’URL, la page ne s’en sert pas)
-- [x] Emails de confirmation, de paiement et d’annulation via `EmailRequested` (pièces jointes supportées ; la confirmation joint `recu.txt`)
+- [ ] Retour visuel Stripe (`?payment=success` / `?payment=cancel` sont dans l’URL, `OrderDetailPage` ne s’en sert pas)
+- [ ] Statuts d’expédition et suivi colis (commande : `pending` / `paid` / `cancelled` seulement)
 - [ ] Email d’expédition, quand le suivi existera
-- [ ] Facture PDF
-- [ ] Remboursement (statuts paiement : pending / completed / cancelled seulement)
-- [ ] Suivi d’expédition (statuts commande : pending / paid / cancelled)
+- [ ] Facture PDF (la confirmation joint encore `recu.txt`)
+- [ ] Remboursement (paiement : `pending` / `completed` / `cancelled` seulement)
 - [ ] Filtres d’historique (statut, date) côté client et admin
-- [ ] Annulation admin, et affichage de l’email client (aujourd’hui un UUID)
-
-### Paiement
-
-- [x] Aligner « Marquer comme payée » avec le `Payment` (la commande passe `paid`, le paiement reste `pending`, et un checkout Stripe reste possible)
-- [x] Refuser un nouveau checkout si la commande n’est plus `pending`
-- [x] À l’annulation, invalider la session Stripe ouverte (sinon le webhook peut encaisser une commande déjà annulée)
-- [x] Comparer le montant Stripe au montant de la commande dans le webhook
-- [x] Index sur `payments.provider_reference` (lookup webhook)
+- [ ] Annulation admin (le détail admin ne propose que « Marquer comme payée »)
+- [ ] Afficher l’email client sur la fiche commande admin (la liste l’a, le détail affiche encore l’UUID)
 
 ### Admin et boutique
 
 - [ ] Tableau de bord (CA, commandes du jour, stock bas) — l’accueil admin ne fait que des liens
 - [ ] Journal d’audit (qui a changé un rôle, un prix, un stock, un paiement)
-- [ ] Garde-fou « dernier admin » à la rétrogradation (la suppression du dernier admin est déjà refusée)
-- [ ] Guards router `auth` / `admin` (aujourd’hui `AuthRequiredPanel` et `AdminLayout` seulement)
-- [ ] SEO par produit (title, meta, Open Graph, `sitemap.xml`, `robots.txt`)
 - [ ] Pages légales (CGV, confidentialité, mentions, retours) — le footer a des libellés non cliquables
 - [ ] Bandeau cookies / base RGPD
-- [ ] Newsletter du footer branchée, ou retirée
+- [ ] Newsletter du footer branchée, ou retirée (`@submit.prevent` sans envoi)
 - [ ] i18n (textes français en dur, devise EUR fixe)
-
-### Qualité
-
-- [ ] Parcours e2e (auth, achat, admin) — Playwright ne couvre qu’un smoke catalogue, et pas en CI
-- [ ] Lint front dans la CI
-- [ ] Retirer Pinia ou l’utiliser (installé, aucun store)
-- [ ] Retirer `vite-plugin-vue-devtools` du build de production
-
-## Optimisations
-
-- [x] Batcher les médias du catalogue : `ProductResponseFactory` charge les images d’une page en une requête
-- [x] Charger les favoris en une requête (`GET /products?ids=`)
-- [ ] Dérivés d’images (vignette, carte, fiche) au lieu du fichier original ; `srcset` côté front
-- [ ] Cache court ou ETag sur `GET /products` et `GET /products/:slug`
-- [x] Index sur `products.price_cents`, `created_at`, `name` et `category_id` (la recherche `LIKE %…%` ne peut toujours pas utiliser un index B-tree)
-- [ ] Remplacer SQLite en production (un fichier, pas de concurrence réelle ni de réplication)
-- [ ] Redis pour le cache applicatif (commenté dans `cache.yaml`, non déployé)
-- [ ] TTL de token plus court + refresh, et purge des tokens expirés (`access_tokens` n’a pas d’index sur `user_id`)
-- [ ] Éviter le double lookup token (`RequireSelfOrAdmin` ré-authentifie)
-- [ ] Un seul flush dans `DoctrineCartRepository::save()`
-- [ ] Self-host des polices (Google Fonts bloque le premier rendu)
-- [ ] Healthcheck dédié (`GET /health`) au lieu de `GET /products`
+- [ ] Titre de page dynamique sur la fiche produit (seul l’admin change `document.title`)
 
 ## Sécurité
 
-### Critique
+### Haute
 
-- [x] **`POST /payments/complete` marque toujours le paiement comme réussi.** Le handler injecte `LocalPaymentGateway`, qui accepte toute charge, quel que soit `PAYMENT_PROVIDER`. Un client authentifié peut payer une commande sans encaissement. N’autoriser cet endpoint que si le provider effectif est `local`, et refuser `local` en production.
-- [x] Interdire au client de choisir le provider (`StartCheckout` prend `provider` dans le body). Forcer le provider configuré côté serveur.
-- [x] Rate limit sur `POST /auth/login`, `POST /users`, checkout et webhook
-- [x] Ne plus stocker le Bearer dans `localStorage` (`shoppy.session`) — cookie `httpOnly` + `SameSite`, ou équivalent non lisible par le JS
-- [x] Valider le contenu réel des uploads (magic bytes), pas `getClientMimeType()`
-- [x] Interdire ou assainir les SVG (`image/svg+xml` est autorisé et servi depuis la même origine)
-- [x] Restreindre `successUrl` / `cancelUrl` à des origines autorisées avant de les passer à Stripe
+- [ ] `GET /media?ownerType=product&ownerId=` liste les images d’un produit même s’il est en brouillon (`MediaVoter` autorise tout owner `product`, alors que `GET /products/:id` renvoie 404)
 
-### Auth et comptes
+### Moyenne
 
-- [x] Politique de mot de passe au-delà de 8 caractères
-- [x] Même temps de réponse login si l’email n’existe pas (`password_verify` n’est pas appelé)
-- [x] Ne pas répondre `409 email_already_registered` de façon énumérable, ou l’assumer explicitement
-- [x] Révoquer les tokens au changement de mot de passe, à la réinitialisation et à la confirmation d’un nouvel email
-- [x] Révoquer les tokens au changement de rôle
-- [x] Plafonner le nombre de sessions par utilisateur
-- [x] Revalider `/auth/me` au chargement (rôle et expiration viennent du `localStorage`)
-- [x] Centraliser l’authentification (subscriber) : chaque contrôleur appelle Bearer / `RequireAdmin` à la main
-- [x] Ne pas seeder `admin@shoppy.test` / `password123` en production
+- [ ] Empêcher de rétrograder le dernier admin (`AssignUserRoleCommandHandler` ; la suppression du dernier admin est déjà refusée)
+- [ ] Aligner la politique de mot de passe : 8–20 caractères en code, le message parle de 12–4096 (`PlainPassword`, `InvalidPassword`)
+- [ ] Rate limit sur reset / vérif email / confirm token (aujourd’hui seulement login, register, checkout, webhook)
+- [ ] Rate limit et garde `claimForCheckout` aussi sur `POST /orders` (l’UI passe par `/cart/checkout`, l’API directe reste ouverte)
+- [ ] Filtrer les URLs d’images du CSV (SSRF possible via `StreamHttpDownloader` ; le chemin import contourne la détection MIME de `POST /media`)
+- [ ] Tokens de reset / vérif dans `?token=` (historique, analytics, Referer)
 
-### Fichiers et HTTP
+### Basse
 
-- [x] `mkdir(..., 0777)` sur les uploads (`FilesystemMediaStorage`) — passer à `0755` / `0644`
-- [x] Headers qui manquent : `Content-Security-Policy`, `Strict-Transport-Security`, `Permissions-Policy`
-- [x] Répéter les headers de sécurité dans les `location` nginx qui définissent leur propre `add_header` (`/assets/`, `/uploads/`, `/media/`), sinon nginx n’hérite pas ceux du `server`
-- [x] Servir `/uploads` sans exécution, avec le `Content-Type` détecté côté serveur
-- [x] HTTPS en production (`auto_https off`, nginx en clair sur le port 80)
-- [x] Pas de `APP_SECRET` par défaut `change-me-in-production` ; sortir `api/.env.dev` des secrets versionnés (ou le documenter comme secret de dev uniquement)
-- [x] CORS explicite si l’API n’est plus same-origin
-- [x] Endpoint `GET /media` : ne pas lister les médias d’un owner sans contrôle d’accès si d’autres owners que `product` apparaissent
+- [ ] Guards router `auth` / `admin` (aujourd’hui `AuthRequiredPanel` et `AdminLayout` seulement ; l’API reste la source de vérité)
+- [ ] TTL de token plus court + refresh (sessions à 7 jours, pas de rotation)
+- [ ] Rate limiter fichier : échoue ouvert si I/O KO, un compteur par replica
+- [ ] Purge des tokens expirés (`access_tokens` n’a pas d’index sur `user_id`)
 
-### Cohérence métier
+## Optimisations
 
-- [x] Verrou pessimiste (ou version) sur le stock au moment du décrément
-- [x] Transaction unique : décrément, commande, paiement pending
-- [x] Après annulation, ignorer un webhook Stripe tardif au lieu de compléter le paiement d’une commande annulée
+### API
+
+- [ ] Batcher le `GET /cart` : une ligne = produit + variantes + médias + 2e lookup catalogue + SQL de réservation (`GetCartQueryHandler`, `Cart\ProductCatalog`, `AvailableStock`)
+- [ ] Alléger la fusion du panier invité (chaque ligne rejoue add + stock)
+- [ ] JOIN FETCH des lignes de commande sur les listes (`DoctrineOrderRepository` : N+1 items)
+- [ ] Paginer les avis et batcher les auteurs (`ListProductReviewsQueryHandler` charge tout ; `UserReviewAuthors` fait un `findById` par avis)
+- [ ] Index sur `cart_items.product_id` (lookup `reservedQuantity`)
+- [ ] Un seul `flush()` dans `DoctrineCartRepository::save()`
+- [ ] Cache court ou ETag sur `GET /products` et `GET /products/:slug`
+- [ ] Redis pour le cache applicatif (commenté dans `cache.yaml`, non déployé)
+- [ ] Healthcheck dédié (`GET /health`) au lieu de `GET /products`
+
+### Front et médias
+
+- [ ] Dérivés d’images (vignette, carte, fiche) au lieu du fichier original ; `srcset` dans `AppImage`
+- [ ] Self-host des polices (Google Fonts dans `index.html`, autorisé par la CSP)
+- [ ] Retirer Pinia ou l’utiliser (`createPinia()` dans `main.ts`, aucun store)
+- [ ] Retirer `vite-plugin-vue-devtools` du build de production (`vite.config.ts`)
+
+## Qualité
+
+- [ ] Parcours e2e (auth, achat, admin) — Playwright ne couvre qu’un smoke catalogue, et pas en CI
+- [ ] Lint front dans la CI (`npm run lint` existe, le workflow ne le lance pas)
