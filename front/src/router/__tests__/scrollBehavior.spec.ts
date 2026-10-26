@@ -24,4 +24,12 @@ describe('scrollBehavior', () => {
   it('scrolls to a hash target', () => {
     expect(scrollBehavior(route('/', '#main'), route('/'), null)).toEqual({ el: '#main' })
   })
+
+  it('does not treat an account token fragment as a scroll target', () => {
+    expect(scrollBehavior(route('/reset-password', '#token=reset-token'), route('/'), null)).toEqual({
+      top: 0,
+      left: 0,
+    })
+  })
 })
+

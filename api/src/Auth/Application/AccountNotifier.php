@@ -65,6 +65,6 @@ final readonly class AccountNotifier
 
     private function link(string $path, string $token): string
     {
-        return rtrim($this->frontendBaseUrl, '/').$path.'?token='.rawurlencode($token);
+        return rtrim($this->frontendBaseUrl, '/').$path.'#token='.rawurlencode($token);
     }
 }

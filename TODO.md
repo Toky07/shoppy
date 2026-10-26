@@ -55,7 +55,7 @@ Récent : avatar seul dans le header, filtres décollés sur mobile, scroll en h
 - [x] Rate limit sur reset / vérif email / confirm token (aujourd’hui seulement login, register, checkout, webhook)
 - [x] Rate limit et garde `claimForCheckout` aussi sur `POST /orders` (l’UI passe par `/cart/checkout`, l’API directe reste ouverte)
 - [x] Filtrer les URLs d’images du CSV (SSRF possible via `StreamHttpDownloader` ; le chemin import contourne la détection MIME de `POST /media`)
-- [ ] Tokens de reset / vérif dans `?token=` (historique, analytics, Referer)
+- [x] Tokens de reset / vérif dans `?token=` (historique, analytics, Referer)
 
 ### Basse
 
