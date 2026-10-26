@@ -6,7 +6,11 @@ namespace App\Cart\Infrastructure\Catalog;
 
 use App\Cart\Application\Catalog;
 use App\Cart\Application\Response\CatalogSnapshot;
+use App\Cart\Domain\ValueObject\CartItem;
 use App\Cart\Domain\ValueObject\CartProductId;
+use App\Cart\Domain\ValueObject\CartQuantity;
+use App\Cart\Domain\ValueObject\CartVariantId;
+use App\Media\Domain\Entity\Media;
 use App\Media\Domain\Repository\MediaRepository;
 use App\Media\Domain\ValueObject\MediaOwnerId;
 use App\Media\Domain\ValueObject\MediaOwnerType;
@@ -25,18 +29,76 @@ final readonly class ProductCatalog implements Catalog
 
     public function findById(CartProductId $id, ?string $variantId = null): ?CatalogSnapshot
     {
-        $product = $this->productRepository->findById(ProductId::fromString($id->value()));
+        $item = CartItem::of(
+            $id,
+            CartQuantity::fromInt(1),
+            $variantId === null ? null : CartVariantId::fromString($variantId),
+        );
 
-        if ($product === null || !$product->isPublished()) {
-            return null;
+        return $this->findByItems([$item])[$item->lineKey()] ?? null;
+    }
+
+    public function findByItems(array $items): array
+    {
+        if ($items === []) {
+            return [];
         }
 
+        $productIds = [];
+
+        foreach ($items as $item) {
+            $productIds[$item->productId()->value()] = ProductId::fromString($item->productId()->value());
+        }
+
+        $products = [];
+
+        foreach ($this->productRepository->findByIds(array_values($productIds)) as $product) {
+            $products[$product->id()->value()] = $product;
+        }
+
+        $mediaByOwner = $products === [] ? [] : $this->mediaRepository->findByOwners(
+            MediaOwnerType::fromInput(MediaOwnerType::PRODUCT_ALIAS),
+            array_map(
+                static fn (Product $product): MediaOwnerId => MediaOwnerId::fromString($product->id()->value()),
+                array_values($products),
+            ),
+        );
+
+        $snapshots = [];
+
+        foreach ($items as $item) {
+            $product = $products[$item->productId()->value()] ?? null;
+
+            if ($product === null || !$product->isPublished()) {
+                continue;
+            }
+
+            $snapshot = $this->snapshotFor(
+                $product,
+                $item->variantId()?->value(),
+                $mediaByOwner[$product->id()->value()] ?? [],
+            );
+
+            if ($snapshot !== null) {
+                $snapshots[$item->lineKey()] = $snapshot;
+            }
+        }
+
+        return $snapshots;
+    }
+
+    /**
+     * @param list<Media> $media
+     */
+    private function snapshotFor(Product $product, ?string $variantId, array $media): ?CatalogSnapshot
+    {
         if ($variantId === null) {
             return $this->snapshot(
                 $product,
                 $product->name()->value(),
                 $product->stock()->value(),
                 $product->hasVariants(),
+                $media,
             );
         }
 
@@ -51,16 +113,15 @@ final readonly class ProductCatalog implements Catalog
             $product->name()->value().' — '.$variant->label(),
             $variant->stock()->value(),
             true,
+            $media,
         );
     }
 
-    private function snapshot(Product $product, string $name, int $stock, bool $requiresVariant): CatalogSnapshot
+    /**
+     * @param list<Media> $media
+     */
+    private function snapshot(Product $product, string $name, int $stock, bool $requiresVariant, array $media): CatalogSnapshot
     {
-        $media = $this->mediaRepository->findByOwner(
-            MediaOwnerType::fromInput(MediaOwnerType::PRODUCT_ALIAS),
-            MediaOwnerId::fromString($product->id()->value()),
-        );
-
         return new CatalogSnapshot(
             $product->id()->value(),
             $name,

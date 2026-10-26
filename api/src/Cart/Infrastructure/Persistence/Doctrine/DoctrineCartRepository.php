@@ -8,11 +8,13 @@ use App\Cart\Domain\Entity\Cart;
 use App\Cart\Domain\Exception\CartAlreadyCheckingOut;
 use App\Cart\Domain\Exception\InsufficientCartStock;
 use App\Cart\Domain\Repository\CartRepository;
+use App\Cart\Domain\ValueObject\CartItem;
 use App\Cart\Domain\ValueObject\CartProductId;
 use App\Cart\Domain\ValueObject\CartVariantId;
 use App\Cart\Domain\ValueObject\CustomerId;
 use App\Cart\Infrastructure\Persistence\Doctrine\Entity\CartRecord;
 use App\Shared\Application\Transaction\TransactionRunner;
+use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\ORM\EntityManagerInterface;
 
 final readonly class DoctrineCartRepository implements CartRepository
@@ -102,6 +104,50 @@ final readonly class DoctrineCartRepository implements CartRepository
         );
 
         return (int) $reserved;
+    }
+
+    public function reservedQuantities(array $items, CustomerId $exceptCustomerId): array
+    {
+        $quantities = [];
+
+        foreach ($items as $item) {
+            $quantities[$item->lineKey()] = 0;
+        }
+
+        if ($items === []) {
+            return $quantities;
+        }
+
+        $productIds = array_values(array_unique(array_map(
+            static fn (CartItem $item): string => $item->productId()->value(),
+            $items,
+        )));
+
+        $rows = $this->entityManager->getConnection()->fetchAllAssociative(
+            'SELECT i.product_id, i.variant_id, COALESCE(SUM(i.quantity), 0) AS reserved
+             FROM cart_items i
+             INNER JOIN carts c ON c.id = i.cart_id
+             WHERE i.product_id IN (:productIds)
+               AND c.customer_id != :customerId
+             GROUP BY i.product_id, i.variant_id',
+            [
+                'productIds' => $productIds,
+                'customerId' => $exceptCustomerId->value(),
+            ],
+            [
+                'productIds' => ArrayParameterType::STRING,
+            ],
+        );
+
+        foreach ($rows as $row) {
+            $key = $row['product_id']."\0".($row['variant_id'] ?? '');
+
+            if (array_key_exists($key, $quantities)) {
+                $quantities[$key] = (int) $row['reserved'];
+            }
+        }
+
+        return $quantities;
     }
 
     /**

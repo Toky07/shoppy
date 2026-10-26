@@ -22,4 +22,19 @@ final class FakeCartCatalog implements Catalog
     {
         return $this->items[$id->value()] ?? null;
     }
+
+    public function findByItems(array $items): array
+    {
+        $snapshots = [];
+
+        foreach ($items as $item) {
+            $snapshot = $this->findById($item->productId(), $item->variantId()?->value());
+
+            if ($snapshot !== null) {
+                $snapshots[$item->lineKey()] = $snapshot;
+            }
+        }
+
+        return $snapshots;
+    }
 }

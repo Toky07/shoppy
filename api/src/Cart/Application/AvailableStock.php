@@ -32,10 +32,14 @@ final readonly class AvailableStock
             return null;
         }
 
-        return max(0, $snapshot->stock - $this->cartRepository->reservedQuantity(
-            $productId,
-            $variantId,
-            $customerId,
-        ));
+        return $this->remaining(
+            $snapshot->stock,
+            $this->cartRepository->reservedQuantity($productId, $variantId, $customerId),
+        );
+    }
+
+    public function remaining(int $catalogStock, int $reservedByOthers): int
+    {
+        return max(0, $catalogStock - $reservedByOthers);
     }
 }

@@ -39,6 +39,11 @@ final readonly class CartItem
             && $this->variantId?->value() === $variantId?->value();
     }
 
+    public function lineKey(): string
+    {
+        return $this->productId->value()."\0".($this->variantId?->value() ?? '');
+    }
+
     public function withQuantity(CartQuantity $quantity): self
     {
         return new self($this->productId, $quantity, $this->variantId);

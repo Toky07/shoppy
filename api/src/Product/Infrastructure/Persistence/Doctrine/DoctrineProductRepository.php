@@ -105,7 +105,9 @@ final readonly class DoctrineProductRepository implements ProductRepository
         /** @var list<ProductRecord> $records */
         $records = $this->entityManager->createQueryBuilder()
             ->select('product')
+            ->addSelect('variant')
             ->from(ProductRecord::class, 'product')
+            ->leftJoin('product.variants', 'variant')
             ->where('product.id IN (:ids)')
             ->setParameter('ids', $values)
             ->getQuery()

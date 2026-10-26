@@ -68,7 +68,7 @@ Récent : avatar seul dans le header, filtres décollés sur mobile, scroll en h
 
 ### API
 
-- [ ] Batcher le `GET /cart` : une ligne = produit + variantes + médias + 2e lookup catalogue + SQL de réservation (`GetCartQueryHandler`, `Cart\ProductCatalog`, `AvailableStock`)
+- [x] Batcher le `GET /cart` : une ligne = produit + variantes + médias + 2e lookup catalogue + SQL de réservation (`GetCartQueryHandler`, `Cart\ProductCatalog`, `AvailableStock`)
 - [ ] Alléger la fusion du panier invité (chaque ligne rejoue add + stock)
 - [ ] JOIN FETCH des lignes de commande sur les listes (`DoctrineOrderRepository` : N+1 items)
 - [ ] Paginer les avis et batcher les auteurs (`ListProductReviewsQueryHandler` charge tout ; `UserReviewAuthors` fait un `findById` par avis)
