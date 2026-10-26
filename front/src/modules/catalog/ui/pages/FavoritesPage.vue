@@ -18,13 +18,18 @@ if (!repository) {
 }
 
 const catalog = repository
-const { favorites, count, clear } = useFavorites()
+const { favorites, count, clear, loading } = useFavorites()
 const products = ref<Product[]>([])
 const status = ref<'loading' | 'ready' | 'empty' | 'error'>('loading')
 const errorMessage = ref<string>()
 
 async function load() {
   errorMessage.value = undefined
+
+  if (loading.value) {
+    status.value = 'loading'
+    return
+  }
 
   if (favorites.value.length === 0) {
     products.value = []
@@ -43,7 +48,7 @@ async function load() {
   }
 }
 
-watch(favorites, load, { immediate: true })
+watch([favorites, loading], load, { immediate: true })
 </script>
 
 <template>
@@ -53,7 +58,7 @@ watch(favorites, load, { immediate: true })
       title="Ma liste d'envies"
       icon="heart"
       tone="accent"
-      description="Gardée sur cet appareil, sans compte ni e-mail. Ajoutez un produit en touchant le cœur."
+      description="Enregistrée sur votre compte dès que vous êtes connecté. Sans compte, elle reste sur cet appareil."
     >
       <template #actions>
         <button v-if="count > 0" type="button" class="btn-outline" @click="clear">

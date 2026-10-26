@@ -8,6 +8,7 @@ import {
     cartRepository,
     cartState,
     catalogRepository,
+    favoritesState,
     orderRepository,
     paymentRepository,
     userDirectory } from './app/dependencies'
@@ -18,6 +19,7 @@ import { cartRepositoryKey } from './modules/cart/application/cartRepositoryKey'
 import { cartStateKey } from './modules/cart/application/cartStateKey'
 import { adminCatalogRepositoryKey } from './modules/catalog/application/adminCatalogRepositoryKey'
 import { catalogRepositoryKey } from './modules/catalog/application/catalogRepositoryKey'
+import { favoritesStateKey } from './modules/catalog/application/favoritesStateKey'
 import { orderRepositoryKey } from './modules/order/application/orderRepositoryKey'
 import { paymentRepositoryKey } from './modules/payment/application/paymentRepositoryKey'
 import router from './router'
@@ -37,6 +39,7 @@ app.provide(orderRepositoryKey, orderRepository);
 app.provide(paymentRepositoryKey, paymentRepository);
 app.provide(adminCatalogRepositoryKey, adminCatalogRepository);
 app.provide(userDirectoryKey, userDirectory);
+app.provide(favoritesStateKey, favoritesState);
 
 await authReady;
 router.beforeEach(createNavigationGuard(authSession));

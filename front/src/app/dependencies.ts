@@ -8,6 +8,9 @@ import { createLocalGuestCart } from '@/modules/cart/data/guestCartStorage'
 import { OrderHttpRepository } from '@/modules/order/data/OrderHttpRepository'
 import { PaymentHttpRepository } from '@/modules/payment/data/PaymentHttpRepository'
 import { AdminCatalogHttpRepository } from '@/modules/catalog/data/AdminCatalogHttpRepository'
+import { createFavoritesState } from '@/modules/catalog/application/createFavoritesState'
+import { FavoriteHttpRepository } from '@/modules/catalog/data/FavoriteHttpRepository'
+import { createLocalGuestFavorites } from '@/modules/catalog/data/guestFavoriteStorage'
 import { ProductHttpRepository } from '@/modules/catalog/data/ProductHttpRepository'
 import { UserHttpDirectory } from '@/modules/auth/data/UserHttpDirectory'
 
@@ -32,3 +35,9 @@ export const orderRepository = new OrderHttpRepository(httpClient)
 export const paymentRepository = new PaymentHttpRepository(httpClient)
 export const adminCatalogRepository = new AdminCatalogHttpRepository(httpClient)
 export const userDirectory = new UserHttpDirectory(httpClient)
+export const favoriteRepository = new FavoriteHttpRepository(httpClient)
+export const favoritesState = createFavoritesState(
+  favoriteRepository,
+  authSession.isAuthenticated,
+  createLocalGuestFavorites(window.localStorage),
+)

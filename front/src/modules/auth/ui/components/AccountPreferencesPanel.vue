@@ -21,7 +21,7 @@ const { count: favoriteCount, clear: clearFavorites } = useFavorites()
     <div class="mt-6 flex items-center justify-between gap-4 border-t border-line pt-6">
       <div>
         <p class="text-sm font-semibold text-strong">Liste d'envies</p>
-        <p class="mt-1 text-xs text-muted">Gardée sur cet appareil, jamais envoyée.</p>
+        <p class="mt-1 text-xs text-muted">Synchronisée avec votre compte. Sans connexion, elle reste sur cet appareil.</p>
       </div>
       <button
         type="button"
