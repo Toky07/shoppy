@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace App\Product\Infrastructure\Image;
 
-use App\Media\Domain\ValueObject\MediaMimeType;
+use App\Media\Application\DetectedMediaType;
 use App\Product\Application\Image\GeneratedProductImage;
 use App\Product\Application\Image\HttpDownloader;
 use App\Product\Application\Image\ProductImageLoader;
-use finfo;
 use RuntimeException;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
@@ -24,7 +23,7 @@ final readonly class CachedProductImageLoader implements ProductImageLoader
     public function load(string $source): GeneratedProductImage
     {
         $contents = $this->isRemote($source) ? $this->cachedRemote($source) : $this->readLocal($source);
-        $mimeType = MediaMimeType::fromString($this->detectMimeType($contents));
+        $mimeType = DetectedMediaType::fromBinary($contents);
 
         return new GeneratedProductImage(
             $this->filenameFor($source, $mimeType->extension()),
@@ -62,14 +61,6 @@ final readonly class CachedProductImageLoader implements ProductImageLoader
         }
 
         return $contents;
-    }
-
-    private function detectMimeType(string $contents): string
-    {
-        $detected = (new finfo(FILEINFO_MIME_TYPE))->buffer($contents) ?: '';
-        $detected = strtolower(trim(explode(';', $detected)[0]));
-
-        return $detected;
     }
 
     private function filenameFor(string $source, string $extension): string

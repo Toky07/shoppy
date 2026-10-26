@@ -177,6 +177,8 @@ services:
 
     App\Product\Application\Image\HttpDownloader: '@App\Product\Infrastructure\Image\StreamHttpDownloader'
 
+    App\Product\Application\Port\HostAddresses: '@App\Product\Infrastructure\Image\DnsHostAddresses'
+
     App\Product\Application\Image\ProductImageWriter: '@App\Product\Infrastructure\Image\SvgProductImageWriter'
 
     # add more service definitions when explicit configuration is needed
