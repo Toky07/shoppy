@@ -14,6 +14,32 @@ use App\Order\Domain\ValueObject\Quantity;
 use App\Order\Domain\ValueObject\UnitPrice;
 use Doctrine\ORM\EntityManagerInterface;
 
+function twoLineOrder(string $orderId, string $customerId, string $createdAt, string $firstName, string $secondName): Order
+{
+    return Order::place(
+        OrderId::fromString($orderId),
+        CustomerId::fromString($customerId),
+        [
+            OrderItem::of(
+                CatalogProductId::fromString('550e8400-e29b-41d4-a716-446655440000'),
+                OrderedProductName::fromString($firstName),
+                UnitPrice::fromCents(1000),
+                Quantity::fromInt(1),
+            ),
+            OrderItem::of(
+                CatalogProductId::fromString('550e8400-e29b-41d4-a716-446655440001'),
+                OrderedProductName::fromString($secondName),
+                UnitPrice::fromCents(2000),
+                Quantity::fromInt(1),
+            ),
+        ],
+        new DateTimeImmutable($createdAt),
+        samplePostalAddress(),
+        samplePostalAddress(),
+        sampleShippingMethod(),
+    );
+}
+
 it('persists an order and its line snapshots', function () {
     $id = OrderId::fromString('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa');
     $createdAt = new DateTimeImmutable('2026-08-20T12:00:00+00:00');
@@ -217,4 +243,43 @@ it('lists all orders newest first across customers', function () {
         ->and($orders[0]->id()->value())->toBe('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa3')
         ->and($orders[1]->id()->value())->toBe('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa2')
         ->and($orders[2]->id()->value())->toBe('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1');
+});
+
+it('keeps the page size when listed orders have several lines', function () {
+    $repository = self::getContainer()->get(OrderRepository::class);
+    $entityManager = self::getContainer()->get(EntityManagerInterface::class);
+    $customerId = '11111111-1111-4111-8111-111111111111';
+
+    $repository->save(twoLineOrder('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1', $customerId, '2026-08-19T12:00:00+00:00', 'One A', 'One B'));
+    $repository->save(twoLineOrder('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa2', $customerId, '2026-08-20T12:00:00+00:00', 'Two A', 'Two B'));
+    $repository->save(twoLineOrder('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa3', $customerId, '2026-08-21T12:00:00+00:00', 'Three A', 'Three B'));
+    $entityManager->clear();
+
+    $page = $repository->findPageByCustomer(CustomerId::fromString($customerId), 0, 2);
+
+    expect($page)->toHaveCount(2)
+        ->and($page[0]->id()->value())->toBe('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa3')
+        ->and($page[0]->items())->toHaveCount(2)
+        ->and($page[0]->items()[0]->name()->value())->toBe('Three A')
+        ->and($page[0]->items()[1]->name()->value())->toBe('Three B')
+        ->and($page[1]->id()->value())->toBe('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa2')
+        ->and($page[1]->items())->toHaveCount(2);
+});
+
+it('loads items for the admin order list without shrinking the page', function () {
+    $repository = self::getContainer()->get(OrderRepository::class);
+    $entityManager = self::getContainer()->get(EntityManagerInterface::class);
+
+    $repository->save(twoLineOrder('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1', '11111111-1111-4111-8111-111111111111', '2026-08-19T12:00:00+00:00', 'One A', 'One B'));
+    $repository->save(twoLineOrder('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa2', '22222222-2222-4222-8222-222222222222', '2026-08-20T12:00:00+00:00', 'Two A', 'Two B'));
+    $repository->save(twoLineOrder('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa3', '11111111-1111-4111-8111-111111111111', '2026-08-21T12:00:00+00:00', 'Three A', 'Three B'));
+    $entityManager->clear();
+
+    $page = $repository->findPage(0, 2);
+
+    expect($page)->toHaveCount(2)
+        ->and($page[0]->id()->value())->toBe('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa3')
+        ->and($page[0]->items())->toHaveCount(2)
+        ->and($page[1]->id()->value())->toBe('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa2')
+        ->and($page[1]->items())->toHaveCount(2);
 });
