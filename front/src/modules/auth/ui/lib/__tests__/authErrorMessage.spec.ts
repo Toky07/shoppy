@@ -8,7 +8,7 @@ describe('authErrorMessage', () => {
       'Cet email est déjà utilisé.',
     )
     expect(authErrorMessage({ code: 'last_admin_account', message: 'x' })).toBe(
-      'Le dernier administrateur ne peut pas supprimer son compte.',
+      'Il doit rester au moins un administrateur.',
     )
     expect(
       authErrorMessage({

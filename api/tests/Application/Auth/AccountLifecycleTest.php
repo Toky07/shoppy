@@ -27,7 +27,7 @@ use App\Auth\Application\CurrentPassword;
 use App\Auth\Application\IssueAccountToken;
 use App\Auth\Domain\Entity\AccountToken;
 use App\Auth\Domain\Exception\InvalidAccountToken;
-use App\Auth\Domain\Exception\LastAdminAccount;
+use App\User\Domain\Exception\LastAdminAccount;
 use App\Auth\Domain\ValueObject\AccountTokenPurpose;
 use App\Auth\Domain\ValueObject\TokenHash;
 use App\Auth\Infrastructure\Persistence\InMemoryAccessTokenRepository;

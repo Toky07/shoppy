@@ -16,6 +16,7 @@ import { authSessionKey } from '@/modules/auth/application/authSessionKey'
 import { DEFAULT_USER_LIMIT } from '@/modules/auth/application/defaultUserLimit'
 import { userDirectoryKey } from '@/modules/auth/application/userDirectoryKey'
 import { useUserList } from '@/modules/auth/application/useUserList'
+import { authErrorMessage } from '@/modules/auth/ui/lib/authErrorMessage'
 import { userRoleLabel } from '@/modules/auth/ui/lib/userRoleLabel'
 import AdminPageHeader from '../components/AdminPageHeader.vue'
 
@@ -80,7 +81,7 @@ async function onRoleChange(user: User, event: Event) {
     }
     successMessage.value = `Rôle mis à jour pour ${updated.email}.`
   } catch (caught) {
-    errorMessage.value = toApiError(caught).message
+    errorMessage.value = authErrorMessage(toApiError(caught))
     await reload()
   } finally {
     pendingId.value = undefined

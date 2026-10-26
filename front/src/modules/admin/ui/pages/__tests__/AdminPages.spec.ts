@@ -268,4 +268,25 @@ describe('Admin pages', () => {
       expect(screen.getByRole('status').textContent).toContain('Rôle mis à jour')
     })
   })
+
+  it('refuses to demote the last admin', async () => {
+    const userDirectory = new FakeUserDirectory([adminUser])
+    userDirectory.assignError = new ApiError(409, 'last_admin_account', 'The request conflicts with the current state.')
+
+    await renderApp({
+      path: '/admin/users',
+      session: adminSession,
+      userDirectory,
+    })
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(`Rôle de ${adminUser.email}`)).toBeTruthy()
+    })
+
+    await userEvent.selectOptions(screen.getByLabelText(`Rôle de ${adminUser.email}`), 'customer')
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert').textContent).toContain('Il doit rester au moins un administrateur.')
+    })
+  })
 })

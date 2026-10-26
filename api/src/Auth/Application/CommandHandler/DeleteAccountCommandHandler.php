@@ -6,11 +6,11 @@ namespace App\Auth\Application\CommandHandler;
 
 use App\Auth\Application\Command\DeleteAccountCommand;
 use App\Auth\Application\CurrentPassword;
-use App\Auth\Domain\Exception\LastAdminAccount;
 use App\Auth\Domain\Repository\AccessTokenRepository;
 use App\Auth\Domain\Repository\AccountTokenRepository;
 use App\Auth\Domain\Repository\CredentialsRepository;
 use App\Shared\Domain\Clock;
+use App\User\Domain\Exception\LastAdminAccount;
 use App\User\Domain\Exception\UserNotFound;
 use App\User\Domain\Repository\UserRepository;
 use App\User\Domain\ValueObject\Role;
