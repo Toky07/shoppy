@@ -9,6 +9,7 @@ RUN install-php-extensions \
         intl \
         opcache \
         pdo_pgsql \
+        redis \
         zip
 
 ENV PHP_INI_SCAN_DIR=":$PHP_INI_DIR/app.conf.d"
@@ -55,6 +56,7 @@ COPY . .
 RUN --mount=type=cache,target=/tmp/composer \
     export APP_SECRET=build-time-only \
         DATABASE_URL="postgresql://build:build@127.0.0.1:5432/build?serverVersion=16&charset=utf8" \
+        REDIS_URL=redis://127.0.0.1:6379 \
         DEFAULT_URI=http://localhost \
         MAILER_DSN=null://null \
         MAILER_FROM=noreply@shoppy.test \

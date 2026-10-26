@@ -34,6 +34,19 @@ services:
       start_period: 10s
       retries: 10
 
+  redis:
+    <<: *hardening
+    image: redis:7-alpine
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      start_period: 5s
+      retries: 10
+
   api:
     <<: *hardening
     build:
@@ -44,6 +57,7 @@ services:
     environment:
       APP_SECRET: ${APP_SECRET:?APP_SECRET is required}
       DATABASE_URL: postgresql://${POSTGRES_USER:-shoppy}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}@database:5432/${POSTGRES_DB:-shoppy}?serverVersion=16&charset=utf8
+      REDIS_URL: redis://redis:6379
       DEFAULT_URI: ${DEFAULT_URI:-https://localhost}
       FRONTEND_BASE_URL: ${FRONTEND_BASE_URL:-https://localhost}
       APP_ALLOWED_ORIGINS: ${APP_ALLOWED_ORIGINS:-https://localhost}
@@ -62,6 +76,8 @@ services:
       - frontend
     depends_on:
       database:
+        condition: service_healthy
+      redis:
         condition: service_healthy
 
   front:

@@ -32,15 +32,25 @@ jobs:
           --health-interval 5s
           --health-timeout 3s
           --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
     env:
       DATABASE_URL: postgresql://shoppy:shoppy@127.0.0.1:5432/shoppy?serverVersion=16&charset=utf8
+      REDIS_URL: redis://127.0.0.1:6379
     steps:
       - uses: actions/checkout@v5
 
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.3'
-          extensions: mbstring, intl, ctype, iconv, pdo_pgsql
+          extensions: mbstring, intl, ctype, iconv, pdo_pgsql, redis
           coverage: none
           tools: composer
 
