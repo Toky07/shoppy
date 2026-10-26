@@ -6,9 +6,11 @@ namespace App\Auth\Infrastructure\Persistence\Doctrine;
 
 use App\Auth\Domain\Entity\AccessToken;
 use App\Auth\Domain\Repository\AccessTokenRepository;
+use App\Auth\Domain\ValueObject\AccessTokenKind;
 use App\Auth\Domain\ValueObject\TokenHash;
 use App\User\Domain\ValueObject\UserId;
 use App\Auth\Infrastructure\Persistence\Doctrine\Entity\AccessTokenRecord;
+use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 
 final readonly class DoctrineAccessTokenRepository implements AccessTokenRepository
@@ -56,14 +58,32 @@ final readonly class DoctrineAccessTokenRepository implements AccessTokenReposit
             ->execute();
     }
 
-    public function trimTo(UserId $userId, int $max): void
+    public function deleteExpired(DateTimeImmutable $now): int
     {
-        /** @var list<AccessTokenRecord> $records */
-        $records = $this->entityManager->createQuery(
-            'SELECT token FROM App\Auth\Infrastructure\Persistence\Doctrine\Entity\AccessTokenRecord token WHERE token.userId = :userId ORDER BY token.createdAt ASC',
+        return (int) $this->entityManager->createQuery(
+            'DELETE FROM App\Auth\Infrastructure\Persistence\Doctrine\Entity\AccessTokenRecord token WHERE token.expiresAt <= :now',
         )
-            ->setParameter('userId', $userId->value())
-            ->getResult();
+            ->setParameter('now', $now)
+            ->execute();
+    }
+
+    public function trimTo(UserId $userId, int $max, ?AccessTokenKind $kind = null): void
+    {
+        $dql = 'SELECT token FROM App\Auth\Infrastructure\Persistence\Doctrine\Entity\AccessTokenRecord token WHERE token.userId = :userId';
+
+        if ($kind !== null) {
+            $dql .= ' AND token.kind = :kind';
+        }
+
+        $query = $this->entityManager->createQuery($dql.' ORDER BY token.createdAt ASC')
+            ->setParameter('userId', $userId->value());
+
+        if ($kind !== null) {
+            $query->setParameter('kind', $kind->value());
+        }
+
+        /** @var list<AccessTokenRecord> $records */
+        $records = $query->getResult();
 
         $excess = count($records) - $max;
 

@@ -46,6 +46,21 @@ it('supports requests that carry an access credential', function () {
         ->and($authenticator->supports(Request::create('/products')))->toBeFalse();
 });
 
+it('does not support POST /auth/refresh so an expired access cookie cannot block rotation', function () {
+    $now = new DateTimeImmutable('2026-08-20T12:00:00+00:00');
+    $authenticator = accessTokenAuthenticator(
+        new InMemoryAccessTokenRepository(),
+        new InMemoryUserRepository(),
+        $now,
+    );
+
+    $refresh = Request::create('/auth/refresh', 'POST');
+    $refresh->cookies->set('shoppy_session', 'expired-access');
+    $refresh->cookies->set('shoppy_refresh', 'valid-refresh');
+
+    expect($authenticator->supports($refresh))->toBeFalse();
+});
+
 it('authenticates a valid bearer token and loads the user', function () {
     $tokens = new InMemoryAccessTokenRepository();
     $generator = new FakeTokenGenerator();

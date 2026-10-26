@@ -7,6 +7,7 @@ use App\User\Application\CommandHandler\AssignUserRoleCommandHandler;
 use App\User\Domain\Entity\User;
 use App\User\Domain\Exception\InvalidUserId;
 use App\User\Domain\Exception\InvalidUserRole;
+use App\User\Domain\Exception\LastAdminAccount;
 use App\User\Domain\Exception\UserNotFound;
 use App\User\Domain\ValueObject\Email;
 use App\User\Domain\ValueObject\Role;
@@ -42,6 +43,12 @@ it('assigns the customer role', function () {
     $user = persistedUser($users);
     $user->assignRole(Role::admin());
     $users->save($user);
+    $users->save(User::register(
+        UserId::fromString('22222222-2222-4222-8222-222222222222'),
+        Email::fromString('bob@nuvora.test'),
+        new DateTimeImmutable('2026-08-20T12:00:00+00:00'),
+        Role::admin(),
+    ));
 
     (new AssignUserRoleCommandHandler($users))->handle(new AssignUserRoleCommand(
         id: $user->id()->value(),
@@ -49,6 +56,32 @@ it('assigns the customer role', function () {
     ));
 
     expect($users->findById($user->id())->role())->toEqual(Role::customer());
+});
+
+it('refuses to demote the last admin', function () {
+    $users = new InMemoryUserRepository();
+    $user = persistedUser($users);
+    $user->assignRole(Role::admin());
+    $users->save($user);
+
+    (new AssignUserRoleCommandHandler($users))->handle(new AssignUserRoleCommand(
+        id: $user->id()->value(),
+        role: 'customer',
+    ));
+})->throws(LastAdminAccount::class);
+
+it('keeps the last admin when the role is unchanged', function () {
+    $users = new InMemoryUserRepository();
+    $user = persistedUser($users);
+    $user->assignRole(Role::admin());
+    $users->save($user);
+
+    (new AssignUserRoleCommandHandler($users))->handle(new AssignUserRoleCommand(
+        id: $user->id()->value(),
+        role: 'admin',
+    ));
+
+    expect($users->findById($user->id())->role())->toEqual(Role::admin());
 });
 
 it('fails when the user does not exist', function () {

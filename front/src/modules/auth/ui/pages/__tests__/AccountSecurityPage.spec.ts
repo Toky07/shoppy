@@ -21,7 +21,12 @@ describe('account security pages', () => {
 
   it('resets the password from the emailed token', async () => {
     const authRepository = new FakeAuthRepository()
-    await renderApp({ authRepository, path: '/reset-password?token=reset-token' })
+    const { router } = await renderApp({ authRepository, path: '/reset-password#token=reset-token' })
+
+    await waitFor(() => {
+      expect(router.currentRoute.value.hash).toBe('')
+      expect(router.currentRoute.value.query.token).toBeUndefined()
+    })
 
     await userEvent.type(screen.getByLabelText('Nouveau mot de passe'), 'brand-new-secret')
     await userEvent.click(screen.getByRole('button', { name: 'Enregistrer' }))
@@ -34,16 +39,35 @@ describe('account security pages', () => {
     ])
   })
 
+  it('still accepts a query token from older emails then hides it', async () => {
+    const authRepository = new FakeAuthRepository()
+    const { router } = await renderApp({ authRepository, path: '/reset-password?token=legacy-token' })
+
+    await waitFor(() => {
+      expect(router.currentRoute.value.query.token).toBeUndefined()
+    })
+
+    await userEvent.type(screen.getByLabelText('Nouveau mot de passe'), 'brand-new-secret')
+    await userEvent.click(screen.getByRole('button', { name: 'Enregistrer' }))
+
+    await waitFor(() => {
+      expect(authRepository.passwordResetConfirmations).toEqual([
+        { token: 'legacy-token', password: 'brand-new-secret' },
+      ])
+    })
+  })
+
   it('confirms the registration email', async () => {
     const authRepository = new FakeAuthRepository()
-    const { authSession } = await renderApp({
+    const { authSession, router } = await renderApp({
       authRepository,
       session: { ...visitorSession, user: { ...visitorSession.user, emailVerified: false } },
-      path: '/verify-email?token=verify-token',
+      path: '/verify-email#token=verify-token',
     })
 
     await waitFor(() => {
       expect(screen.getByRole('status').textContent).toContain('Votre adresse email est confirmée')
+      expect(router.currentRoute.value.hash).toBe('')
     })
     expect(authRepository.emailVerifications).toEqual(['verify-token'])
     expect(authSession.session.value?.user.emailVerified).toBe(true)
@@ -51,14 +75,15 @@ describe('account security pages', () => {
 
   it('confirms an email change and closes the session', async () => {
     const authRepository = new FakeAuthRepository()
-    const { authSession } = await renderApp({
+    const { authSession, router } = await renderApp({
       authRepository,
       session: visitorSession,
-      path: '/confirm-email?token=change-token',
+      path: '/confirm-email#token=change-token',
     })
 
     await waitFor(() => {
       expect(screen.getByRole('status').textContent).toContain('Adresse confirmée')
+      expect(router.currentRoute.value.hash).toBe('')
     })
     expect(authRepository.emailChangeConfirmations).toEqual(['change-token'])
     expect(authSession.session.value).toBeNull()

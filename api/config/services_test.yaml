@@ -4,6 +4,7 @@ parameters:
     app.rate_limit.register: 100000
     app.rate_limit.checkout: 100000
     app.rate_limit.webhook: 100000
+    app.rate_limit.account: 100000
 
 services:
     _defaults:

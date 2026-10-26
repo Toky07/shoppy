@@ -6,6 +6,8 @@ import { parseApiError } from './parseApiError'
 import { withQuery } from './withQuery'
 
 export class FetchHttpClient implements HttpClient {
+  private refreshInFlight: Promise<boolean> | null = null
+
   constructor(
     private readonly baseUrl: string,
     private readonly fetchFn: typeof fetch = globalThis.fetch.bind(globalThis),
@@ -36,7 +38,12 @@ export class FetchHttpClient implements HttpClient {
     return this.request('DELETE', path)
   }
 
-  private async request<T>(method: HttpMethod, path: string, body?: HttpBody | FormData): Promise<T> {
+  private async request<T>(
+    method: HttpMethod,
+    path: string,
+    body?: HttpBody | FormData,
+    retried = false,
+  ): Promise<T> {
     const response = await this.fetchFn(joinUrl(this.baseUrl, path), {
       method,
       credentials: 'include',
@@ -47,7 +54,13 @@ export class FetchHttpClient implements HttpClient {
     if (!response.ok) {
       const error = await this.toApiError(response)
 
-      if (error.code === 'unauthenticated') {
+      if (error.code === 'unauthenticated' && !retried && this.canRefresh(path)) {
+        if (await this.refreshSession()) {
+          return this.request(method, path, body, true)
+        }
+
+        this.tokenProvider?.clear?.()
+      } else if (error.code === 'unauthenticated') {
         this.tokenProvider?.clear?.()
       }
 
@@ -59,6 +72,25 @@ export class FetchHttpClient implements HttpClient {
     }
 
     return (await response.json()) as T
+  }
+
+  private canRefresh(path: string): boolean {
+    return path !== '/auth/refresh' && path !== '/auth/login' && !path.startsWith('/auth/login?')
+  }
+
+  private refreshSession(): Promise<boolean> {
+    this.refreshInFlight ??= this.fetchFn(joinUrl(this.baseUrl, '/auth/refresh'), {
+      method: 'POST',
+      credentials: 'include',
+      headers: { Accept: 'application/json' },
+    })
+      .then((response) => response.ok)
+      .catch(() => false)
+      .finally(() => {
+        this.refreshInFlight = null
+      })
+
+    return this.refreshInFlight
   }
 
   private headers(hasBody: boolean): Record<string, string> {

@@ -30,5 +30,17 @@ final readonly class LogoutCommandHandler
         }
 
         $this->accessTokenRepository->delete($token);
+
+        if ($command->refreshToken === null || $command->refreshToken === '') {
+            return;
+        }
+
+        $refresh = $this->accessTokenRepository->findByHash(
+            $this->tokenGenerator->hash($command->refreshToken),
+        );
+
+        if ($refresh !== null && $refresh->kind()->isRefresh()) {
+            $this->accessTokenRepository->delete($refresh);
+        }
     }
 }

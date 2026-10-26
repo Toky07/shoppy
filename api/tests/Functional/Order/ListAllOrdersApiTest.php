@@ -30,15 +30,7 @@ function adminListOrdersLogin(string $email): array
 
 function adminListOrdersPlace(array $headers, string $productId, int $quantity = 1): array
 {
-    test()->client->jsonRequest('POST', '/orders', [
-        ...deliveryFields(),
-        'items' => [[
-            'productId' => $productId,
-            'quantity' => $quantity,
-        ]],
-    ], $headers);
-
-    return json_decode((string) test()->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+    return placeOrderFromCart($headers, $productId, $quantity);
 }
 
 it('lists all orders for an admin newest first', function () {

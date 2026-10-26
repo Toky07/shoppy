@@ -30,15 +30,7 @@ function loginOrderUser(string $email): array
 
 function placeOrderForCurrentUser(array $headers, string $productId, int $quantity = 2): array
 {
-    test()->client->jsonRequest('POST', '/orders', [
-        ...deliveryFields(),
-        'items' => [[
-            'productId' => $productId,
-            'quantity' => $quantity,
-        ]],
-    ], $headers);
-
-    return json_decode((string) test()->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+    return placeOrderFromCart($headers, $productId, $quantity);
 }
 
 it('returns an order to its owner', function () {

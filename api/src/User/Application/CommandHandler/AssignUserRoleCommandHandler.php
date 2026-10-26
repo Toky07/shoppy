@@ -6,6 +6,7 @@ namespace App\User\Application\CommandHandler;
 
 use App\Shared\Application\Event\UserRoleChanged;
 use App\User\Application\Command\AssignUserRoleCommand;
+use App\User\Domain\Exception\LastAdminAccount;
 use App\User\Domain\Exception\UserNotFound;
 use App\User\Domain\Repository\UserRepository;
 use App\User\Domain\ValueObject\Role;
@@ -29,7 +30,17 @@ final readonly class AssignUserRoleCommandHandler
             throw new UserNotFound($id);
         }
 
-        $user->assignRole(Role::fromString($command->role));
+        $role = Role::fromString($command->role);
+
+        if (
+            $user->role()->value() === Role::admin()->value()
+            && $role->value() !== Role::admin()->value()
+            && $this->userRepository->countWithRole(Role::admin()) <= 1
+        ) {
+            throw new LastAdminAccount();
+        }
+
+        $user->assignRole($role);
         $this->userRepository->save($user);
         $this->events?->dispatch(new UserRoleChanged($id->value()));
     }

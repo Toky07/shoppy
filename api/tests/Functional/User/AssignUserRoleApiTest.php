@@ -131,6 +131,21 @@ it('rejects a missing role', function () {
         ]);
 });
 
+it('refuses to demote the last admin', function () {
+    $this->client->jsonRequest('GET', '/auth/me', [], catalogAdminHeaders());
+    $admin = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+
+    $this->client->jsonRequest('PATCH', '/users/'.$admin['id'], [
+        'role' => 'customer',
+    ], catalogAdminHeaders());
+
+    $response = $this->client->getResponse();
+    $payload = json_decode((string) $response->getContent(), true, flags: JSON_THROW_ON_ERROR);
+
+    expect($response->getStatusCode())->toBe(409)
+        ->and($payload['error']['code'])->toBe('last_admin_account');
+});
+
 it('lets an admin demote a user to customer', function () {
     $target = registerCatalogUser($this->client, 'ada@nuvora.test');
     $this->client->jsonRequest('PATCH', '/users/'.$target['id'], [

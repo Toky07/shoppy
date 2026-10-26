@@ -18,6 +18,7 @@ parameters:
     app.rate_limit.register: 10
     app.rate_limit.checkout: 30
     app.rate_limit.webhook: 120
+    app.rate_limit.account: 10
     app.rate_limit.window: 60
 
 services:
@@ -44,6 +45,7 @@ services:
             - '../src/*/Application/Image/GeneratedProductImage.php'
             - '../src/*/Application/Image/ProductImageLoader.php'
             - '../src/*/Application/Image/HttpDownloader.php'
+            - '../src/*/Application/RateLimiter.php'
             - '../src/*/Presentation/Request/'
             - '../src/*/Presentation/Exception/'
             - '../src/*/Presentation/Http/ErrorResponse.php'
@@ -64,6 +66,8 @@ services:
     App\Media\Domain\Repository\MediaRepository: '@App\Media\Infrastructure\Persistence\Doctrine\DoctrineMediaRepository'
 
     App\Media\Application\Port\MediaStorage: '@App\Media\Infrastructure\Storage\FilesystemMediaStorage'
+
+    App\Media\Application\Port\MediaOwnerVisibility: '@App\Media\Infrastructure\Catalog\ProductMediaOwnerVisibility'
 
     App\User\Domain\Repository\UserRepository: '@App\User\Infrastructure\Persistence\Doctrine\DoctrineUserRepository'
 
@@ -150,12 +154,15 @@ services:
         arguments:
             $directory: '%kernel.cache_dir%/rate-limit'
 
+    App\Shared\Application\RateLimiter: '@App\Shared\Infrastructure\Persistence\DoctrineRateLimiter'
+
     App\Shared\Presentation\EventSubscriber\RateLimitSubscriber:
         arguments:
             $loginLimit: '%app.rate_limit.login%'
             $registerLimit: '%app.rate_limit.register%'
             $checkoutLimit: '%app.rate_limit.checkout%'
             $webhookLimit: '%app.rate_limit.webhook%'
+            $accountLimit: '%app.rate_limit.account%'
             $windowSeconds: '%app.rate_limit.window%'
 
     App\Shared\Presentation\EventSubscriber\CorsSubscriber:
@@ -172,6 +179,8 @@ services:
     App\Product\Application\Image\ProductImageLoader: '@App\Product\Infrastructure\Image\CachedProductImageLoader'
 
     App\Product\Application\Image\HttpDownloader: '@App\Product\Infrastructure\Image\StreamHttpDownloader'
+
+    App\Product\Application\Port\HostAddresses: '@App\Product\Infrastructure\Image\DnsHostAddresses'
 
     App\Product\Application\Image\ProductImageWriter: '@App\Product\Infrastructure\Image\SvgProductImageWriter'
 

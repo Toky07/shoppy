@@ -52,7 +52,7 @@ make seed    # catalogue de démo
 
 Pour repartir d’une base vide avant le seed : `docker compose exec api bin/console app:seed-demo --reset`.
 
-Comptes démo : `admin@shoppy.test` / `visitor@shoppy.test`, mot de passe `password123`. Le seed refuse de tourner en production.
+Comptes démo : `admin@shoppy.test` / `visitor@shoppy.test`, mot de passe `password1234`. Le seed refuse de tourner en production.
 
 Paiement : `PAYMENT_PROVIDER=local` par défaut en développement, ou `stripe` avec `STRIPE_SECRET_KEY` et `STRIPE_WEBHOOK_SECRET`. En production le provider local est refusé.
 

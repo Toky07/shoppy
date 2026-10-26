@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Auth\Infrastructure\Persistence\Doctrine\Entity;
 
 use App\Auth\Domain\Entity\AccessToken;
+use App\Auth\Domain\ValueObject\AccessTokenKind;
 use App\Auth\Domain\ValueObject\TokenHash;
 use App\User\Domain\ValueObject\UserId;
 use DateTimeImmutable;
@@ -12,6 +13,8 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'access_tokens')]
+#[ORM\Index(name: 'idx_access_tokens_user_id', columns: ['user_id'])]
+#[ORM\Index(name: 'idx_access_tokens_expires_at', columns: ['expires_at'])]
 class AccessTokenRecord
 {
     #[ORM\Id]
@@ -26,6 +29,9 @@ class AccessTokenRecord
 
     #[ORM\Column(name: 'created_at')]
     private DateTimeImmutable $createdAt;
+
+    #[ORM\Column(name: 'kind', length: 16)]
+    private string $kind = AccessTokenKind::ACCESS;
 
     public static function fromDomain(AccessToken $token): self
     {
@@ -42,6 +48,7 @@ class AccessTokenRecord
             TokenHash::fromHash($this->tokenHash),
             $this->expiresAt,
             $this->createdAt,
+            AccessTokenKind::fromString($this->kind),
         );
     }
 
@@ -51,5 +58,6 @@ class AccessTokenRecord
         $this->userId = $token->userId()->value();
         $this->expiresAt = $token->expiresAt();
         $this->createdAt = $token->createdAt();
+        $this->kind = $token->kind()->value();
     }
 }

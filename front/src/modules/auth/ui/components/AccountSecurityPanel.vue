@@ -119,6 +119,7 @@ function onDelete() {
             autocomplete="new-password"
             required
             minlength="12"
+            maxlength="4096"
             class="field"
           />
         </div>

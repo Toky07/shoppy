@@ -37,6 +37,22 @@ it('rejects a missing email', function () {
         ]);
 });
 
+it('rejects an eleven-character password', function () {
+    $this->client->jsonRequest('POST', '/users', [
+        'email' => 'ada@nuvora.test',
+        'password' => '12345678901',
+    ]);
+
+    $response = $this->client->getResponse();
+    $payload = json_decode((string) $response->getContent(), true, flags: JSON_THROW_ON_ERROR);
+
+    expect($response->getStatusCode())->toBe(400)
+        ->and($payload['error']['code'])->toBe('validation_error')
+        ->and($payload['error']['violations'])->toBe([
+            ['field' => 'password', 'message' => 'Password must be between 12 and 4096 characters.'],
+        ]);
+});
+
 it('rejects a weak password', function () {
     $this->client->jsonRequest('POST', '/users', [
         'email' => 'ada@nuvora.test',

@@ -30,6 +30,10 @@ final class AccessTokenAuthenticator extends AbstractAuthenticator
 
     public function supports(Request $request): ?bool
     {
+        if ($request->isMethod('POST') && $request->getPathInfo() === '/auth/refresh') {
+            return false;
+        }
+
         return AccessCredential::fromRequest($request) !== null;
     }
 

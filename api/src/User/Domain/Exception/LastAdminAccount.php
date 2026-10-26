@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Auth\Domain\Exception;
+namespace App\User\Domain\Exception;
 
 use App\Shared\Domain\Exception\ConflictException;
 
@@ -10,7 +10,7 @@ final class LastAdminAccount extends \RuntimeException implements ConflictExcept
 {
     public function __construct()
     {
-        parent::__construct('The last admin account cannot be deleted.');
+        parent::__construct('The last admin account cannot be removed.');
     }
 
     public function errorCode(): string

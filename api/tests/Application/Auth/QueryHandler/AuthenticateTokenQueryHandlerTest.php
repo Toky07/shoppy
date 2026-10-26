@@ -6,6 +6,7 @@ use App\Auth\Application\Query\AuthenticateTokenQuery;
 use App\Auth\Application\QueryHandler\AuthenticateTokenQueryHandler;
 use App\Auth\Domain\Entity\AccessToken;
 use App\Auth\Domain\Exception\Unauthenticated;
+use App\Auth\Domain\ValueObject\AccessTokenKind;
 use App\Auth\Infrastructure\Persistence\InMemoryAccessTokenRepository;
 use App\Tests\Doubles\FakeTokenGenerator;
 use App\Tests\Doubles\FixedClock;
@@ -37,6 +38,24 @@ it('rejects an unknown token', function () {
         new FakeTokenGenerator(),
         new FixedClock(new DateTimeImmutable('2026-08-20T12:00:00+00:00')),
     ))->handle(new AuthenticateTokenQuery('unknown-token'));
+})->throws(Unauthenticated::class);
+
+it('rejects a refresh token as an access credential', function () {
+    $tokens = new InMemoryAccessTokenRepository();
+    $generator = new FakeTokenGenerator();
+    $generated = $generator->generate();
+    $now = new DateTimeImmutable('2026-08-20T12:00:00+00:00');
+
+    $tokens->save(AccessToken::issue(
+        UserId::fromString('11111111-1111-4111-8111-111111111111'),
+        $generated->hash,
+        $now->modify('+7 days'),
+        $now,
+        AccessTokenKind::refresh(),
+    ));
+
+    (new AuthenticateTokenQueryHandler($tokens, $generator, new FixedClock($now)))
+        ->handle(new AuthenticateTokenQuery('test-access-token'));
 })->throws(Unauthenticated::class);
 
 it('rejects an expired token', function () {

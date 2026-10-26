@@ -10,13 +10,18 @@ use App\Auth\Domain\ValueObject\TokenHash;
 
 final class FakeTokenGenerator implements TokenGenerator
 {
+    private int $issued = 0;
+
     public function __construct(private string $plain = 'test-access-token')
     {
     }
 
     public function generate(): GeneratedAccessToken
     {
-        return new GeneratedAccessToken($this->plain, $this->hash($this->plain));
+        $plain = $this->issued === 0 ? $this->plain : $this->plain.'-'.$this->issued;
+        ++$this->issued;
+
+        return new GeneratedAccessToken($plain, $this->hash($plain));
     }
 
     public function hash(string $plainToken): TokenHash

@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Media\Domain\Exception\InvalidMediaMimeType;
 use App\Product\Infrastructure\Image\CachedProductImageLoader;
 use App\Tests\Doubles\FakeHttpDownloader;
 
@@ -51,3 +52,22 @@ it('downloads a remote image once and reuses the cache', function () {
         ->and($first->filename)->toBe('photo-tee.png')
         ->and($first->mimeType)->toBe('image/png');
 });
+
+it('rejects an svg like POST /media', function () {
+    $directory = sys_get_temp_dir().'/shoppy-images-'.bin2hex(random_bytes(4));
+    mkdir($directory, 0777, true);
+    $path = $directory.'/icon.svg';
+    file_put_contents($path, '<svg xmlns="http://www.w3.org/2000/svg"><text>x</text></svg>');
+
+    (new CachedProductImageLoader($directory, new FakeHttpDownloader()))->load($path);
+})->throws(InvalidMediaMimeType::class);
+
+it('rejects a remote payload that is not a raster image', function () {
+    $directory = sys_get_temp_dir().'/shoppy-images-'.bin2hex(random_bytes(4));
+    mkdir($directory, 0777, true);
+    $http = new FakeHttpDownloader([
+        'https://cdn.shoppy.test/notes.pdf' => '%PDF-1.4 fake',
+    ]);
+
+    (new CachedProductImageLoader($directory, $http))->load('https://cdn.shoppy.test/notes.pdf');
+})->throws(InvalidMediaMimeType::class);

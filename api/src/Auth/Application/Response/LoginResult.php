@@ -11,6 +11,7 @@ final readonly class LoginResult
     public function __construct(
         public UserId $userId,
         public string $accessToken,
+        public string $refreshToken,
     ) {
     }
 }

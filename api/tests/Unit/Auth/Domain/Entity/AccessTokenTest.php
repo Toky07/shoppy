@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Auth\Domain\Entity\AccessToken;
+use App\Auth\Domain\ValueObject\AccessTokenKind;
 use App\Auth\Domain\ValueObject\TokenHash;
 use App\User\Domain\ValueObject\UserId;
 
@@ -18,6 +19,7 @@ it('issues a hashed token that expires', function () {
         ->and($token->hash())->toBe($hash)
         ->and($token->expiresAt())->toBe($expiresAt)
         ->and($token->createdAt())->toBe($createdAt)
+        ->and($token->kind())->toEqual(AccessTokenKind::access())
         ->and($token->isExpired($createdAt))->toBeFalse()
         ->and($token->isExpired($expiresAt))->toBeTrue();
 });

@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { inject, onMounted, ref } from 'vue'
-import { RouterLink, useRoute } from 'vue-router'
+import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { usePendingAction } from '@/shared/async/usePendingAction'
 import StatusNotice from '@/shared/ui/StatusNotice.vue'
 import { markEmailVerified } from '../../application/accountActions'
 import { authRepositoryKey } from '../../application/authRepositoryKey'
 import { authSessionKey } from '../../application/authSessionKey'
+import { accountLinkToken, concealAccountLinkToken } from '../lib/accountLinkToken'
 import { authErrorMessage } from '../lib/authErrorMessage'
 import AuthPanel from '../components/AuthPanel.vue'
 
@@ -18,16 +19,19 @@ if (!repository || !session) {
 const authRepository = repository
 const authSession = session
 const route = useRoute()
+const router = useRouter()
 const confirmed = ref(false)
 const { pending, errorMessage, run } = usePendingAction((error) => authErrorMessage(error))
-const token = typeof route.query.token === 'string' ? route.query.token : ''
+const token = accountLinkToken(route)
 
-onMounted(() => {
+onMounted(async () => {
+  await concealAccountLinkToken(router, route)
+
   if (!token) {
     return
   }
 
-  return run(async () => {
+  await run(async () => {
     await authRepository.verifyEmail(token)
     markEmailVerified(authSession)
     confirmed.value = true

@@ -22,7 +22,7 @@ final readonly class CurrentPassword
     public function require(UserId $userId, string $password): Credentials
     {
         try {
-            $plain = PlainPassword::fromString($password);
+            $plain = PlainPassword::forVerification($password);
         } catch (InvalidPassword) {
             throw new InvalidCredentials();
         }

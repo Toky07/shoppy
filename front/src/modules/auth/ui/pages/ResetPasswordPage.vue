@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { inject, ref } from 'vue'
-import { RouterLink, useRoute } from 'vue-router'
+import { inject, onMounted, ref } from 'vue'
+import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { usePendingAction } from '@/shared/async/usePendingAction'
 import AppIcon from '@/shared/ui/AppIcon.vue'
 import StatusNotice from '@/shared/ui/StatusNotice.vue'
 import { authRepositoryKey } from '../../application/authRepositoryKey'
+import { accountLinkToken, concealAccountLinkToken } from '../lib/accountLinkToken'
 import { authErrorMessage } from '../lib/authErrorMessage'
 import AuthPanel from '../components/AuthPanel.vue'
 
@@ -15,10 +16,15 @@ if (!repository) {
 
 const authRepository = repository
 const route = useRoute()
+const router = useRouter()
 const password = ref('')
 const saved = ref(false)
 const { pending, errorMessage, run } = usePendingAction((error) => authErrorMessage(error))
-const token = typeof route.query.token === 'string' ? route.query.token : ''
+const token = accountLinkToken(route)
+
+onMounted(() => {
+  return concealAccountLinkToken(router, route)
+})
 
 function onSubmit() {
   return run(async () => {
@@ -45,6 +51,7 @@ function onSubmit() {
           autocomplete="new-password"
           required
           minlength="12"
+          maxlength="4096"
           class="field"
         />
       </div>

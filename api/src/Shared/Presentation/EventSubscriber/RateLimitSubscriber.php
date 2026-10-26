@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Shared\Presentation\EventSubscriber;
 
-use App\Shared\Infrastructure\Http\FileRateLimiter;
+use App\Shared\Application\RateLimiter;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
@@ -12,11 +12,12 @@ use Symfony\Component\HttpKernel\KernelEvents;
 final readonly class RateLimitSubscriber implements EventSubscriberInterface
 {
     public function __construct(
-        private FileRateLimiter $limiter,
+        private RateLimiter $limiter,
         private int $loginLimit,
         private int $registerLimit,
         private int $checkoutLimit,
         private int $webhookLimit,
+        private int $accountLimit,
         private int $windowSeconds,
     ) {
     }
@@ -49,10 +50,15 @@ final readonly class RateLimitSubscriber implements EventSubscriberInterface
         }
 
         return match ($path) {
-            '/auth/login' => $this->loginLimit,
+            '/auth/login', '/auth/refresh' => $this->loginLimit,
             '/users' => $this->registerLimit,
-            '/payments/checkout', '/payments/complete', '/cart/checkout' => $this->checkoutLimit,
+            '/payments/checkout', '/payments/complete', '/cart/checkout', '/orders' => $this->checkoutLimit,
             '/payments/webhooks/stripe' => $this->webhookLimit,
+            '/auth/password-resets',
+            '/auth/password-resets/confirm',
+            '/auth/email-verifications',
+            '/auth/email-verifications/request',
+            '/auth/email-changes/confirm' => $this->accountLimit,
             default => null,
         };
     }

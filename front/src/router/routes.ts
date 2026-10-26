@@ -11,9 +11,24 @@ export const routes: RouteRecordRaw[] = [
       { path: 'products/:slug', name: 'product', component: () => import('@/modules/catalog/ui/pages/ProductDetailPage.vue') },
       { path: 'favorites', name: 'favorites', component: () => import('@/modules/catalog/ui/pages/FavoritesPage.vue') },
       { path: 'cart', name: 'cart', component: () => import('@/modules/cart/ui/pages/CartPage.vue') },
-      { path: 'orders', name: 'orders', component: () => import('@/modules/order/ui/pages/OrderListPage.vue') },
-      { path: 'orders/:id', name: 'order', component: () => import('@/modules/order/ui/pages/OrderDetailPage.vue') },
-      { path: 'account', name: 'account', component: () => import('@/modules/auth/ui/pages/AccountPage.vue') },
+      {
+        path: 'orders',
+        name: 'orders',
+        meta: { requiresAuth: true },
+        component: () => import('@/modules/order/ui/pages/OrderListPage.vue'),
+      },
+      {
+        path: 'orders/:id',
+        name: 'order',
+        meta: { requiresAuth: true },
+        component: () => import('@/modules/order/ui/pages/OrderDetailPage.vue'),
+      },
+      {
+        path: 'account',
+        name: 'account',
+        meta: { requiresAuth: true },
+        component: () => import('@/modules/auth/ui/pages/AccountPage.vue'),
+      },
       { path: 'login', name: 'login', component: () => import('@/modules/auth/ui/pages/LoginPage.vue') },
       { path: 'register', name: 'register', component: () => import('@/modules/auth/ui/pages/RegisterPage.vue') },
       { path: 'forgot-password', name: 'forgot-password', component: () => import('@/modules/auth/ui/pages/ForgotPasswordPage.vue') },
@@ -30,6 +45,7 @@ export const routes: RouteRecordRaw[] = [
   {
     path: '/admin',
     component: AdminLayout,
+    meta: { requiresAdmin: true },
     children: [
       { path: '', name: 'admin', component: () => import('@/modules/admin/ui/pages/AdminHomePage.vue') },
       { path: 'orders', name: 'admin-orders', component: () => import('@/modules/admin/ui/pages/AdminOrderListPage.vue') },

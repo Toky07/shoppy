@@ -30,15 +30,7 @@ function cancelLifecycleLogin(string $email): array
 
 function cancelLifecyclePlaceOrder(array $headers, string $productId): array
 {
-    test()->client->jsonRequest('POST', '/orders', [
-        ...deliveryFields(),
-        'items' => [[
-            'productId' => $productId,
-            'quantity' => 1,
-        ]],
-    ], $headers);
-
-    return json_decode((string) test()->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+    return placeOrderFromCart($headers, $productId, 1);
 }
 
 it('cancels a pending order for its owner', function () {

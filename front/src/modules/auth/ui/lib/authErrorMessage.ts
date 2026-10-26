@@ -12,7 +12,7 @@ export function authErrorMessage(error: {
   }
 
   if (error.code === 'last_admin_account') {
-    return 'Le dernier administrateur ne peut pas supprimer son compte.'
+    return 'Il doit rester au moins un administrateur.'
   }
 
   const firstViolation = error.violations?.[0]

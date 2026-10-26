@@ -25,9 +25,10 @@ use App\Auth\Application\CommandHandler\ResetPasswordCommandHandler;
 use App\Auth\Application\CommandHandler\VerifyEmailCommandHandler;
 use App\Auth\Application\CurrentPassword;
 use App\Auth\Application\IssueAccountToken;
+use App\Auth\Application\IssueSession;
 use App\Auth\Domain\Entity\AccountToken;
 use App\Auth\Domain\Exception\InvalidAccountToken;
-use App\Auth\Domain\Exception\LastAdminAccount;
+use App\User\Domain\Exception\LastAdminAccount;
 use App\Auth\Domain\ValueObject\AccountTokenPurpose;
 use App\Auth\Domain\ValueObject\TokenHash;
 use App\Auth\Infrastructure\Persistence\InMemoryAccessTokenRepository;
@@ -79,7 +80,7 @@ function accountContext(): array
         new ConfirmEmailChangeCommandHandler($issuer, $users, $accessTokens, $clock),
         new DeleteAccountCommandHandler($users, $passwords, $credentials, $accessTokens, $accountTokens, $clock),
         new LogoutAllCommandHandler($accessTokens),
-        new LoginCommandHandler($users, $credentials, new FakePasswordHasher(), $accessTokens, new FakeTokenGenerator(), $clock),
+        new LoginCommandHandler($users, $credentials, new FakePasswordHasher(), new IssueSession($accessTokens, new FakeTokenGenerator(), $clock)),
     ];
 }
 

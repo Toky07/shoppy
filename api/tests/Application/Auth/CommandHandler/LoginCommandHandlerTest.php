@@ -8,6 +8,8 @@ use App\Auth\Application\Command\RegisterAccountCommand;
 use App\Auth\Application\CommandHandler\LoginCommandHandler;
 use App\Auth\Application\CommandHandler\RegisterAccountCommandHandler;
 use App\Auth\Application\IssueAccountToken;
+use App\Auth\Application\IssueSession;
+use App\Auth\Domain\ValueObject\AccessTokenKind;
 use App\Auth\Domain\Exception\InvalidCredentials;
 use App\Auth\Domain\ValueObject\TokenHash;
 use App\Auth\Infrastructure\Persistence\InMemoryAccessTokenRepository;
@@ -30,9 +32,7 @@ function loginHandler(
         $users,
         $credentials,
         new FakePasswordHasher(),
-        $tokens,
-        new FakeTokenGenerator(),
-        new FixedClock($now),
+        new IssueSession($tokens, new FakeTokenGenerator(), new FixedClock($now)),
     );
 }
 
@@ -74,16 +74,20 @@ it('logs in with valid credentials and issues a hashed access token', function (
     ));
 
     $user = $users->findById($result->userId);
-    $stored = $tokens->findByHash(TokenHash::fromHash(hash('sha256', 'test-access-token')));
+    $access = $tokens->findByHash(TokenHash::fromHash(hash('sha256', 'test-access-token')));
+    $refresh = $tokens->findByHash(TokenHash::fromHash(hash('sha256', 'test-access-token-1')));
 
     expect($user)->not->toBeNull()
         ->and($user->email()->value())->toBe('ada@nuvora.test')
         ->and($result->accessToken)->toBe('test-access-token')
-        ->and($stored)->not->toBeNull()
-        ->and($stored->userId()->value())->toBe($result->userId->value())
-        ->and($stored->hash()->value())->not->toBe('test-access-token')
-        ->and($stored->isExpired($now))->toBeFalse()
-        ->and($stored->isExpired($now->modify('+7 days')))->toBeTrue();
+        ->and($result->refreshToken)->toBe('test-access-token-1')
+        ->and($access)->not->toBeNull()
+        ->and($access->kind())->toEqual(AccessTokenKind::access())
+        ->and($access->isExpired($now))->toBeFalse()
+        ->and($access->isExpired($now->modify('+1 hour')))->toBeTrue()
+        ->and($refresh)->not->toBeNull()
+        ->and($refresh->kind())->toEqual(AccessTokenKind::refresh())
+        ->and($refresh->isExpired($now->modify('+7 days')))->toBeTrue();
 });
 
 it('does not issue a token when the password is wrong', function () {
