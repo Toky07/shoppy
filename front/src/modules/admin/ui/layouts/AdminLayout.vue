@@ -146,17 +146,13 @@ async function onLogout() {
 
         <div class="ml-auto flex items-center gap-2 sm:gap-3">
           <ThemeToggle />
-          <div
-            class="hidden items-center gap-2 rounded-full border border-line bg-surface py-1 pr-3 pl-1 sm:flex"
+          <span
+            class="flex size-9 items-center justify-center rounded-full bg-primary font-display text-[0.65rem] font-bold tracking-wide text-primary-fg shadow-soft"
+            :title="email"
+            :aria-label="email"
           >
-            <span
-              class="flex size-7 items-center justify-center rounded-full bg-accent-soft text-[0.65rem] font-bold text-accent-fg"
-              aria-hidden="true"
-            >
-              {{ initials }}
-            </span>
-            <span class="max-w-40 truncate text-xs font-medium text-body">{{ email }}</span>
-          </div>
+            {{ initials }}
+          </span>
           <button type="button" class="btn-ghost btn-sm" @click="onLogout">
             <AppIcon name="logout" :size="15" />
             <span class="hidden sm:inline">Déconnexion</span>

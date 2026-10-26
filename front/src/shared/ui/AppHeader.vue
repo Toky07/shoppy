@@ -156,7 +156,7 @@ async function onLogout() {
         </RouterLink>
 
         <template v-if="isAuthenticated">
-          <span class="ml-1 hidden md:block">
+          <span class="ml-0.5">
             <AccountMenu
               :email="email"
               :role-label="roleLabel"

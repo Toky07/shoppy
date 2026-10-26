@@ -19,7 +19,7 @@ describe('LoginPage', () => {
 
     await waitFor(() => {
       expect(router.currentRoute.value.path).toBe('/')
-      expect(screen.getByText('visitor@shoppy.test')).toBeTruthy()
+      expect(screen.getByRole('button', { name: 'Mon compte' })).toBeTruthy()
     })
     expect(authRepository.logins).toEqual([
       { email: 'visitor@shoppy.test', password: 'password123' },

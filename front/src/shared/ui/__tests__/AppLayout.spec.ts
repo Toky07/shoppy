@@ -19,8 +19,10 @@ describe('AppLayout auth nav', () => {
     const authRepository = new FakeAuthRepository()
     await renderApp({ authRepository, session: visitorSession })
 
+    expect(screen.getByRole('button', { name: 'Mon compte' })).toBeTruthy()
+    expect(screen.queryByText('visitor@shoppy.test')).toBeNull()
+    await userEvent.click(screen.getByRole('button', { name: 'Mon compte' }))
     expect(screen.getByText('visitor@shoppy.test')).toBeTruthy()
-    await userEvent.click(screen.getByRole('button', { name: /Mon compte/ }))
     await userEvent.click(screen.getByRole('menuitem', { name: 'Déconnexion' }))
 
     await waitFor(() => {

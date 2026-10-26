@@ -51,30 +51,23 @@ function onLogout() {
     <button
       ref="triggerEl"
       type="button"
-      class="flex items-center gap-2 rounded-full border py-1 pr-2.5 pl-1 transition-all duration-200"
+      class="relative flex size-10 items-center justify-center rounded-full transition-all duration-200"
       :class="
         open
-          ? 'border-strong bg-surface-muted shadow-soft'
-          : 'border-line bg-surface hover:border-line-strong hover:bg-surface-muted'
+          ? 'bg-surface-muted ring-2 ring-accent ring-offset-2 ring-offset-canvas'
+          : 'hover:bg-surface-muted'
       "
       aria-haspopup="menu"
+      aria-label="Mon compte"
       :aria-expanded="open"
       @click="open = !open"
       @keydown="onTriggerKeydown"
     >
-      <span class="sr-only">Mon compte : </span>
       <span
-        class="flex size-7 items-center justify-center rounded-full bg-accent-soft text-[0.65rem] font-bold text-accent-fg"
+        class="flex size-8 items-center justify-center rounded-full bg-primary font-display text-[0.65rem] font-bold tracking-wide text-primary-fg shadow-soft"
         aria-hidden="true"
         >{{ initials }}</span
       >
-      <span class="max-w-40 truncate text-xs font-medium text-body">{{ email }}</span>
-      <AppIcon
-        name="chevron-down"
-        :size="14"
-        class="text-faint transition-transform duration-300"
-        :class="open && 'rotate-180'"
-      />
     </button>
 
     <Transition
@@ -89,17 +82,15 @@ function onLogout() {
       >
         <div class="mesh flex items-center gap-3 rounded-2xl px-3 py-3.5">
           <span
-            class="relative z-1 flex size-10 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-fg"
+            class="relative z-1 flex size-10 shrink-0 items-center justify-center rounded-full bg-primary font-display text-xs font-bold tracking-wide text-primary-fg"
             aria-hidden="true"
             >{{ initials }}</span
           >
           <span class="relative z-1 min-w-0">
-            <span class="block truncate text-sm font-semibold text-strong">{{ email }}</span>
-            <span
-              class="mt-0.5 block text-[0.7rem] font-semibold tracking-[0.1em] text-muted uppercase"
-            >
+            <span class="block text-[0.65rem] font-semibold tracking-[0.14em] text-muted uppercase">
               {{ roleLabel }}
             </span>
+            <span class="mt-0.5 block truncate text-sm font-semibold text-strong">{{ email }}</span>
           </span>
         </div>
 

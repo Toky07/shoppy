@@ -6,7 +6,7 @@ import { adminSession, visitorSession } from '@/modules/auth/testing/authFixture
 import { FakeAuthRepository } from '@/modules/auth/testing/FakeAuthRepository'
 
 async function openMenu() {
-  const trigger = screen.getByRole('button', { name: /Mon compte/ })
+  const trigger = screen.getByRole('button', { name: 'Mon compte' })
   await userEvent.click(trigger)
 
   return trigger
@@ -17,9 +17,11 @@ describe('AccountMenu', () => {
     await renderApp({ session: visitorSession })
 
     expect(screen.queryByRole('menu')).toBeNull()
+    expect(screen.queryByText('visitor@shoppy.test')).toBeNull()
     const trigger = await openMenu()
 
     expect(screen.getByRole('menu')).toBeTruthy()
+    expect(screen.getByText('visitor@shoppy.test')).toBeTruthy()
     expect(trigger.getAttribute('aria-expanded')).toBe('true')
   })
 
