@@ -4,13 +4,18 @@ declare(strict_types=1);
 
 namespace App\Auth\Domain\Exception;
 
+use App\Auth\Domain\ValueObject\PlainPassword;
 use App\Shared\Domain\Exception\InvalidValue;
 
 final class InvalidPassword extends \InvalidArgumentException implements InvalidValue
 {
     public function __construct()
     {
-        parent::__construct('Password must be between 12 and 4096 characters.');
+        parent::__construct(sprintf(
+            'Password must be between %d and %d characters.',
+            PlainPassword::MIN_LENGTH,
+            PlainPassword::MAX_LENGTH,
+        ));
     }
 
     public function errorCode(): string

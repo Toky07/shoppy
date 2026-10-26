@@ -51,7 +51,7 @@ Récent : avatar seul dans le header, filtres décollés sur mobile, scroll en h
 ### Moyenne
 
 - [x] Empêcher de rétrograder le dernier admin (`AssignUserRoleCommandHandler` ; la suppression du dernier admin est déjà refusée)
-- [ ] Aligner la politique de mot de passe : 8–20 caractères en code, le message parle de 12–4096 (`PlainPassword`, `InvalidPassword`)
+- [x] Aligner la politique de mot de passe : 8–20 caractères en code, le message parle de 12–4096 (`PlainPassword`, `InvalidPassword`)
 - [ ] Rate limit sur reset / vérif email / confirm token (aujourd’hui seulement login, register, checkout, webhook)
 - [ ] Rate limit et garde `claimForCheckout` aussi sur `POST /orders` (l’UI passe par `/cart/checkout`, l’API directe reste ouverte)
 - [ ] Filtrer les URLs d’images du CSV (SSRF possible via `StreamHttpDownloader` ; le chemin import contourne la détection MIME de `POST /media`)

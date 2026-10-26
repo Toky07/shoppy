@@ -39,6 +39,7 @@ function onSubmit(credentials: { email: string; password: string }) {
     :error-message="errorMessage"
     password-autocomplete="new-password"
     :password-min-length="12"
+    :password-max-length="4096"
     @submit="onSubmit"
   >
     Déjà un compte ?

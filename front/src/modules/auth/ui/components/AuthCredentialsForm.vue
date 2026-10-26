@@ -14,6 +14,7 @@ const props = withDefaults(
     errorMessage?: string
     passwordAutocomplete?: string
     passwordMinLength?: number
+    passwordMaxLength?: number
   }>(),
   { passwordAutocomplete: 'current-password' },
 )
@@ -81,6 +82,7 @@ function onSubmit() {
                 :autocomplete="props.passwordAutocomplete"
                 required
                 :minlength="props.passwordMinLength"
+                :maxlength="props.passwordMaxLength"
                 :placeholder="props.passwordMinLength ? `${props.passwordMinLength} caractères minimum` : 'Votre mot de passe'"
                 class="field px-11"
               />
