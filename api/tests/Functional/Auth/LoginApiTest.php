@@ -23,6 +23,7 @@ it('logs in with valid credentials without exposing the password', function () {
     $response = $this->client->getResponse();
     $payload = json_decode((string) $response->getContent(), true, flags: JSON_THROW_ON_ERROR);
     $cookie = $this->client->getCookieJar()->get('shoppy_session');
+    $refresh = $this->client->getCookieJar()->get('shoppy_refresh');
 
     expect($response->getStatusCode())->toBe(200)
         ->and($payload['user']['email'])->toBe('ada@nuvora.test')
@@ -32,6 +33,10 @@ it('logs in with valid credentials without exposing the password', function () {
         ->and($cookie)->not->toBeNull()
         ->and($cookie->getValue())->toMatch('/^[0-9a-f]{64}$/')
         ->and($cookie->isHttpOnly())->toBeTrue()
+        ->and($refresh)->not->toBeNull()
+        ->and($refresh->getValue())->toMatch('/^[0-9a-f]{64}$/')
+        ->and($refresh->isHttpOnly())->toBeTrue()
+        ->and($refresh->getValue())->not->toBe($cookie->getValue())
         ->and($payload)->not->toHaveKey('accessToken')
         ->and($payload)->not->toHaveKey('password')
         ->and($payload)->not->toHaveKey('passwordHash')

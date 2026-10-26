@@ -37,7 +37,7 @@ final readonly class LoginController
         $response = new JsonResponse([
             'user' => $user->toArray(),
         ]);
-        $this->sessionCookie->attach($response, $request, $result->accessToken);
+        $this->sessionCookie->attach($response, $request, $result->accessToken, $result->refreshToken);
 
         return $response;
     }

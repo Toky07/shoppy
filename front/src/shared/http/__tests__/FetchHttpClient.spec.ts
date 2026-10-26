@@ -72,7 +72,7 @@ describe('FetchHttpClient', () => {
     expect(fetchFn).toHaveBeenCalledWith('/api/products?page=2&limit=20', expect.anything())
   })
 
-  it('clears a stale session on an unauthenticated response', async () => {
+  it('clears a stale session when refresh also fails', async () => {
     const clear = vi.fn()
     const fetchFn = vi.fn().mockResolvedValue(
       jsonResponse(401, {
@@ -84,7 +84,27 @@ describe('FetchHttpClient', () => {
     await expect(client.post('/cart/items', { productId: 'p1', quantity: 1 })).rejects.toMatchObject({
       code: 'unauthenticated',
     })
+    expect(fetchFn).toHaveBeenNthCalledWith(2, '/api/auth/refresh', expect.objectContaining({ method: 'POST' }))
     expect(clear).toHaveBeenCalledOnce()
+  })
+
+  it('retries the request after a successful session refresh', async () => {
+    const clear = vi.fn()
+    const fetchFn = vi
+      .fn()
+      .mockResolvedValueOnce(
+        jsonResponse(401, {
+          error: { code: 'unauthenticated', message: 'The request is not authenticated.' },
+        }),
+      )
+      .mockResolvedValueOnce(new Response(null, { status: 204 }))
+      .mockResolvedValueOnce(jsonResponse(200, { ok: true }))
+    const client = new FetchHttpClient('/api', fetchFn, { current: () => 'stale-token', clear })
+
+    await expect(client.get('/auth/me')).resolves.toEqual({ ok: true })
+    expect(clear).not.toHaveBeenCalled()
+    expect(fetchFn).toHaveBeenNthCalledWith(2, '/api/auth/refresh', expect.objectContaining({ method: 'POST' }))
+    expect(fetchFn).toHaveBeenNthCalledWith(3, '/api/auth/me', expect.objectContaining({ method: 'GET' }))
   })
 
   it('does not clear the session on invalid credentials', async () => {

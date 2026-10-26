@@ -24,7 +24,11 @@ final readonly class AuthenticateTokenQueryHandler
     {
         $token = $this->accessTokenRepository->findByHash($this->tokenGenerator->hash($query->token));
 
-        if ($token === null || $token->isExpired($this->clock->now())) {
+        if (
+            $token === null
+            || !$token->kind()->isAccess()
+            || $token->isExpired($this->clock->now())
+        ) {
             throw new Unauthenticated();
         }
 

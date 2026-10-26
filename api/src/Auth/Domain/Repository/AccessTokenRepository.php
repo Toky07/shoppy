@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Auth\Domain\Repository;
 
 use App\Auth\Domain\Entity\AccessToken;
+use App\Auth\Domain\ValueObject\AccessTokenKind;
 use App\Auth\Domain\ValueObject\TokenHash;
 use App\User\Domain\ValueObject\UserId;
 
@@ -18,5 +19,5 @@ interface AccessTokenRepository
 
     public function deleteByUserId(UserId $userId): void;
 
-    public function trimTo(UserId $userId, int $max): void;
+    public function trimTo(UserId $userId, int $max, ?AccessTokenKind $kind = null): void;
 }

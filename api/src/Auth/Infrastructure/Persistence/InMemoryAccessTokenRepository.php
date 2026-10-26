@@ -6,6 +6,7 @@ namespace App\Auth\Infrastructure\Persistence;
 
 use App\Auth\Domain\Entity\AccessToken;
 use App\Auth\Domain\Repository\AccessTokenRepository;
+use App\Auth\Domain\ValueObject\AccessTokenKind;
 use App\Auth\Domain\ValueObject\TokenHash;
 use App\User\Domain\ValueObject\UserId;
 
@@ -38,12 +39,15 @@ final class InMemoryAccessTokenRepository implements AccessTokenRepository
         }
     }
 
-    public function trimTo(UserId $userId, int $max): void
+    public function trimTo(UserId $userId, int $max, ?AccessTokenKind $kind = null): void
     {
         $tokens = [];
 
         foreach ($this->tokens as $token) {
-            if ($token->userId()->value() === $userId->value()) {
+            if (
+                $token->userId()->value() === $userId->value()
+                && ($kind === null || $token->kind()->equals($kind))
+            ) {
                 $tokens[] = $token;
             }
         }

@@ -64,6 +64,16 @@ it('rate limits direct order placement like cart checkout', function () {
     expect(fn () => $subscriber->onRequest($event))->toThrow(RateLimited::class);
 });
 
+it('rate limits session refresh like login', function () {
+    $subscriber = accountRateLimitSubscriber(loginLimit: 2);
+    $event = rateLimitRequestEvent(Request::create('/auth/refresh', 'POST', server: ['REMOTE_ADDR' => '203.0.113.8']));
+
+    $subscriber->onRequest($event);
+    $subscriber->onRequest($event);
+
+    expect(fn () => $subscriber->onRequest($event))->toThrow(RateLimited::class);
+});
+
 it('does not apply the account limit to login', function () {
     $subscriber = accountRateLimitSubscriber(accountLimit: 1, loginLimit: 20);
     $event = rateLimitRequestEvent(Request::create('/auth/login', 'POST', server: ['REMOTE_ADDR' => '203.0.113.8']));
