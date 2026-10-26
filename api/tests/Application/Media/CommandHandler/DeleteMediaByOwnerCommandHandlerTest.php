@@ -5,10 +5,10 @@ declare(strict_types=1);
 use App\Media\Application\Command\DeleteMediaByOwnerCommand;
 use App\Media\Application\Command\UploadMediaCommand;
 use App\Media\Application\CommandHandler\DeleteMediaByOwnerCommandHandler;
-use App\Media\Application\CommandHandler\UploadMediaCommandHandler;
 use App\Media\Domain\ValueObject\MediaOwnerId;
 use App\Media\Domain\ValueObject\MediaOwnerType;
 use App\Media\Infrastructure\Persistence\InMemoryMediaRepository;
+use App\Tests\Doubles\FakeImageVariants;
 use App\Tests\Doubles\FakeMediaStorage;
 use App\Tests\Doubles\FixedClock;
 
@@ -20,7 +20,8 @@ function pngBytes(): string
 it('deletes every media item attached to an owner', function () {
     $repository = new InMemoryMediaRepository();
     $storage = new FakeMediaStorage();
-    $upload = new UploadMediaCommandHandler(
+    $variants = new FakeImageVariants();
+    $upload = uploadMediaHandler(
         $repository,
         $storage,
         new FixedClock(new DateTimeImmutable('2026-09-16T12:00:00+00:00')),
@@ -49,7 +50,7 @@ it('deletes every media item attached to an owner', function () {
         binaryContent: pngBytes(),
     ));
 
-    (new DeleteMediaByOwnerCommandHandler($repository, $storage))->handle(
+    (new DeleteMediaByOwnerCommandHandler($repository, $storage, $variants))->handle(
         new DeleteMediaByOwnerCommand(ownerType: 'product', ownerId: $ownerId),
     );
 
@@ -58,5 +59,6 @@ it('deletes every media item attached to an owner', function () {
         MediaOwnerId::fromString($ownerId),
     ))->toBe([])
         ->and($repository->findById($kept))->not->toBeNull()
-        ->and($storage->files)->toHaveCount(1);
+        ->and($storage->files)->toHaveCount(1)
+        ->and($variants->deleted)->toBe(['2026/09/one.png', '2026/09/two.png']);
 });

@@ -15,5 +15,7 @@ interface MediaStorage
         DateTimeImmutable $now,
     ): StoredMediaFile;
 
+    public function write(string $relativePath, string $binaryContent): void;
+
     public function delete(string $relativePath): void;
 }

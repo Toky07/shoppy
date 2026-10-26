@@ -6,6 +6,7 @@ WORKDIR /app
 
 RUN install-php-extensions \
         apcu \
+        gd \
         intl \
         opcache \
         pdo_pgsql \

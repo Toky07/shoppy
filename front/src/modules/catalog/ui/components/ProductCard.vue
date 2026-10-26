@@ -27,7 +27,7 @@ const lowStock = computed(() => props.product.stock > 0 && props.product.stock <
     class="group panel-flat relative flex gap-4 p-4 transition-all duration-300 hover:border-line-strong hover:shadow-lifted sm:gap-6 sm:p-5"
   >
     <div class="relative size-24 shrink-0 overflow-hidden rounded-2xl sm:size-32">
-      <ImageCarousel :images="product.imageUrls" :alt="product.name" :show-arrows="false" />
+      <ImageCarousel :images="product.imageUrls" :alt="product.name" variant="thumb" :show-arrows="false" />
     </div>
 
     <div class="flex min-w-0 flex-1 flex-col">
@@ -72,7 +72,7 @@ const lowStock = computed(() => props.product.stock > 0 && props.product.stock <
     class="group panel-flat relative flex flex-col overflow-hidden transition-all duration-500 hover:-translate-y-1 hover:border-line-strong hover:shadow-float"
   >
     <div class="relative aspect-4/5 overflow-hidden">
-      <ImageCarousel :images="product.imageUrls" :alt="product.name" />
+      <ImageCarousel :images="product.imageUrls" :alt="product.name" variant="card" />
       <div
         class="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-linear-to-t from-black/30 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100"
       ></div>

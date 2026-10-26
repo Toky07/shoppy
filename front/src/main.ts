@@ -1,4 +1,3 @@
-import { createPinia } from 'pinia'
 import { createApp } from 'vue'
 import App from './App.vue'
 import {
@@ -23,11 +22,12 @@ import { orderRepositoryKey } from './modules/order/application/orderRepositoryK
 import { paymentRepositoryKey } from './modules/payment/application/paymentRepositoryKey'
 import router from './router'
 import { createNavigationGuard } from './router/navigationGuard'
+import '@fontsource-variable/inter'
+import '@fontsource-variable/bricolage-grotesque/standard.css'
 import './assets/main.css'
 
 const app = createApp(App);
 
-app.use(createPinia());
 app.provide(catalogRepositoryKey, catalogRepository);
 app.provide(authRepositoryKey, authRepository);
 app.provide(authSessionKey, authSession);

@@ -46,6 +46,22 @@ final readonly class FilesystemMediaStorage implements MediaStorage
         return new StoredMediaFile($relativeDirectory.'/'.$filename, $filename, strlen($binaryContent));
     }
 
+    public function write(string $relativePath, string $binaryContent): void
+    {
+        $absolutePath = $this->uploadDirectory.'/'.$relativePath;
+        $directory = dirname($absolutePath);
+
+        if (!is_dir($directory) && !mkdir($directory, 0755, true) && !is_dir($directory)) {
+            throw new RuntimeException('Unable to create media upload directory.');
+        }
+
+        if (file_put_contents($absolutePath, $binaryContent) === false) {
+            throw new RuntimeException('Unable to write media file.');
+        }
+
+        chmod($absolutePath, 0644);
+    }
+
     public function delete(string $relativePath): void
     {
         $absolutePath = $this->uploadDirectory.'/'.$relativePath;

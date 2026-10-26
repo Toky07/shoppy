@@ -2,16 +2,19 @@
 import { computed, ref, watch } from 'vue'
 import AppIcon from './AppIcon.vue'
 import AppImage from './AppImage.vue'
+import type { ImageVariant } from '@/shared/media/imageDerivatives'
 import { useInViewport } from './useInViewport'
 
 const props = withDefaults(
   defineProps<{
     images: string[]
     alt: string
+    variant?: ImageVariant
     showArrows?: boolean
     interactive?: boolean
   }>(),
   {
+    variant: 'card',
     showArrows: true,
     interactive: false,
   },
@@ -219,7 +222,14 @@ function onPointerCancel(event: PointerEvent) {
     >
       <Transition :name="slideName">
         <div :key="index" class="absolute inset-0">
-          <AppImage :src="current" :alt="currentAlt" :fetch="fetchCurrent" :viewport="false" loading="lazy" />
+          <AppImage
+            :src="current"
+            :alt="currentAlt"
+            :variant="variant"
+            :fetch="fetchCurrent"
+            :viewport="false"
+            loading="lazy"
+          />
         </div>
       </Transition>
     </div>

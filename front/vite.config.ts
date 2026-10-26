@@ -36,8 +36,8 @@ const proxy = {
   },
 }
 
-export default defineConfig({
-  plugins: [vue(), tailwindcss(), vueDevTools()],
+export default defineConfig(({ command }) => ({
+  plugins: [vue(), tailwindcss(), ...(command === 'serve' ? [vueDevTools()] : [])],
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
@@ -67,4 +67,4 @@ export default defineConfig({
     port: vitePort,
     proxy,
   },
-})
+}))

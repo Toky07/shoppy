@@ -19,7 +19,7 @@ describe('ImageCarousel', () => {
       props: { images: ['/uploads/one.jpg'], alt: 'Nuvora Tee' },
     })
 
-    expect((await carouselImg('Nuvora Tee')).getAttribute('src')).toBe('/uploads/one.jpg')
+    expect((await carouselImg('Nuvora Tee')).getAttribute('src')).toBe('/uploads/one.card.jpg')
     expect(screen.queryByRole('button', { name: 'Image suivante' })).toBeNull()
   })
 
@@ -28,13 +28,13 @@ describe('ImageCarousel', () => {
       props: { images, alt: 'Nuvora Tee' },
     })
 
-    expect((await carouselImg('Nuvora Tee (1/3)')).getAttribute('src')).toBe('/uploads/one.jpg')
+    expect((await carouselImg('Nuvora Tee (1/3)')).getAttribute('src')).toBe('/uploads/one.card.jpg')
 
     await userEvent.click(screen.getByRole('button', { name: 'Image suivante' }))
-    expect((await carouselImg('Nuvora Tee (2/3)')).getAttribute('src')).toBe('/uploads/two.jpg')
+    expect((await carouselImg('Nuvora Tee (2/3)')).getAttribute('src')).toBe('/uploads/two.card.jpg')
 
     await userEvent.click(screen.getByRole('button', { name: 'Image précédente' }))
-    expect((await carouselImg('Nuvora Tee (1/3)')).getAttribute('src')).toBe('/uploads/one.jpg')
+    expect((await carouselImg('Nuvora Tee (1/3)')).getAttribute('src')).toBe('/uploads/one.card.jpg')
   })
 
   it('changes slide on a horizontal swipe', async () => {
@@ -49,7 +49,7 @@ describe('ImageCarousel', () => {
     await fireEvent.pointerMove(track, { pointerId: 1, pointerType: 'touch', clientX: 120, clientY: 42 })
     await fireEvent.pointerUp(track, { pointerId: 1, pointerType: 'touch', clientX: 80, clientY: 44 })
 
-    expect((await carouselImg('Nuvora Tee (2/3)')).getAttribute('src')).toBe('/uploads/two.jpg')
+    expect((await carouselImg('Nuvora Tee (2/3)')).getAttribute('src')).toBe('/uploads/two.card.jpg')
   })
 
   it('ignores a vertical swipe so the page can still scroll', async () => {
@@ -64,7 +64,7 @@ describe('ImageCarousel', () => {
     await fireEvent.pointerMove(track, { pointerId: 1, pointerType: 'touch', clientX: 118, clientY: 140 })
     await fireEvent.pointerUp(track, { pointerId: 1, pointerType: 'touch', clientX: 116, clientY: 200 })
 
-    expect((await carouselImg('Nuvora Tee (1/3)')).getAttribute('src')).toBe('/uploads/one.jpg')
+    expect((await carouselImg('Nuvora Tee (1/3)')).getAttribute('src')).toBe('/uploads/one.card.jpg')
   })
 
   it('jumps to a slide from a thumbnail control', async () => {
@@ -74,6 +74,6 @@ describe('ImageCarousel', () => {
 
     await carouselImg('Nuvora Tee (1/3)')
     await userEvent.click(screen.getByRole('tab', { name: "Aller à l'image 3" }))
-    expect((await carouselImg('Nuvora Tee (3/3)')).getAttribute('src')).toBe('/uploads/three.jpg')
+    expect((await carouselImg('Nuvora Tee (3/3)')).getAttribute('src')).toBe('/uploads/three.card.jpg')
   })
 })

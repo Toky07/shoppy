@@ -32,7 +32,7 @@ function step(delta: number) {
 <template>
   <li class="panel-flat flex gap-4 p-4 transition-shadow hover:shadow-soft sm:gap-5 sm:p-5">
     <div class="size-20 shrink-0 overflow-hidden rounded-2xl border border-line bg-surface-inset sm:size-24">
-      <AppImage :src="item.imageUrl" :alt="item.name" />
+      <AppImage :src="item.imageUrl" :alt="item.name" variant="thumb" />
     </div>
 
     <div class="flex min-w-0 flex-1 flex-col">

@@ -29,6 +29,11 @@ final class FakeMediaStorage implements MediaStorage
         return new StoredMediaFile($relativePath, $filename, strlen($binaryContent));
     }
 
+    public function write(string $relativePath, string $binaryContent): void
+    {
+        $this->files[$relativePath] = $binaryContent;
+    }
+
     public function delete(string $relativePath): void
     {
         unset($this->files[$relativePath]);

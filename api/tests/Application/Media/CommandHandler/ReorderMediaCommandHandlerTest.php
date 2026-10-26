@@ -5,7 +5,6 @@ declare(strict_types=1);
 use App\Media\Application\Command\ReorderMediaCommand;
 use App\Media\Application\Command\UploadMediaCommand;
 use App\Media\Application\CommandHandler\ReorderMediaCommandHandler;
-use App\Media\Application\CommandHandler\UploadMediaCommandHandler;
 use App\Media\Domain\Exception\InvalidMediaOrder;
 use App\Media\Domain\ValueObject\MediaOwnerId;
 use App\Media\Domain\ValueObject\MediaOwnerType;
@@ -15,7 +14,7 @@ use App\Tests\Doubles\FixedClock;
 
 it('reorders every image of a product', function () {
     $media = new InMemoryMediaRepository();
-    $upload = new UploadMediaCommandHandler(
+    $upload = uploadMediaHandler(
         $media,
         new FakeMediaStorage(),
         new FixedClock(new DateTimeImmutable('2026-09-22T12:00:00+00:00')),
@@ -40,7 +39,7 @@ it('reorders every image of a product', function () {
 
 it('rejects an order that drops an image', function () {
     $media = new InMemoryMediaRepository();
-    $upload = new UploadMediaCommandHandler(
+    $upload = uploadMediaHandler(
         $media,
         new FakeMediaStorage(),
         new FixedClock(new DateTimeImmutable('2026-09-22T12:00:00+00:00')),
