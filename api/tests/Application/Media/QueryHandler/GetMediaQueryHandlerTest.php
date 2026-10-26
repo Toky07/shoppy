@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use App\Media\Application\Command\UploadMediaCommand;
-use App\Media\Application\CommandHandler\UploadMediaCommandHandler;
 use App\Media\Application\Query\GetMediaQuery;
 use App\Media\Application\QueryHandler\GetMediaQueryHandler;
 use App\Media\Domain\Exception\MediaNotFound;
@@ -13,7 +12,7 @@ use App\Tests\Doubles\FixedClock;
 
 it('returns uploaded media by id', function () {
     $repository = new InMemoryMediaRepository();
-    $id = (new UploadMediaCommandHandler(
+    $id = (uploadMediaHandler(
         $repository,
         new FakeMediaStorage(),
         new FixedClock(new DateTimeImmutable('2026-09-16T12:00:00+00:00')),

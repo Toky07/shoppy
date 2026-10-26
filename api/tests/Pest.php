@@ -2,6 +2,10 @@
 
 declare(strict_types=1);
 
+use App\Media\Application\CommandHandler\UploadMediaCommandHandler;
+use App\Media\Application\Port\ImageVariants;
+use App\Media\Application\Port\MediaStorage;
+use App\Media\Domain\Repository\MediaRepository;
 use App\Order\Application\Command\PlaceOrderAddress;
 use App\Order\Domain\ValueObject\PostalAddress;
 use App\Order\Domain\ValueObject\ShippingMethod;
@@ -20,12 +24,27 @@ use App\Product\Domain\ValueObject\StockQuantity;
 use App\Product\Infrastructure\Persistence\InMemoryCategoryRepository;
 use App\Product\Infrastructure\Persistence\InMemoryProductRepository;
 use App\Shared\Domain\Clock;
+use App\Tests\Doubles\FakeImageVariants;
 use App\Tests\Doctrine\DatabaseSchema;
 use App\Tests\Support\FunctionalTestCase;
 use App\Tests\Support\IntegrationTestCase;
 use Doctrine\ORM\EntityManagerInterface;
 
 require_once __DIR__.'/Support/AuthHeaders.php';
+
+function uploadMediaHandler(
+    MediaRepository $repository,
+    MediaStorage $storage,
+    Clock $clock,
+    ?ImageVariants $imageVariants = null,
+): UploadMediaCommandHandler {
+    return new UploadMediaCommandHandler(
+        $repository,
+        $storage,
+        $clock,
+        $imageVariants ?? new FakeImageVariants(),
+    );
+}
 
 function createProducts(ProductRepository $repository, Clock $clock, ?CategoryRepository $categories = null): CreateProductCommandHandler
 {

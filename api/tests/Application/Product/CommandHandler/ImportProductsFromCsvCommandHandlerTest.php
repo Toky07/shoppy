@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use App\Media\Application\CommandHandler\UploadMediaCommandHandler;
 use App\Media\Domain\ValueObject\MediaOwnerId;
 use App\Media\Domain\ValueObject\MediaOwnerType;
 use App\Media\Infrastructure\Persistence\InMemoryMediaRepository;
@@ -30,7 +29,7 @@ CSV);
         $images,
         createProducts($repository, new FixedClock(new DateTimeImmutable('2026-08-20T12:00:00+00:00'))),
         $repository,
-        new UploadMediaCommandHandler(
+        uploadMediaHandler(
             $media,
             new FakeMediaStorage(),
             new FixedClock(new DateTimeImmutable('2026-09-16T12:00:00+00:00')),
@@ -75,7 +74,7 @@ CSV);
         $images,
         createProducts($repository, new FixedClock(new DateTimeImmutable('2026-08-20T12:00:00+00:00'))),
         $repository,
-        new UploadMediaCommandHandler(
+        uploadMediaHandler(
             $media,
             new FakeMediaStorage(),
             new FixedClock(new DateTimeImmutable('2026-09-16T12:00:00+00:00')),

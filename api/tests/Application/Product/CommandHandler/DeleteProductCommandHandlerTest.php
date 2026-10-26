@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 use App\Media\Application\Command\UploadMediaCommand;
 use App\Media\Application\CommandHandler\DeleteMediaByOwnerCommandHandler;
-use App\Media\Application\CommandHandler\UploadMediaCommandHandler;
 use App\Media\Infrastructure\Persistence\InMemoryMediaRepository;
 use App\Product\Application\Command\CreateProductCommand;
 use App\Product\Application\Command\DeleteProductCommand;
 use App\Product\Application\CommandHandler\DeleteProductCommandHandler;
 use App\Product\Domain\Exception\ProductNotFound;
 use App\Product\Infrastructure\Persistence\InMemoryProductRepository;
+use App\Tests\Doubles\FakeImageVariants;
 use App\Tests\Doubles\FakeMediaStorage;
 use App\Tests\Doubles\FixedClock;
 
@@ -23,7 +23,7 @@ it('deletes a product', function () {
 
     (new DeleteProductCommandHandler(
         $repository,
-        new DeleteMediaByOwnerCommandHandler(new InMemoryMediaRepository(), new FakeMediaStorage()),
+        new DeleteMediaByOwnerCommandHandler(new InMemoryMediaRepository(), new FakeMediaStorage(), new FakeImageVariants()),
     ))->handle(new DeleteProductCommand($id->value()));
 
     expect($repository->findById($id))->toBeNull();
@@ -37,7 +37,7 @@ it('deletes attached media when deleting a product', function () {
     $id = createProducts($products, $clock)->handle(
         new CreateProductCommand(name: 'Nuvora Tee', priceCents: 1999),
     );
-    (new UploadMediaCommandHandler($media, $storage, $clock))->handle(new UploadMediaCommand(
+    uploadMediaHandler($media, $storage, $clock)->handle(new UploadMediaCommand(
         ownerType: 'product',
         ownerId: $id->value(),
         originalFilename: 'tee.png',
@@ -47,7 +47,7 @@ it('deletes attached media when deleting a product', function () {
 
     (new DeleteProductCommandHandler(
         $products,
-        new DeleteMediaByOwnerCommandHandler($media, $storage),
+        new DeleteMediaByOwnerCommandHandler($media, $storage, new FakeImageVariants()),
     ))->handle(new DeleteProductCommand($id->value()));
 
     expect($media->findByOwner(
@@ -60,6 +60,6 @@ it('deletes attached media when deleting a product', function () {
 it('fails when deleting an unknown product', function () {
     (new DeleteProductCommandHandler(
         new InMemoryProductRepository(),
-        new DeleteMediaByOwnerCommandHandler(new InMemoryMediaRepository(), new FakeMediaStorage()),
+        new DeleteMediaByOwnerCommandHandler(new InMemoryMediaRepository(), new FakeMediaStorage(), new FakeImageVariants()),
     ))->handle(new DeleteProductCommand('550e8400-e29b-41d4-a716-446655440000'));
 })->throws(ProductNotFound::class);

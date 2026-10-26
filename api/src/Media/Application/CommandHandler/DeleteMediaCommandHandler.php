@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Media\Application\CommandHandler;
 
 use App\Media\Application\Command\DeleteMediaCommand;
+use App\Media\Application\Port\ImageVariants;
 use App\Media\Application\Port\MediaStorage;
 use App\Media\Domain\Exception\MediaNotFound;
 use App\Media\Domain\Repository\MediaRepository;
@@ -15,6 +16,7 @@ final readonly class DeleteMediaCommandHandler
     public function __construct(
         private MediaRepository $mediaRepository,
         private MediaStorage $mediaStorage,
+        private ImageVariants $imageVariants,
     ) {
     }
 
@@ -27,7 +29,9 @@ final readonly class DeleteMediaCommandHandler
             throw new MediaNotFound($id);
         }
 
-        $this->mediaStorage->delete($media->relativePath()->value());
+        $path = $media->relativePath()->value();
+        $this->imageVariants->delete($path);
+        $this->mediaStorage->delete($path);
         $this->mediaRepository->delete($media);
     }
 }

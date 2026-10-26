@@ -3,10 +3,10 @@
 declare(strict_types=1);
 
 use App\Media\Application\Command\UploadMediaCommand;
-use App\Media\Application\CommandHandler\UploadMediaCommandHandler;
 use App\Media\Domain\Exception\InvalidMediaMimeType;
 use App\Media\Domain\Exception\InvalidMediaSize;
 use App\Media\Infrastructure\Persistence\InMemoryMediaRepository;
+use App\Tests\Doubles\FakeImageVariants;
 use App\Tests\Doubles\FakeMediaStorage;
 use App\Tests\Doubles\FixedClock;
 
@@ -18,10 +18,12 @@ function tinyPng(): string
 it('uploads a file and stores it under a wordpress-style path', function () {
     $repository = new InMemoryMediaRepository();
     $storage = new FakeMediaStorage();
-    $handler = new UploadMediaCommandHandler(
+    $variants = new FakeImageVariants();
+    $handler = uploadMediaHandler(
         $repository,
         $storage,
         new FixedClock(new DateTimeImmutable('2026-09-16T12:00:00+00:00')),
+        $variants,
     );
 
     $id = $handler->handle(new UploadMediaCommand(
@@ -42,12 +44,15 @@ it('uploads a file and stores it under a wordpress-style path', function () {
         ->and($media->publicUrl())->toBe('/uploads/2026/09/nuvora-tee.png')
         ->and($media->mimeType()->value())->toBe('image/png')
         ->and($media->position()->value())->toBe(0)
-        ->and($storage->files['2026/09/nuvora-tee.png'])->toBe(tinyPng());
+        ->and($storage->files['2026/09/nuvora-tee.png'])->toBe(tinyPng())
+        ->and($variants->generated)->toBe([
+            ['path' => '2026/09/nuvora-tee.png', 'mime' => 'image/png', 'bytes' => tinyPng()],
+        ]);
 });
 
 it('appends media after existing items when no position is given', function () {
     $repository = new InMemoryMediaRepository();
-    $handler = new UploadMediaCommandHandler(
+    $handler = uploadMediaHandler(
         $repository,
         new FakeMediaStorage(),
         new FixedClock(new DateTimeImmutable('2026-09-16T12:00:00+00:00')),
@@ -73,7 +78,7 @@ it('appends media after existing items when no position is given', function () {
 
 it('uses an explicit gallery position', function () {
     $repository = new InMemoryMediaRepository();
-    $handler = new UploadMediaCommandHandler(
+    $handler = uploadMediaHandler(
         $repository,
         new FakeMediaStorage(),
         new FixedClock(new DateTimeImmutable('2026-09-16T12:00:00+00:00')),
@@ -92,7 +97,7 @@ it('uses an explicit gallery position', function () {
 });
 
 it('rejects an unsupported mime type', function () {
-    $handler = new UploadMediaCommandHandler(
+    $handler = uploadMediaHandler(
         new InMemoryMediaRepository(),
         new FakeMediaStorage(),
         new FixedClock(new DateTimeImmutable('2026-09-16T12:00:00+00:00')),
@@ -108,7 +113,7 @@ it('rejects an unsupported mime type', function () {
 })->throws(InvalidMediaMimeType::class);
 
 it('rejects an empty file', function () {
-    $handler = new UploadMediaCommandHandler(
+    $handler = uploadMediaHandler(
         new InMemoryMediaRepository(),
         new FakeMediaStorage(),
         new FixedClock(new DateTimeImmutable('2026-09-16T12:00:00+00:00')),

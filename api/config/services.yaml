@@ -70,6 +70,8 @@ services:
 
     App\Media\Application\Port\MediaStorage: '@App\Media\Infrastructure\Storage\FilesystemMediaStorage'
 
+    App\Media\Application\Port\ImageVariants: '@App\Media\Infrastructure\Image\GdImageVariants'
+
     App\Media\Application\Port\MediaOwnerVisibility: '@App\Media\Infrastructure\Catalog\ProductMediaOwnerVisibility'
 
     App\User\Domain\Repository\UserRepository: '@App\User\Infrastructure\Persistence\Doctrine\DoctrineUserRepository'

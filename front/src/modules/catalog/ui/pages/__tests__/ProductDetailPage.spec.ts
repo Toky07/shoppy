@@ -41,7 +41,7 @@ describe('ProductDetailPage', () => {
     await userEvent.click(screen.getByRole('button', { name: "Voir l'image 2" }))
 
     expect(screen.getByRole('img', { name: 'Nuvora Tee (2/3)' }).getAttribute('src')).toBe(
-      nuvoraTeeGallery.imageUrls[1],
+      '/uploads/2026/09/tee-back.detail.jpg',
     )
   })
 

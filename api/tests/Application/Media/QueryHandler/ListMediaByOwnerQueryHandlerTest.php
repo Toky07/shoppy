@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use App\Media\Application\Command\UploadMediaCommand;
-use App\Media\Application\CommandHandler\UploadMediaCommandHandler;
 use App\Media\Application\Query\ListMediaByOwnerQuery;
 use App\Media\Application\QueryHandler\ListMediaByOwnerQueryHandler;
 use App\Media\Infrastructure\Persistence\InMemoryMediaRepository;
@@ -12,7 +11,7 @@ use App\Tests\Doubles\FixedClock;
 
 it('lists media for an owner ordered by position', function () {
     $repository = new InMemoryMediaRepository();
-    $upload = new UploadMediaCommandHandler(
+    $upload = uploadMediaHandler(
         $repository,
         new FakeMediaStorage(),
         new FixedClock(new DateTimeImmutable('2026-09-16T12:00:00+00:00')),

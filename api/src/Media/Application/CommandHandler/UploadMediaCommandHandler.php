@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Media\Application\CommandHandler;
 
 use App\Media\Application\Command\UploadMediaCommand;
+use App\Media\Application\Port\ImageVariants;
 use App\Media\Application\Port\MediaStorage;
 use App\Media\Domain\Entity\Media;
 use App\Media\Domain\Repository\MediaRepository;
@@ -24,6 +25,7 @@ final readonly class UploadMediaCommandHandler
         private MediaRepository $mediaRepository,
         private MediaStorage $mediaStorage,
         private Clock $clock,
+        private ImageVariants $imageVariants,
     ) {
     }
 
@@ -39,6 +41,7 @@ final readonly class UploadMediaCommandHandler
             $command->binaryContent,
             $this->clock->now(),
         );
+        $this->imageVariants->generate($stored->relativePath, $command->binaryContent, $mimeType->value());
 
         $media = Media::create(
             MediaId::generate(),

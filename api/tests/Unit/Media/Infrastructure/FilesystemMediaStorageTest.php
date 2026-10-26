@@ -29,6 +29,16 @@ it('makes colliding filenames unique', function () {
         ->and((string) file_get_contents($root.'/2026/09/tee-1.png'))->toBe('two');
 });
 
+it('writes a file at a relative path', function () {
+    $root = sys_get_temp_dir().'/shoppy-media-'.bin2hex(random_bytes(4));
+    $storage = new FilesystemMediaStorage($root);
+
+    $storage->write('2026/09/tee.thumb.jpg', 'thumb-bytes');
+
+    expect($root.'/2026/09/tee.thumb.jpg')->toBeFile()
+        ->and((string) file_get_contents($root.'/2026/09/tee.thumb.jpg'))->toBe('thumb-bytes');
+});
+
 it('deletes a stored file', function () {
     $root = sys_get_temp_dir().'/shoppy-media-'.bin2hex(random_bytes(4));
     $storage = new FilesystemMediaStorage($root);

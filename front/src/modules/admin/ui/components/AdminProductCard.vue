@@ -37,7 +37,7 @@ const imageCount = computed(() => props.product.imageUrls.length)
       :aria-label="`Modifier ${product.name}`"
     >
       <div class="relative size-16 shrink-0 overflow-hidden rounded-2xl bg-surface-inset sm:size-20">
-        <AppImage :src="product.imageUrl" :alt="product.name" />
+        <AppImage :src="product.imageUrl" :alt="product.name" variant="thumb" />
         <span
           v-if="imageCount > 1"
           class="absolute right-1.5 bottom-1.5 inline-flex items-center gap-0.5 rounded-full bg-black/55 px-1.5 py-0.5 text-[0.62rem] font-semibold text-white"

@@ -51,7 +51,7 @@ describe('ProductCard', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Image suivante' }))
 
     expect(screen.getByRole('img', { name: 'Nuvora Tee (2/3)' }).getAttribute('src')).toBe(
-      nuvoraTeeGallery.imageUrls[1],
+      '/uploads/2026/09/tee-back.card.jpg',
     )
     expect(screen.getByRole('link', { name: /Nuvora Tee/ }).getAttribute('href')).toBe(
       `/products/${nuvoraTeeGallery.slug}`,

@@ -62,7 +62,7 @@ function onFiles(event: Event) {
 
     <ul v-else class="mt-4 grid gap-3 sm:grid-cols-3">
       <li v-for="(image, index) in images" :key="image.key" class="overflow-hidden rounded-2xl border border-line bg-surface-muted">
-        <AppImage :src="image.url" :alt="`Image ${index + 1}`" class="aspect-square w-full" />
+        <AppImage :src="image.url" :alt="`Image ${index + 1}`" variant="card" class="aspect-square w-full" />
         <div class="flex items-center justify-between gap-1 p-2">
           <button
             type="button"
