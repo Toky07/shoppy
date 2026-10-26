@@ -67,7 +67,7 @@ const { status, page, error } = useProductList(repository, query);
     <CatalogHero />
 
     <div
-      class="sticky top-16 z-30 -mx-5 mt-8 bg-canvas/80 px-5 py-3 backdrop-blur-xl lg:-mx-6 lg:px-6"
+      class="-mx-5 mt-8 px-5 py-3 lg:sticky lg:top-16 lg:z-30 lg:-mx-6 lg:bg-canvas/80 lg:px-6 lg:backdrop-blur-xl"
     >
       <CatalogToolbar :total="page?.total" :categories="categories" />
     </div>
