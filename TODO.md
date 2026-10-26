@@ -82,7 +82,7 @@ Récent : avatar seul dans le header, filtres décollés sur mobile, scroll en h
 
 - [x] Dérivés d’images (vignette, carte, fiche) au lieu du fichier original ; `srcset` dans `AppImage`
 - [x] Self-host des polices (Google Fonts dans `index.html`, autorisé par la CSP)
-- [ ] Retirer Pinia ou l’utiliser (`createPinia()` dans `main.ts`, aucun store)
+- [x] Retirer Pinia ou l’utiliser (`createPinia()` dans `main.ts`, aucun store)
 - [ ] Retirer `vite-plugin-vue-devtools` du build de production (`vite.config.ts`)
 
 ## Qualité

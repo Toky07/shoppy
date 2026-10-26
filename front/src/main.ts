@@ -1,4 +1,3 @@
-import { createPinia } from 'pinia'
 import { createApp } from 'vue'
 import App from './App.vue'
 import {
@@ -29,7 +28,6 @@ import './assets/main.css'
 
 const app = createApp(App);
 
-app.use(createPinia());
 app.provide(catalogRepositoryKey, catalogRepository);
 app.provide(authRepositoryKey, authRepository);
 app.provide(authSessionKey, authSession);
