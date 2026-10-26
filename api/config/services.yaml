@@ -46,6 +46,7 @@ services:
             - '../src/*/Application/Image/ProductImageLoader.php'
             - '../src/*/Application/Image/HttpDownloader.php'
             - '../src/*/Application/RateLimiter.php'
+            - '../src/*/Application/HealthProbe.php'
             - '../src/*/Presentation/Request/'
             - '../src/*/Presentation/Exception/'
             - '../src/*/Presentation/Http/ErrorResponse.php'
@@ -54,6 +55,8 @@ services:
             - '../src/*/Infrastructure/Persistence/Doctrine/Entity/'
             - '../src/Payment/Infrastructure/Gateway/StripePaymentGateway.php'
             - '../src/Payment/Infrastructure/Gateway/Stripe/'
+
+    App\Shared\Application\HealthProbe: '@App\Shared\Infrastructure\Persistence\DoctrineHealthProbe'
 
     App\Product\Domain\Repository\ProductRepository: '@App\Product\Infrastructure\Persistence\Doctrine\DoctrineProductRepository'
 

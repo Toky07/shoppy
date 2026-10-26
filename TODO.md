@@ -76,7 +76,7 @@ Récent : avatar seul dans le header, filtres décollés sur mobile, scroll en h
 - [x] Un seul `flush()` dans `DoctrineCartRepository::save()`
 - [x] Cache court ou ETag sur `GET /products` et `GET /products/:slug`
 - [x] Redis pour le cache applicatif (commenté dans `cache.yaml`, non déployé)
-- [ ] Healthcheck dédié (`GET /health`) au lieu de `GET /products`
+- [x] Healthcheck dédié (`GET /health`) au lieu de `GET /products`
 
 ### Front et médias
 
