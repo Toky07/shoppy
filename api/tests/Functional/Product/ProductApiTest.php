@@ -541,3 +541,70 @@ it('creates a product with size and color variants', function () {
         ->and($payload['variants'][1]['sku'])->toBe('NUVORA-TEE-M')
         ->and($payload['variants'][1]['color'])->toBe('Noir');
 });
+
+it('sends a short public cache and etag for the catalog', function () {
+    $this->client->jsonRequest('POST', '/products', [
+        'name' => 'Nuvora Tee',
+        'priceCents' => 1999,
+    ], catalogAdminHeaders());
+
+    $this->client->jsonRequest('GET', '/products');
+    $list = $this->client->getResponse();
+    $etag = $list->headers->get('ETag');
+
+    expect($list->getStatusCode())->toBe(200)
+        ->and($etag)->not->toBeEmpty()
+        ->and($list->headers->get('Cache-Control'))->toContain('public')
+        ->and($list->headers->get('Cache-Control'))->toContain('max-age=30');
+
+    $this->client->request('GET', '/products', [], [], [
+        'HTTP_ACCEPT' => 'application/json',
+        'HTTP_IF_NONE_MATCH' => $etag,
+    ]);
+
+    expect($this->client->getResponse()->getStatusCode())->toBe(304)
+        ->and($this->client->getResponse()->getContent())->toBe('');
+});
+
+it('sends a short public cache and etag for a published product', function () {
+    $this->client->jsonRequest('POST', '/products', [
+        'name' => 'Nuvora Tee',
+        'priceCents' => 1999,
+    ], catalogAdminHeaders());
+
+    $this->client->jsonRequest('GET', '/products/nuvora-tee');
+    $product = $this->client->getResponse();
+    $etag = $product->headers->get('ETag');
+
+    expect($product->getStatusCode())->toBe(200)
+        ->and($etag)->not->toBeEmpty()
+        ->and($product->headers->get('Cache-Control'))->toContain('public')
+        ->and($product->headers->get('Cache-Control'))->toContain('max-age=30');
+
+    $this->client->request('GET', '/products/nuvora-tee', [], [], [
+        'HTTP_ACCEPT' => 'application/json',
+        'HTTP_IF_NONE_MATCH' => $etag,
+    ]);
+
+    expect($this->client->getResponse()->getStatusCode())->toBe(304)
+        ->and($this->client->getResponse()->getContent())->toBe('');
+});
+
+it('does not publicly cache an admin draft catalog', function () {
+    $this->client->jsonRequest('POST', '/products', [
+        'name' => 'Draft Tee',
+        'priceCents' => 1999,
+        'published' => false,
+    ], catalogAdminHeaders());
+
+    $this->client->jsonRequest('GET', '/products?includeDrafts=1', [], catalogAdminHeaders());
+    $list = $this->client->getResponse();
+
+    $this->client->jsonRequest('GET', '/products/draft-tee', [], catalogAdminHeaders());
+    $product = $this->client->getResponse();
+
+    expect($list->getStatusCode())->toBe(200)
+        ->and($list->headers->get('Cache-Control'))->not->toContain('public')
+        ->and($product->getStatusCode())->toBe(200)
+        ->and($product->headers->get('Cache-Control'))->not->toContain('public');
+});

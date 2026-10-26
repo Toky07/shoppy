@@ -11,7 +11,9 @@ use App\Product\Application\Query\GetProductQuery;
 use App\Product\Application\QueryHandler\GetProductQueryHandler;
 use App\Product\Domain\Exception\ProductNotFound;
 use App\Auth\Presentation\Security\AuthorizationAttributes;
+use App\Shared\Presentation\Http\CachedJsonResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 
 final readonly class GetProductController
@@ -23,7 +25,7 @@ final readonly class GetProductController
     }
 
     #[Route('/products/{id}', methods: ['GET'])]
-    public function __invoke(string $id): JsonResponse
+    public function __invoke(string $id, Request $request): JsonResponse
     {
         $product = $this->getProduct->handle(new GetProductQuery($id));
 
@@ -33,8 +35,10 @@ final readonly class GetProductController
             } catch (Unauthenticated|Forbidden) {
                 throw new ProductNotFound($id);
             }
+
+            return new JsonResponse($product->toArray());
         }
 
-        return new JsonResponse($product->toArray());
+        return CachedJsonResponse::public($request, $product->toArray());
     }
 }

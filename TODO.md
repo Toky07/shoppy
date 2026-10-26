@@ -74,7 +74,7 @@ Récent : avatar seul dans le header, filtres décollés sur mobile, scroll en h
 - [x] Paginer les avis et batcher les auteurs (`ListProductReviewsQueryHandler` charge tout ; `UserReviewAuthors` fait un `findById` par avis)
 - [x] Index sur `cart_items.product_id` (lookup `reservedQuantity`)
 - [x] Un seul `flush()` dans `DoctrineCartRepository::save()`
-- [ ] Cache court ou ETag sur `GET /products` et `GET /products/:slug`
+- [x] Cache court ou ETag sur `GET /products` et `GET /products/:slug`
 - [ ] Redis pour le cache applicatif (commenté dans `cache.yaml`, non déployé)
 - [ ] Healthcheck dédié (`GET /health`) au lieu de `GET /products`
 
