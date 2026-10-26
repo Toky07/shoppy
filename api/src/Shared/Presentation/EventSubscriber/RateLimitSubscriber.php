@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Shared\Presentation\EventSubscriber;
 
-use App\Shared\Infrastructure\Http\FileRateLimiter;
+use App\Shared\Application\RateLimiter;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
@@ -12,7 +12,7 @@ use Symfony\Component\HttpKernel\KernelEvents;
 final readonly class RateLimitSubscriber implements EventSubscriberInterface
 {
     public function __construct(
-        private FileRateLimiter $limiter,
+        private RateLimiter $limiter,
         private int $loginLimit,
         private int $registerLimit,
         private int $checkoutLimit,

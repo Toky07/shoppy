@@ -45,6 +45,7 @@ services:
             - '../src/*/Application/Image/GeneratedProductImage.php'
             - '../src/*/Application/Image/ProductImageLoader.php'
             - '../src/*/Application/Image/HttpDownloader.php'
+            - '../src/*/Application/RateLimiter.php'
             - '../src/*/Presentation/Request/'
             - '../src/*/Presentation/Exception/'
             - '../src/*/Presentation/Http/ErrorResponse.php'
@@ -152,6 +153,8 @@ services:
     App\Shared\Infrastructure\Http\FileRateLimiter:
         arguments:
             $directory: '%kernel.cache_dir%/rate-limit'
+
+    App\Shared\Application\RateLimiter: '@App\Shared\Infrastructure\Persistence\DoctrineRateLimiter'
 
     App\Shared\Presentation\EventSubscriber\RateLimitSubscriber:
         arguments:

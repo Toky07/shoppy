@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Shared\Domain\Exception\RateLimited;
 use App\Shared\Infrastructure\Http\FileRateLimiter;
+use App\Shared\Infrastructure\SystemClock;
 use App\Shared\Presentation\EventSubscriber\RateLimitSubscriber;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -28,7 +29,7 @@ function accountRateLimitSubscriber(int $accountLimit = 2, int $loginLimit = 20,
     mkdir($directory);
 
     return new RateLimitSubscriber(
-        new FileRateLimiter($directory),
+        new FileRateLimiter($directory, new SystemClock()),
         $loginLimit,
         10,
         $checkoutLimit,
