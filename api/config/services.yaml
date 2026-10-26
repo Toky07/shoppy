@@ -18,6 +18,7 @@ parameters:
     app.rate_limit.register: 10
     app.rate_limit.checkout: 30
     app.rate_limit.webhook: 120
+    app.rate_limit.account: 10
     app.rate_limit.window: 60
 
 services:
@@ -158,6 +159,7 @@ services:
             $registerLimit: '%app.rate_limit.register%'
             $checkoutLimit: '%app.rate_limit.checkout%'
             $webhookLimit: '%app.rate_limit.webhook%'
+            $accountLimit: '%app.rate_limit.account%'
             $windowSeconds: '%app.rate_limit.window%'
 
     App\Shared\Presentation\EventSubscriber\CorsSubscriber:

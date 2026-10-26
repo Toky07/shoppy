@@ -17,6 +17,7 @@ final readonly class RateLimitSubscriber implements EventSubscriberInterface
         private int $registerLimit,
         private int $checkoutLimit,
         private int $webhookLimit,
+        private int $accountLimit,
         private int $windowSeconds,
     ) {
     }
@@ -53,6 +54,11 @@ final readonly class RateLimitSubscriber implements EventSubscriberInterface
             '/users' => $this->registerLimit,
             '/payments/checkout', '/payments/complete', '/cart/checkout' => $this->checkoutLimit,
             '/payments/webhooks/stripe' => $this->webhookLimit,
+            '/auth/password-resets',
+            '/auth/password-resets/confirm',
+            '/auth/email-verifications',
+            '/auth/email-verifications/request',
+            '/auth/email-changes/confirm' => $this->accountLimit,
             default => null,
         };
     }
