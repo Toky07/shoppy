@@ -13,6 +13,7 @@ const props = defineProps<{
   name: string
   unitPriceCents: number
   variantId?: string
+  imageUrl?: string | null
 }>()
 
 const session = inject(authSessionKey)
@@ -42,6 +43,7 @@ async function onSubmit() {
       name: props.name,
       unitPriceCents: props.unitPriceCents,
       availableStock: props.stock,
+      imageUrl: props.imageUrl ?? null,
     })
     successMessage.value = 'Ajouté au panier.'
   } catch (caught) {

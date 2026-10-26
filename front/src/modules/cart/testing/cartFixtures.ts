@@ -13,6 +13,7 @@ export const cartTeeItem: CartItem = {
   lineTotal: { cents: 3998, currency: 'EUR' },
   availableStock: 10,
   variantId: null,
+  imageUrl: nuvoraTee.imageUrl,
 }
 
 export function emptyCart(customerId = visitorUser.id): Cart {
@@ -59,6 +60,7 @@ export function createCartItemJson(overrides: Record<string, unknown> = {}) {
     unitPrice: { cents: cartTeeItem.unitPrice.cents, currency: cartTeeItem.unitPrice.currency },
     lineTotal: { cents: cartTeeItem.lineTotal.cents, currency: cartTeeItem.lineTotal.currency },
     availableStock: cartTeeItem.availableStock,
+    imageUrl: cartTeeItem.imageUrl,
     ...overrides,
   }
 }

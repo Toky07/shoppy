@@ -90,6 +90,7 @@ describe('createCartState', () => {
         name: nuvoraTee.name,
         unitPriceCents: nuvoraTee.price.cents,
         availableStock: nuvoraTee.stock,
+        imageUrl: nuvoraTee.imageUrl,
       },
     ])
     const isAuthenticated = ref(false)

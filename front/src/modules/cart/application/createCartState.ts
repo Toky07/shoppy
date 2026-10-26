@@ -16,6 +16,7 @@ export type GuestCartSnapshot = {
   name: string
   unitPriceCents: number
   availableStock: number
+  imageUrl?: string | null
 }
 
 export function createCartState(
@@ -164,6 +165,7 @@ function addGuestLine(
       name: snapshot?.name ?? 'Article',
       unitPriceCents: snapshot?.unitPriceCents ?? 0,
       availableStock: snapshot?.availableStock ?? quantity,
+      imageUrl: snapshot?.imageUrl ?? null,
     },
   ]
 }

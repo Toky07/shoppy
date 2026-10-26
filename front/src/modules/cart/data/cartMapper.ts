@@ -24,6 +24,7 @@ export function mapCartItem(payload: unknown): CartItem {
     lineTotal: mapMoney(payload.lineTotal, 'Invalid cart item total.'),
     availableStock: payload.availableStock,
     variantId: typeof payload.variantId === 'string' ? payload.variantId : null,
+    imageUrl: typeof payload.imageUrl === 'string' && payload.imageUrl !== '' ? payload.imageUrl : null,
   }
 }
 

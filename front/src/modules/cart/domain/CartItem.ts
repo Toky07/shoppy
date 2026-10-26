@@ -8,4 +8,5 @@ export type CartItem = {
   lineTotal: Money
   availableStock: number
   variantId?: string | null
+  imageUrl: string | null
 }

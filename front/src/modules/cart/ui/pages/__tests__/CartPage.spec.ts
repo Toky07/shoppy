@@ -44,6 +44,7 @@ describe('CartPage', () => {
 
     await waitFor(() => {
       expect(screen.getByRole('heading', { name: 'Nuvora Tee' })).toBeTruthy()
+      expect(screen.getByRole('img', { name: 'Nuvora Tee' }).getAttribute('src')).toBe(nuvoraTee.imageUrl)
       expect(screen.getByLabelText('Quantité Nuvora Tee')).toBeTruthy()
       expect(screen.getAllByText(/39,98/).length).toBeGreaterThan(0)
     })

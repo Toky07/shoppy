@@ -23,6 +23,7 @@ it('adds a product to the cart and enriches the response from the catalog', func
         name: 'Nuvora Tee',
         unitPriceCents: 1999,
         stock: 10,
+        imageUrl: '/uploads/2026/09/one.png',
     ));
     $now = new DateTimeImmutable('2026-08-20T12:00:00+00:00');
 
@@ -50,6 +51,7 @@ it('adds a product to the cart and enriches the response from the catalog', func
             'lineTotal' => ['cents' => 3998, 'currency' => 'EUR'],
             'availableStock' => 10,
             'variantId' => null,
+            'imageUrl' => '/uploads/2026/09/one.png',
         ])
         ->and($carts->findByCustomerId(CustomerId::fromString('11111111-1111-4111-8111-111111111111'))?->items()[0]->quantity()->value())->toBe(2);
 });

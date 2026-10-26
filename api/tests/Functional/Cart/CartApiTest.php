@@ -44,6 +44,7 @@ it('adds an item to the cart', function () {
         ->and($payload['items'][0]['name'])->toBe('Nuvora Tee')
         ->and($payload['items'][0]['quantity'])->toBe(2)
         ->and($payload['items'][0]['availableStock'])->toBe(10)
+        ->and($payload['items'][0]['imageUrl'])->toBeNull()
         ->and($payload['total'])->toBe(['cents' => 3998, 'currency' => 'EUR']);
 });
 

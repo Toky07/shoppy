@@ -12,6 +12,7 @@ final readonly class CatalogSnapshot
         public int $unitPriceCents,
         public int $stock,
         public bool $requiresVariant = false,
+        public ?string $imageUrl = null,
     ) {
     }
 }
