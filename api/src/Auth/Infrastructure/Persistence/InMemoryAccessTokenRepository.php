@@ -9,6 +9,7 @@ use App\Auth\Domain\Repository\AccessTokenRepository;
 use App\Auth\Domain\ValueObject\AccessTokenKind;
 use App\Auth\Domain\ValueObject\TokenHash;
 use App\User\Domain\ValueObject\UserId;
+use DateTimeImmutable;
 
 final class InMemoryAccessTokenRepository implements AccessTokenRepository
 {
@@ -37,6 +38,20 @@ final class InMemoryAccessTokenRepository implements AccessTokenRepository
                 unset($this->tokens[$hash]);
             }
         }
+    }
+
+    public function deleteExpired(DateTimeImmutable $now): int
+    {
+        $deleted = 0;
+
+        foreach ($this->tokens as $hash => $token) {
+            if ($token->isExpired($now)) {
+                unset($this->tokens[$hash]);
+                ++$deleted;
+            }
+        }
+
+        return $deleted;
     }
 
     public function trimTo(UserId $userId, int $max, ?AccessTokenKind $kind = null): void

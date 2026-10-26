@@ -28,6 +28,39 @@ it('persists an access token by its hash', function () {
         ->and($found->hash()->value())->not->toBe('test-access-token');
 });
 
+it('deletes expired tokens and keeps live ones', function () {
+    $userId = UserId::fromString('11111111-1111-4111-8111-111111111111');
+    $expiredHash = TokenHash::fromHash(hash('sha256', 'expired-access-token'));
+    $liveHash = TokenHash::fromHash(hash('sha256', 'live-access-token'));
+    $now = new DateTimeImmutable('2026-08-20T12:00:00+00:00');
+
+    $repository = self::getContainer()->get(AccessTokenRepository::class);
+    $entityManager = self::getContainer()->get(EntityManagerInterface::class);
+
+    $repository->save(AccessToken::issue($userId, $expiredHash, $now->modify('-1 hour'), $now->modify('-2 hours')));
+    $repository->save(AccessToken::issue($userId, $liveHash, $now->modify('+1 hour'), $now));
+    $entityManager->clear();
+
+    expect($repository->deleteExpired($now))->toBe(1);
+    $entityManager->clear();
+
+    expect($repository->findByHash($expiredHash))->toBeNull()
+        ->and($repository->findByHash($liveHash))->not->toBeNull();
+});
+
+it('indexes access tokens by user id and expiry', function () {
+    $indexes = self::getContainer()
+        ->get(EntityManagerInterface::class)
+        ->getConnection()
+        ->createSchemaManager()
+        ->listTableIndexes('access_tokens');
+
+    expect($indexes)->toHaveKey('idx_access_tokens_user_id')
+        ->and($indexes)->toHaveKey('idx_access_tokens_expires_at')
+        ->and($indexes['idx_access_tokens_user_id']->getColumns())->toBe(['user_id'])
+        ->and($indexes['idx_access_tokens_expires_at']->getColumns())->toBe(['expires_at']);
+});
+
 it('deletes an access token by its hash', function () {
     $userId = UserId::fromString('11111111-1111-4111-8111-111111111111');
     $hash = TokenHash::fromHash(hash('sha256', 'test-access-token'));

@@ -10,6 +10,7 @@ use App\Auth\Domain\ValueObject\AccessTokenKind;
 use App\Auth\Domain\ValueObject\TokenHash;
 use App\User\Domain\ValueObject\UserId;
 use App\Auth\Infrastructure\Persistence\Doctrine\Entity\AccessTokenRecord;
+use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 
 final readonly class DoctrineAccessTokenRepository implements AccessTokenRepository
@@ -54,6 +55,15 @@ final readonly class DoctrineAccessTokenRepository implements AccessTokenReposit
             'DELETE FROM App\Auth\Infrastructure\Persistence\Doctrine\Entity\AccessTokenRecord token WHERE token.userId = :userId',
         )
             ->setParameter('userId', $userId->value())
+            ->execute();
+    }
+
+    public function deleteExpired(DateTimeImmutable $now): int
+    {
+        return (int) $this->entityManager->createQuery(
+            'DELETE FROM App\Auth\Infrastructure\Persistence\Doctrine\Entity\AccessTokenRecord token WHERE token.expiresAt <= :now',
+        )
+            ->setParameter('now', $now)
             ->execute();
     }
 

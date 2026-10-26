@@ -13,6 +13,8 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'access_tokens')]
+#[ORM\Index(name: 'idx_access_tokens_user_id', columns: ['user_id'])]
+#[ORM\Index(name: 'idx_access_tokens_expires_at', columns: ['expires_at'])]
 class AccessTokenRecord
 {
     #[ORM\Id]

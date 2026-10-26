@@ -8,6 +8,7 @@ use App\Auth\Domain\Entity\AccessToken;
 use App\Auth\Domain\ValueObject\AccessTokenKind;
 use App\Auth\Domain\ValueObject\TokenHash;
 use App\User\Domain\ValueObject\UserId;
+use DateTimeImmutable;
 
 interface AccessTokenRepository
 {
@@ -18,6 +19,8 @@ interface AccessTokenRepository
     public function delete(AccessToken $token): void;
 
     public function deleteByUserId(UserId $userId): void;
+
+    public function deleteExpired(DateTimeImmutable $now): int;
 
     public function trimTo(UserId $userId, int $max, ?AccessTokenKind $kind = null): void;
 }
