@@ -60,4 +60,16 @@ describe('AppLayout auth nav', () => {
 
     expect(screen.getByRole('link', { name: 'Panier' }).getAttribute('href')).toBe('/cart')
   })
+
+  it('keeps favorites and theme out of the header when logged in', async () => {
+    await renderApp({ session: visitorSession })
+
+    expect(screen.queryByRole('link', { name: /^Favoris/ })).toBeNull()
+    expect(screen.queryByRole('group', { name: 'Apparence' })).toBeNull()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Mon compte' }))
+
+    expect(screen.getByRole('menuitem', { name: 'Mes favoris' })).toBeTruthy()
+    expect(screen.getByRole('group', { name: 'Apparence' })).toBeTruthy()
+  })
 })

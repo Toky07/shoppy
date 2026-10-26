@@ -6,21 +6,18 @@ import { authSessionKey } from '@/modules/auth/application/authSessionKey'
 import { logout } from '@/modules/auth/application/logout'
 import { userRoleLabel } from '@/modules/auth/ui/lib/userRoleLabel'
 import { cartStateKey } from '@/modules/cart/application/cartStateKey'
-import { useFavorites } from '@/modules/catalog/application/useFavorites'
 import { parseSearchQuery } from '@/shared/routing/parseSearchQuery'
 import AccountMenu from './AccountMenu.vue'
 import AppIcon from './AppIcon.vue'
 import AppMobileNav from './AppMobileNav.vue'
 import AppSearchForm from './AppSearchForm.vue'
 import BrandMark from './BrandMark.vue'
-import ThemeToggle from './ThemeToggle.vue'
 
 const session = inject(authSessionKey)
 const repository = inject(authRepositoryKey)
 const cartState = inject(cartStateKey)
 const router = useRouter()
 const route = useRoute()
-const { count: favoriteCount } = useFavorites()
 
 const isAuthenticated = computed(() => session?.isAuthenticated.value ?? false)
 const isAdmin = computed(() => session?.isAdmin.value ?? false)
@@ -32,9 +29,6 @@ const roleLabel = computed(() => {
 })
 const itemCount = computed(() => cartState?.itemCount.value ?? 0)
 const cartLabel = computed(() => (itemCount.value > 0 ? `Panier (${itemCount.value})` : 'Panier'))
-const favoritesLabel = computed(() =>
-  favoriteCount.value > 0 ? `Favoris (${favoriteCount.value})` : 'Favoris',
-)
 
 const headerSearch = ref(parseSearchQuery(route.query.q))
 const menuOpen = ref(false)
@@ -129,23 +123,6 @@ async function onLogout() {
       </div>
 
       <div class="ml-auto flex items-center gap-1.5 lg:ml-3">
-        <span class="hidden lg:block">
-          <ThemeToggle />
-        </span>
-
-        <RouterLink
-          to="/favorites"
-          class="btn-icon relative hidden sm:inline-flex"
-          :aria-label="favoritesLabel"
-        >
-          <AppIcon name="heart" :size="19" />
-          <span
-            v-if="favoriteCount > 0"
-            class="numeric absolute top-1 right-1 flex min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[0.6rem] font-bold text-accent-fg"
-            >{{ favoriteCount }}</span
-          >
-        </RouterLink>
-
         <RouterLink to="/cart" class="btn-icon relative" :aria-label="cartLabel">
           <AppIcon name="cart" :size="19" />
           <span
@@ -161,8 +138,6 @@ async function onLogout() {
               :email="email"
               :role-label="roleLabel"
               :is-admin="isAdmin"
-              :favorite-count="favoriteCount"
-              :cart-count="itemCount"
               @logout="onLogout"
             />
           </span>

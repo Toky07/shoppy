@@ -1,18 +1,18 @@
 <script setup lang="ts">
-import { computed, watch } from 'vue'
+import { computed, inject, watch } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
+import { cartStateKey } from '@/modules/cart/application/cartStateKey'
+import { useFavorites } from '@/modules/catalog/application/useFavorites'
+import { userInitials } from '@/shared/text/userInitials'
 import AppIcon from './AppIcon.vue'
 import ThemeToggle from './ThemeToggle.vue'
 import { usePopupMenu } from './usePopupMenu'
 import type { IconName } from './icons'
-import { userInitials } from '@/shared/text/userInitials'
 
 const props = defineProps<{
   email: string
   roleLabel: string
   isAdmin: boolean
-  favoriteCount: number
-  cartCount: number
 }>()
 
 const emit = defineEmits<{
@@ -20,16 +20,19 @@ const emit = defineEmits<{
 }>()
 
 const route = useRoute()
+const cartState = inject(cartStateKey)
+const { count: favoriteCount } = useFavorites()
 const { open, triggerEl, menuEl, close, onTriggerKeydown, onMenuKeydown } = usePopupMenu()
 const initials = computed(() => userInitials(props.email))
+const cartCount = computed(() => cartState?.itemCount.value ?? 0)
 
 type Entry = { to: string; label: string; icon: IconName; count?: number }
 
 const entries = computed<Entry[]>(() => [
   { to: '/account', label: 'Mon profil', icon: 'user' },
-  { to: '/favorites', label: 'Mes favoris', icon: 'heart', count: props.favoriteCount },
+  { to: '/favorites', label: 'Mes favoris', icon: 'heart', count: favoriteCount.value },
   { to: '/orders', label: 'Mes commandes', icon: 'package' },
-  { to: '/cart', label: 'Mon panier', icon: 'cart', count: props.cartCount },
+  { to: '/cart', label: 'Mon panier', icon: 'cart', count: cartCount.value },
   ...(props.isAdmin
     ? ([{ to: '/admin', label: 'Administration', icon: 'settings' }] as Entry[])
     : []),
