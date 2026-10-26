@@ -39,6 +39,40 @@ final readonly class DoctrineUserRepository implements UserRepository
         return $record?->toDomain();
     }
 
+    public function findByIds(array $ids): array
+    {
+        if ($ids === []) {
+            return [];
+        }
+
+        $values = array_map(static fn (UserId $id): string => $id->value(), $ids);
+        /** @var list<UserRecord> $records */
+        $records = $this->entityManager->createQueryBuilder()
+            ->select('u')
+            ->from(UserRecord::class, 'u')
+            ->where('u.id IN (:ids)')
+            ->setParameter('ids', $values)
+            ->getQuery()
+            ->getResult();
+
+        $indexed = [];
+
+        foreach ($records as $record) {
+            $user = $record->toDomain();
+            $indexed[$user->id()->value()] = $user;
+        }
+
+        $ordered = [];
+
+        foreach ($values as $value) {
+            if (isset($indexed[$value])) {
+                $ordered[] = $indexed[$value];
+            }
+        }
+
+        return $ordered;
+    }
+
     public function findByEmail(Email $email): ?User
     {
         $record = $this->entityManager->getRepository(UserRecord::class)->findOneBy([

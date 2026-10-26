@@ -31,9 +31,13 @@ final readonly class GetCartQueryHandler
             return CartResponse::empty($customerId->value());
         }
 
+        $lines = $cart->items();
+        $snapshots = $this->catalog->findByItems($lines);
+        $reserved = $this->cartRepository->reservedQuantities($lines, $customerId);
+
         $items = [];
-        foreach ($cart->items() as $item) {
-            $snapshot = $this->catalog->findById($item->productId(), $item->variantId()?->value());
+        foreach ($lines as $item) {
+            $snapshot = $snapshots[$item->lineKey()] ?? null;
 
             if ($snapshot === null) {
                 throw new CartProductNotFound($item->productId());
@@ -46,7 +50,7 @@ final readonly class GetCartQueryHandler
                 $quantity,
                 $snapshot->unitPriceCents,
                 $snapshot->unitPriceCents * $quantity,
-                $this->availableStock->maximum($customerId, $item->productId(), $item->variantId()) ?? 0,
+                $this->availableStock->remaining($snapshot->stock, $reserved[$item->lineKey()] ?? 0),
                 $item->variantId()?->value(),
                 $snapshot->imageUrl,
             );

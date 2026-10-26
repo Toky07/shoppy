@@ -7,6 +7,7 @@ namespace App\Cart\Infrastructure\Persistence;
 use App\Cart\Domain\Entity\Cart;
 use App\Cart\Domain\Exception\CartAlreadyCheckingOut;
 use App\Cart\Domain\Repository\CartRepository;
+use App\Cart\Domain\ValueObject\CartItem;
 use App\Cart\Domain\ValueObject\CartProductId;
 use App\Cart\Domain\ValueObject\CartVariantId;
 use App\Cart\Domain\ValueObject\CustomerId;
@@ -65,5 +66,20 @@ final class InMemoryCartRepository implements CartRepository
         }
 
         return $total;
+    }
+
+    public function reservedQuantities(array $items, CustomerId $exceptCustomerId): array
+    {
+        $quantities = [];
+
+        foreach ($items as $item) {
+            $quantities[$item->lineKey()] = $this->reservedQuantity(
+                $item->productId(),
+                $item->variantId(),
+                $exceptCustomerId,
+            );
+        }
+
+        return $quantities;
     }
 }

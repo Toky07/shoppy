@@ -8,6 +8,7 @@ use App\Auth\Presentation\Http\CurrentUser;
 use App\Product\Application\Query\ListProductReviewsQuery;
 use App\Product\Application\QueryHandler\ListProductReviewsQueryHandler;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 
 final readonly class ListProductReviewsController
@@ -19,11 +20,13 @@ final readonly class ListProductReviewsController
     }
 
     #[Route('/products/{id}/reviews', methods: ['GET'])]
-    public function __invoke(string $id): JsonResponse
+    public function __invoke(string $id, Request $request): JsonResponse
     {
         return new JsonResponse($this->listReviews->handle(new ListProductReviewsQuery(
             $id,
             $this->currentUser->idOrNull(),
+            $request->query->getInt('page', ListProductReviewsQuery::DEFAULT_PAGE),
+            $request->query->getInt('limit', ListProductReviewsQuery::DEFAULT_LIMIT),
         ))->toArray());
     }
 }

@@ -13,6 +13,7 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity]
 #[ORM\Table(name: 'cart_items')]
 #[ORM\UniqueConstraint(name: 'uniq_cart_items_cart_product_variant', columns: ['cart_id', 'product_id', 'variant_id'])]
+#[ORM\Index(name: 'idx_cart_items_product_id', columns: ['product_id'])]
 class CartItemRecord
 {
     #[ORM\Id]
@@ -42,10 +43,20 @@ class CartItemRecord
         $record->cart = $cart;
         $record->productId = $item->productId()->value();
         $record->variantId = $item->variantId()?->value();
-        $record->quantity = $item->quantity()->value();
-        $record->position = $position;
+        $record->updateFromDomain($item, $position);
 
         return $record;
+    }
+
+    public function updateFromDomain(CartItem $item, int $position): void
+    {
+        $this->quantity = $item->quantity()->value();
+        $this->position = $position;
+    }
+
+    public function lineKey(): string
+    {
+        return $this->productId."\0".($this->variantId ?? '');
     }
 
     public function toDomain(): CartItem

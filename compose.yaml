@@ -26,6 +26,20 @@ services:
       start_period: 10s
       retries: 10
 
+  redis:
+    <<: *hardening
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    ports:
+      - "127.0.0.1:${REDIS_PORT:-6379}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      start_period: 5s
+      retries: 10
+
   pgadmin:
     <<: *hardening
     image: dpage/pgadmin4:9
@@ -56,6 +70,7 @@ services:
     environment:
       APP_ENV: dev
       DATABASE_URL: *database-url
+      REDIS_URL: redis://redis:6379
       DEFAULT_URI: http://localhost:${API_PORT:-8000}
       PAYMENT_PROVIDER: ${PAYMENT_PROVIDER:-local}
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:5173}
@@ -76,8 +91,10 @@ services:
     depends_on:
       database:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     healthcheck:
-      test: ["CMD", "php", "-r", "exit(@file_get_contents('http://127.0.0.1/products') === false ? 1 : 0);"]
+      test: ["CMD", "php", "-r", "exit(@file_get_contents('http://127.0.0.1/health') === false ? 1 : 0);"]
       interval: 10s
       timeout: 5s
       start_period: 180s

@@ -11,6 +11,7 @@ use App\Product\Application\QueryHandler\ListProductsByIdsQueryHandler;
 use App\Product\Application\QueryHandler\ListProductsQueryHandler;
 use App\Auth\Presentation\Security\AuthorizationAttributes;
 use App\Shared\Presentation\Exception\InvalidRequest;
+use App\Shared\Presentation\Http\CachedJsonResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
@@ -30,7 +31,10 @@ final readonly class ListProductsController
         $ids = self::queryIds($request);
 
         if ($ids !== null) {
-            return new JsonResponse($this->listProductsByIds->handle(new ListProductsByIdsQuery($ids))->toArray());
+            return CachedJsonResponse::public(
+                $request,
+                $this->listProductsByIds->handle(new ListProductsByIdsQuery($ids))->toArray(),
+            );
         }
 
         $includeDrafts = self::queryFlag($request, 'includeDrafts');
@@ -51,7 +55,11 @@ final readonly class ListProductsController
             includeDrafts: $includeDrafts,
         ));
 
-        return new JsonResponse($response->toArray());
+        if ($includeDrafts) {
+            return new JsonResponse($response->toArray());
+        }
+
+        return CachedJsonResponse::public($request, $response->toArray());
     }
 
     private static function queryString(Request $request, string $key): ?string

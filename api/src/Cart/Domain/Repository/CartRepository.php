@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Cart\Domain\Repository;
 
 use App\Cart\Domain\Entity\Cart;
+use App\Cart\Domain\ValueObject\CartItem;
 use App\Cart\Domain\ValueObject\CartProductId;
 use App\Cart\Domain\ValueObject\CartVariantId;
 use App\Cart\Domain\ValueObject\CustomerId;
@@ -22,4 +23,11 @@ interface CartRepository
         ?CartVariantId $variantId,
         CustomerId $exceptCustomerId,
     ): int;
+
+    /**
+     * @param list<CartItem> $items
+     *
+     * @return array<string, int>
+     */
+    public function reservedQuantities(array $items, CustomerId $exceptCustomerId): array;
 }
