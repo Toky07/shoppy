@@ -11,11 +11,11 @@ function page() {
 
 describe('AccountPage', () => {
   it('asks a guest to log in', async () => {
-    await renderApp({ path: '/account' })
+    const { router } = await renderApp({ path: '/account' })
 
-    expect(page().getByRole('link', { name: 'Se connecter' }).getAttribute('href')).toBe(
-      '/login?redirect=/account',
-    )
+    expect(router.currentRoute.value.path).toBe('/login')
+    expect(router.currentRoute.value.query.redirect).toBe('/account')
+    expect(screen.getByRole('heading', { name: 'Connexion' })).toBeTruthy()
   })
 
   it('shows the account identity', async () => {

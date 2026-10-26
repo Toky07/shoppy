@@ -7,15 +7,11 @@ import { cancelledOrder, pendingOrder } from '../../../testing/orderFixtures'
 
 describe('OrderListPage', () => {
   it('asks a guest to log in', async () => {
-    await renderApp({ path: '/orders' })
+    const { router } = await renderApp({ path: '/orders' })
 
-    expect(screen.getByRole('heading', { name: 'Mes Commandes' })).toBeTruthy()
-    expect(screen.getByText("Vous devez être connecté pour voir l'historique de vos commandes.")).toBeTruthy()
-    expect(
-      screen
-        .getAllByRole('link', { name: 'Se connecter' })
-        .some((link) => link.getAttribute('href') === '/login?redirect=/orders'),
-    ).toBe(true)
+    expect(router.currentRoute.value.path).toBe('/login')
+    expect(router.currentRoute.value.query.redirect).toBe('/orders')
+    expect(screen.getByRole('heading', { name: 'Connexion' })).toBeTruthy()
   })
 
   it('shows an empty state', async () => {

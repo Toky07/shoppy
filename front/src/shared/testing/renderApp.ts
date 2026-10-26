@@ -28,6 +28,7 @@ import { FakeUserDirectory } from '@/modules/auth/testing/FakeUserDirectory'
 import { MemorySessionStore } from '@/modules/auth/testing/MemorySessionStore'
 import { createFakeCatalogRepository } from '@/modules/catalog/testing/fakeCatalogRepository'
 import type { Session } from '@/modules/auth/domain/Session'
+import { createNavigationGuard } from '@/router/navigationGuard'
 import { routes } from '@/router/routes'
 
 export async function renderApp(options: {
@@ -41,11 +42,12 @@ export async function renderApp(options: {
   session?: Session | null
   path?: string
 } = {}) {
+  const authSession = createAuthSession(new MemorySessionStore(options.session ?? null))
   const router = createRouter({
     history: createMemoryHistory(),
     routes,
   })
-  const authSession = createAuthSession(new MemorySessionStore(options.session ?? null))
+  router.beforeEach(createNavigationGuard(authSession))
   const cartRepository = options.cartRepository ?? new FakeCartRepository()
   const cartState = createCartState(cartRepository, authSession.isAuthenticated)
 

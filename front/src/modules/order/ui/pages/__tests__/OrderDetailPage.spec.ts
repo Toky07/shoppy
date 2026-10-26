@@ -17,14 +17,11 @@ describe('OrderDetailPage', () => {
   })
 
   it('asks a guest to log in', async () => {
-    await renderApp({ path: `/orders/${pendingOrder.id}` })
+    const { router } = await renderApp({ path: `/orders/${pendingOrder.id}` })
 
-    expect(screen.getByText('Vous devez être connecté pour voir les détails de cette commande.')).toBeTruthy()
-    expect(
-      screen
-        .getAllByRole('link', { name: 'Se connecter' })
-        .some((link) => link.getAttribute('href') === `/login?redirect=/orders/${pendingOrder.id}`),
-    ).toBe(true)
+    expect(router.currentRoute.value.path).toBe('/login')
+    expect(router.currentRoute.value.query.redirect).toBe(`/orders/${pendingOrder.id}`)
+    expect(screen.getByRole('heading', { name: 'Connexion' })).toBeTruthy()
   })
 
   it('shows a pending order with pay and cancel actions', async () => {

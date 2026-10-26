@@ -59,7 +59,7 @@ Récent : avatar seul dans le header, filtres décollés sur mobile, scroll en h
 
 ### Basse
 
-- [ ] Guards router `auth` / `admin` (aujourd’hui `AuthRequiredPanel` et `AdminLayout` seulement ; l’API reste la source de vérité)
+- [x] Guards router `auth` / `admin` (aujourd’hui `AuthRequiredPanel` et `AdminLayout` seulement ; l’API reste la source de vérité)
 - [ ] TTL de token plus court + refresh (sessions à 7 jours, pas de rotation)
 - [ ] Rate limiter fichier : échoue ouvert si I/O KO, un compteur par replica
 - [ ] Purge des tokens expirés (`access_tokens` n’a pas d’index sur `user_id`)

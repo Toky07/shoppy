@@ -22,12 +22,12 @@ import { catalogRepositoryKey } from './modules/catalog/application/catalogRepos
 import { orderRepositoryKey } from './modules/order/application/orderRepositoryKey'
 import { paymentRepositoryKey } from './modules/payment/application/paymentRepositoryKey'
 import router from './router'
+import { createNavigationGuard } from './router/navigationGuard'
 import './assets/main.css'
 
 const app = createApp(App);
 
 app.use(createPinia());
-app.use(router);
 app.provide(catalogRepositoryKey, catalogRepository);
 app.provide(authRepositoryKey, authRepository);
 app.provide(authSessionKey, authSession);
@@ -39,4 +39,6 @@ app.provide(adminCatalogRepositoryKey, adminCatalogRepository);
 app.provide(userDirectoryKey, userDirectory);
 
 await authReady;
+router.beforeEach(createNavigationGuard(authSession));
+app.use(router);
 app.mount('#app');
