@@ -23,6 +23,7 @@ final class Version20261026180000 extends AbstractMigration
         );
 
         $this->addSql("ALTER TABLE access_tokens ADD kind VARCHAR(16) DEFAULT 'access' NOT NULL");
+        $this->addSql('ALTER TABLE access_tokens ALTER kind DROP DEFAULT');
     }
 
     public function down(Schema $schema): void

@@ -6,6 +6,8 @@ use App\Auth\Domain\Entity\AccessToken;
 use App\Auth\Domain\Repository\AccessTokenRepository;
 use App\Auth\Domain\ValueObject\TokenHash;
 use App\User\Domain\ValueObject\UserId;
+use Doctrine\DBAL\Schema\Index;
+use Doctrine\DBAL\Schema\Index\IndexedColumn;
 use Doctrine\ORM\EntityManagerInterface;
 
 it('persists an access token by its hash', function () {
@@ -55,10 +57,15 @@ it('indexes access tokens by user id and expiry', function () {
         ->createSchemaManager()
         ->listTableIndexes('access_tokens');
 
+    $columnNames = static fn (Index $index): array => array_map(
+        static fn (IndexedColumn $column): string => $column->getColumnName()->getIdentifier()->getValue(),
+        $index->getIndexedColumns(),
+    );
+
     expect($indexes)->toHaveKey('idx_access_tokens_user_id')
         ->and($indexes)->toHaveKey('idx_access_tokens_expires_at')
-        ->and($indexes['idx_access_tokens_user_id']->getColumns())->toBe(['user_id'])
-        ->and($indexes['idx_access_tokens_expires_at']->getColumns())->toBe(['expires_at']);
+        ->and($columnNames($indexes['idx_access_tokens_user_id']))->toBe(['user_id'])
+        ->and($columnNames($indexes['idx_access_tokens_expires_at']))->toBe(['expires_at']);
 });
 
 it('deletes an access token by its hash', function () {
