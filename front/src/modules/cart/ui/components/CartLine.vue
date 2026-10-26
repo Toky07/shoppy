@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import AppIcon from '@/shared/ui/AppIcon.vue'
+import AppImage from '@/shared/ui/AppImage.vue'
 import ProductPrice from '@/modules/catalog/ui/components/ProductPrice.vue'
 import type { CartItem } from '../../domain/CartItem'
 
@@ -30,10 +31,8 @@ function step(delta: number) {
 
 <template>
   <li class="panel-flat flex gap-4 p-4 transition-shadow hover:shadow-soft sm:gap-5 sm:p-5">
-    <div
-      class="flex size-20 shrink-0 items-center justify-center rounded-2xl border border-line bg-surface-inset text-faint sm:size-24"
-    >
-      <AppIcon name="package" :size="26" />
+    <div class="size-20 shrink-0 overflow-hidden rounded-2xl border border-line bg-surface-inset sm:size-24">
+      <AppImage :src="item.imageUrl" :alt="item.name" />
     </div>
 
     <div class="flex min-w-0 flex-1 flex-col">

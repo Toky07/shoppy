@@ -14,6 +14,7 @@ final readonly class CartItemResponse
         public int $lineTotalCents,
         public int $availableStock,
         public ?string $variantId = null,
+        public ?string $imageUrl = null,
     ) {
     }
 
@@ -25,7 +26,8 @@ final readonly class CartItemResponse
      *     unitPrice: array{cents: int, currency: string},
      *     lineTotal: array{cents: int, currency: string},
      *     availableStock: int,
-     *     variantId: string|null
+     *     variantId: string|null,
+     *     imageUrl: string|null
      * }
      */
     public function toArray(): array
@@ -44,6 +46,7 @@ final readonly class CartItemResponse
             ],
             'availableStock' => $this->availableStock,
             'variantId' => $this->variantId,
+            'imageUrl' => $this->imageUrl,
         ];
     }
 }

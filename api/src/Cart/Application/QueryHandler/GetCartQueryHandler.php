@@ -48,6 +48,7 @@ final readonly class GetCartQueryHandler
                 $snapshot->unitPriceCents * $quantity,
                 $this->availableStock->maximum($customerId, $item->productId(), $item->variantId()) ?? 0,
                 $item->variantId()?->value(),
+                $snapshot->imageUrl,
             );
         }
 

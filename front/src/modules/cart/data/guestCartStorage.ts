@@ -8,6 +8,7 @@ export type GuestCartLine = {
   name: string
   unitPriceCents: number
   availableStock: number
+  imageUrl: string | null
 }
 
 export type GuestCartStore = {
@@ -42,7 +43,7 @@ export function createLocalGuestCart(storage: Storage): GuestCartStore {
 
       try {
         const parsed = JSON.parse(raw) as unknown
-        return Array.isArray(parsed) ? parsed.filter(isGuestLine) : []
+        return Array.isArray(parsed) ? parsed.filter(isGuestLine).map(normalizeGuestLine) : []
       } catch {
         return []
       }
@@ -69,6 +70,7 @@ export function guestCartFromLines(lines: GuestCartLine[]): Cart | null {
     unitPrice: { cents: line.unitPriceCents, currency: 'EUR' },
     lineTotal: { cents: line.unitPriceCents * line.quantity, currency: 'EUR' },
     availableStock: line.availableStock,
+    imageUrl: line.imageUrl,
   }))
 
   return {
@@ -97,4 +99,11 @@ function isGuestLine(value: unknown): value is GuestCartLine {
     typeof line.unitPriceCents === 'number' &&
     typeof line.availableStock === 'number'
   )
+}
+
+function normalizeGuestLine(line: GuestCartLine): GuestCartLine {
+  return {
+    ...line,
+    imageUrl: typeof line.imageUrl === 'string' && line.imageUrl !== '' ? line.imageUrl : null,
+  }
 }

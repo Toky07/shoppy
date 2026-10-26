@@ -15,6 +15,10 @@ describe('mapCartItem', () => {
     expect(mapCartItem(createCartItemJson())).toEqual(cartTeeItem)
   })
 
+  it('maps a missing image to null', () => {
+    expect(mapCartItem(createCartItemJson({ imageUrl: undefined })).imageUrl).toBeNull()
+  })
+
   it('rejects an invalid line', () => {
     expect(() => mapCartItem({ productId: 'x' })).toThrow(InvalidResponseError)
   })

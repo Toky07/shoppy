@@ -145,6 +145,7 @@ export class FakeCartRepository implements CartRepository {
       unitPrice: { cents: 0, currency: 'EUR' },
       lineTotal: { cents: 0, currency: 'EUR' },
       availableStock: 99,
+      imageUrl: null,
     }
   }
 }

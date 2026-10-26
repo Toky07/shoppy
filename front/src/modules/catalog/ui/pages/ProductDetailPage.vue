@@ -129,6 +129,7 @@ watch(product, async (current) => {
               :stock="selectedStock"
               :name="selectedName"
               :unit-price-cents="product.price.cents"
+              :image-url="product.imageUrl"
             />
           </div>
 
