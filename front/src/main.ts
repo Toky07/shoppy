@@ -23,6 +23,8 @@ import { orderRepositoryKey } from './modules/order/application/orderRepositoryK
 import { paymentRepositoryKey } from './modules/payment/application/paymentRepositoryKey'
 import router from './router'
 import { createNavigationGuard } from './router/navigationGuard'
+import '@fontsource-variable/inter'
+import '@fontsource-variable/bricolage-grotesque/standard.css'
 import './assets/main.css'
 
 const app = createApp(App);
