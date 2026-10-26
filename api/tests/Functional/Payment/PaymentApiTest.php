@@ -16,15 +16,7 @@ function paymentCatalogProduct(int $stock = 10): array
 it('creates a pending payment when an order is placed and completes it via events', function () {
     $product = paymentCatalogProduct();
 
-    $this->client->jsonRequest('POST', '/orders', [
-        ...deliveryFields(),
-        'items' => [[
-            'productId' => $product['id'],
-            'quantity' => 2,
-        ]],
-    ], catalogCustomerHeaders());
-
-    $order = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+    $order = placeOrderFromCart(catalogCustomerHeaders(), $product['id'], 2);
     expect($this->client->getResponse()->getStatusCode())->toBe(201)
         ->and($order['status'])->toBe('pending');
 
@@ -55,14 +47,7 @@ it('creates a pending payment when an order is placed and completes it via event
 it('rejects paying another customer order payment', function () {
     $product = paymentCatalogProduct();
 
-    $this->client->jsonRequest('POST', '/orders', [
-        ...deliveryFields(),
-        'items' => [[
-            'productId' => $product['id'],
-            'quantity' => 1,
-        ]],
-    ], catalogCustomerHeaders());
-    $order = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+    $order = placeOrderFromCart(catalogCustomerHeaders(), $product['id']);
 
     $intruder = registerCatalogUser($this->client, 'pay-intruder@nuvora.test');
     $this->client->jsonRequest('POST', '/auth/login', [
@@ -98,14 +83,7 @@ it('rejects unauthenticated payment completion', function () {
 it('cancels the pending payment when the order is cancelled', function () {
     $product = paymentCatalogProduct();
 
-    $this->client->jsonRequest('POST', '/orders', [
-        ...deliveryFields(),
-        'items' => [[
-            'productId' => $product['id'],
-            'quantity' => 1,
-        ]],
-    ], catalogCustomerHeaders());
-    $order = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+    $order = placeOrderFromCart(catalogCustomerHeaders(), $product['id']);
 
     $this->client->jsonRequest('POST', '/orders/'.$order['id'].'/cancel', [], catalogCustomerHeaders());
     expect($this->client->getResponse()->getStatusCode())->toBe(200);
@@ -129,14 +107,7 @@ it('cancels the pending payment when the order is cancelled', function () {
 it('ignores a client-selected provider and checks out with the server provider', function () {
     $product = paymentCatalogProduct();
 
-    $this->client->jsonRequest('POST', '/orders', [
-        ...deliveryFields(),
-        'items' => [[
-            'productId' => $product['id'],
-            'quantity' => 2,
-        ]],
-    ], catalogCustomerHeaders());
-    $order = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+    $order = placeOrderFromCart(catalogCustomerHeaders(), $product['id'], 2);
     $orderId = $order['id'];
 
     $this->client->jsonRequest('POST', '/payments/checkout', [
@@ -166,14 +137,7 @@ it('ignores a client-selected provider and checks out with the server provider',
 it('rejects a checkout url outside the allowed origins', function () {
     $product = paymentCatalogProduct();
 
-    $this->client->jsonRequest('POST', '/orders', [
-        ...deliveryFields(),
-        'items' => [[
-            'productId' => $product['id'],
-            'quantity' => 1,
-        ]],
-    ], catalogCustomerHeaders());
-    $order = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+    $order = placeOrderFromCart(catalogCustomerHeaders(), $product['id']);
 
     $this->client->jsonRequest('POST', '/payments/checkout', [
         'orderId' => $order['id'],
@@ -209,14 +173,7 @@ it('rejects an unsigned stripe webhook', function () {
 it('refuses a stripe checkout once the order is marked paid', function () {
     $product = paymentCatalogProduct();
 
-    $this->client->jsonRequest('POST', '/orders', [
-        ...deliveryFields(),
-        'items' => [[
-            'productId' => $product['id'],
-            'quantity' => 1,
-        ]],
-    ], catalogCustomerHeaders());
-    $order = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+    $order = placeOrderFromCart(catalogCustomerHeaders(), $product['id']);
 
     $this->client->jsonRequest('POST', '/orders/'.$order['id'].'/mark-paid', [], catalogAdminHeaders());
     expect($this->client->getResponse()->getStatusCode())->toBe(200);
@@ -242,14 +199,7 @@ it('refuses a stripe checkout once the order is marked paid', function () {
 it('ignores a stripe webhook after the order is cancelled', function () {
     $product = paymentCatalogProduct();
 
-    $this->client->jsonRequest('POST', '/orders', [
-        ...deliveryFields(),
-        'items' => [[
-            'productId' => $product['id'],
-            'quantity' => 1,
-        ]],
-    ], catalogCustomerHeaders());
-    $order = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+    $order = placeOrderFromCart(catalogCustomerHeaders(), $product['id']);
     $orderId = $order['id'];
 
     $this->client->jsonRequest('POST', '/payments/checkout', [

@@ -96,6 +96,22 @@ function deliveryFields(): array
     ];
 }
 
+function addProductToCustomerCart(array $headers, string $productId, int $quantity = 1): void
+{
+    test()->client->jsonRequest('POST', '/cart/items', [
+        'productId' => $productId,
+        'quantity' => $quantity,
+    ], $headers);
+}
+
+function placeOrderFromCart(array $headers, string $productId, int $quantity = 1): array
+{
+    addProductToCustomerCart($headers, $productId, $quantity);
+    test()->client->jsonRequest('POST', '/orders', deliveryFields(), $headers);
+
+    return json_decode((string) test()->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+}
+
 function saveProduct(
     InMemoryProductRepository $repository,
     string $id,

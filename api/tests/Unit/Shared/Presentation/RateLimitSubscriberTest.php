@@ -22,7 +22,7 @@ function rateLimitRequestEvent(Request $request): RequestEvent
     return new RequestEvent($kernel, $request, HttpKernelInterface::MAIN_REQUEST);
 }
 
-function accountRateLimitSubscriber(int $accountLimit = 2, int $loginLimit = 20): RateLimitSubscriber
+function accountRateLimitSubscriber(int $accountLimit = 2, int $loginLimit = 20, int $checkoutLimit = 30): RateLimitSubscriber
 {
     $directory = sys_get_temp_dir().'/shoppy-rate-limit-'.bin2hex(random_bytes(8));
     mkdir($directory);
@@ -31,7 +31,7 @@ function accountRateLimitSubscriber(int $accountLimit = 2, int $loginLimit = 20)
         new FileRateLimiter($directory),
         $loginLimit,
         10,
-        30,
+        $checkoutLimit,
         120,
         $accountLimit,
         60,
@@ -53,6 +53,16 @@ it('rate limits password reset, email verification and token confirmation routes
     '/auth/email-verifications/request',
     '/auth/email-changes/confirm',
 ]);
+
+it('rate limits direct order placement like cart checkout', function () {
+    $subscriber = accountRateLimitSubscriber(checkoutLimit: 2);
+    $event = rateLimitRequestEvent(Request::create('/orders', 'POST', server: ['REMOTE_ADDR' => '203.0.113.8']));
+
+    $subscriber->onRequest($event);
+    $subscriber->onRequest($event);
+
+    expect(fn () => $subscriber->onRequest($event))->toThrow(RateLimited::class);
+});
 
 it('does not apply the account limit to login', function () {
     $subscriber = accountRateLimitSubscriber(accountLimit: 1, loginLimit: 20);

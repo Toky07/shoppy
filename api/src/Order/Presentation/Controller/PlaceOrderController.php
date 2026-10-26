@@ -5,9 +5,8 @@ declare(strict_types=1);
 namespace App\Order\Presentation\Controller;
 
 use App\Auth\Presentation\Http\CurrentUser;
-use App\Order\Application\Command\PlaceOrderCommand;
-use App\Order\Application\Command\PlaceOrderLine;
-use App\Order\Application\CommandHandler\PlaceOrderCommandHandler;
+use App\Cart\Application\Command\CheckoutCartCommand;
+use App\Cart\Application\CommandHandler\CheckoutCartCommandHandler;
 use App\Order\Application\Query\GetOrderQuery;
 use App\Order\Application\QueryHandler\GetOrderQueryHandler;
 use App\Order\Presentation\Request\PlaceOrderHttpRequest;
@@ -22,7 +21,7 @@ final readonly class PlaceOrderController
 {
     public function __construct(
         private CurrentUser $currentUser,
-        private PlaceOrderCommandHandler $placeOrder,
+        private CheckoutCartCommandHandler $checkoutCart,
         private GetOrderQueryHandler $getOrder,
     ) {
     }
@@ -32,29 +31,20 @@ final readonly class PlaceOrderController
     public function __invoke(Request $request): JsonResponse
     {
         $userId = $this->currentUser->id();
-
         $httpRequest = PlaceOrderHttpRequest::fromPayload($request->toArray());
 
-        $id = $this->placeOrder->handle(new PlaceOrderCommand(
-            customerId: $userId,
-            items: array_map(
-                static fn (array $item): PlaceOrderLine => new PlaceOrderLine(
-                    $item['productId'],
-                    $item['quantity'],
-                ),
-                $httpRequest->items,
-            ),
-            shippingAddress: $httpRequest->delivery->shippingAddress,
-            billingAddress: $httpRequest->delivery->billingAddress,
-            shippingMethod: $httpRequest->delivery->shippingMethod,
+        $orderId = $this->checkoutCart->handle(new CheckoutCartCommand(
+            $userId,
+            $httpRequest->delivery->shippingAddress,
+            $httpRequest->delivery->billingAddress,
+            $httpRequest->delivery->shippingMethod,
         ));
-
-        $order = $this->getOrder->handle(new GetOrderQuery($id->value()));
+        $order = $this->getOrder->handle(new GetOrderQuery($orderId->value()));
 
         return new JsonResponse(
             $order->toArray(),
             Response::HTTP_CREATED,
-            ['Location' => '/orders/'.$id->value()],
+            ['Location' => '/orders/'.$orderId->value()],
         );
     }
 }

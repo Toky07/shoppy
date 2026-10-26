@@ -52,7 +52,7 @@ final readonly class RateLimitSubscriber implements EventSubscriberInterface
         return match ($path) {
             '/auth/login' => $this->loginLimit,
             '/users' => $this->registerLimit,
-            '/payments/checkout', '/payments/complete', '/cart/checkout' => $this->checkoutLimit,
+            '/payments/checkout', '/payments/complete', '/cart/checkout', '/orders' => $this->checkoutLimit,
             '/payments/webhooks/stripe' => $this->webhookLimit,
             '/auth/password-resets',
             '/auth/password-resets/confirm',

@@ -25,16 +25,9 @@ function authenticatedOrderCustomerId(): string
 it('places an order as the authenticated customer with catalog snapshots', function () {
     $product = createOrderCatalogProduct();
     $customerId = authenticatedOrderCustomerId();
+    addProductToCustomerCart(catalogCustomerHeaders(), $product['id'], 2);
 
-    $this->client->jsonRequest('POST', '/orders', [
-        ...deliveryFields(),
-        'items' => [
-            [
-                'productId' => $product['id'],
-                'quantity' => 2,
-            ],
-        ],
-    ], catalogCustomerHeaders());
+    $this->client->jsonRequest('POST', '/orders', deliveryFields(), catalogCustomerHeaders());
 
     $response = $this->client->getResponse();
     $payload = json_decode((string) $response->getContent(), true, flags: JSON_THROW_ON_ERROR);
@@ -72,9 +65,10 @@ it('places an order as the authenticated customer with catalog snapshots', funct
         ->and($response->headers->get('Location'))->toBe('/orders/'.$payload['id']);
 });
 
-it('ignores a client-supplied customer id and prices', function () {
+it('ignores a client-supplied customer id, prices and items', function () {
     $product = createOrderCatalogProduct(priceCents: 1999);
     $customerId = authenticatedOrderCustomerId();
+    addProductToCustomerCart(catalogCustomerHeaders(), $product['id'], 1);
 
     $this->client->jsonRequest('POST', '/orders', [
         ...deliveryFields(),
@@ -82,7 +76,7 @@ it('ignores a client-supplied customer id and prices', function () {
         'items' => [
             [
                 'productId' => $product['id'],
-                'quantity' => 1,
+                'quantity' => 99,
                 'name' => 'Hijacked Tee',
                 'priceCents' => 1,
             ],
@@ -96,7 +90,8 @@ it('ignores a client-supplied customer id and prices', function () {
         ->and($payload['customerId'])->toBe($customerId)
         ->and($payload['customerId'])->not->toBe('11111111-1111-4111-8111-111111111111')
         ->and($payload['items'][0]['name'])->toBe('Nuvora Tee')
-        ->and($payload['items'][0]['unitPrice']['cents'])->toBe(1999);
+        ->and($payload['items'][0]['unitPrice']['cents'])->toBe(1999)
+        ->and($payload['items'][0]['quantity'])->toBe(1);
 });
 
 it('rejects unauthenticated order placement', function () {
@@ -120,34 +115,31 @@ it('rejects unauthenticated order placement', function () {
         ]);
 });
 
-it('rejects a missing items field', function () {
-    $this->client->jsonRequest('POST', '/orders', [], catalogCustomerHeaders());
+it('rejects placing an order from an empty cart', function () {
+    $this->client->jsonRequest('POST', '/orders', deliveryFields(), catalogCustomerHeaders());
 
     $response = $this->client->getResponse();
     $payload = json_decode((string) $response->getContent(), true, flags: JSON_THROW_ON_ERROR);
 
     expect($response->getStatusCode())->toBe(400)
         ->and($payload['error']['code'])->toBe('validation_error')
-        ->and($payload['error']['message'])->toBe('The request is invalid.')
         ->and($payload['error']['violations'])->toBe([
-            ['field' => 'items', 'message' => 'This field is required.'],
+            ['field' => 'items', 'message' => 'Cart cannot be empty.'],
         ]);
 });
 
-it('rejects an empty items list', function () {
-    $this->client->jsonRequest('POST', '/orders', [
-        ...deliveryFields(),
-        'items' => [],
-    ], catalogCustomerHeaders());
+it('refuses a second direct order after the cart has been claimed', function () {
+    $product = createOrderCatalogProduct();
+    addProductToCustomerCart(catalogCustomerHeaders(), $product['id'], 1);
 
-    $response = $this->client->getResponse();
-    $payload = json_decode((string) $response->getContent(), true, flags: JSON_THROW_ON_ERROR);
+    $this->client->jsonRequest('POST', '/orders', deliveryFields(), catalogCustomerHeaders());
+    expect($this->client->getResponse()->getStatusCode())->toBe(201);
 
-    expect($response->getStatusCode())->toBe(400)
-        ->and($payload['error']['code'])->toBe('validation_error')
-        ->and($payload['error']['violations'])->toBe([
-            ['field' => 'items', 'message' => 'An order must contain at least one item.'],
-        ]);
+    $this->client->jsonRequest('POST', '/orders', deliveryFields(), catalogCustomerHeaders());
+    $payload = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+
+    expect($this->client->getResponse()->getStatusCode())->toBe(400)
+        ->and($payload['error']['violations'][0]['message'])->toBe('Cart cannot be empty.');
 });
 
 it('rejects an unknown shipping method without decrementing stock', function () {
@@ -157,14 +149,11 @@ it('rejects an unknown shipping method without decrementing stock', function () 
         'stock' => 4,
     ], catalogAdminHeaders());
     $product = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+    addProductToCustomerCart(catalogCustomerHeaders(), $product['id'], 1);
 
     $this->client->jsonRequest('POST', '/orders', [
         ...deliveryFields(),
         'shippingMethod' => 'drone',
-        'items' => [[
-            'productId' => $product['id'],
-            'quantity' => 1,
-        ]],
     ], catalogCustomerHeaders());
 
     $response = $this->client->getResponse();
@@ -181,51 +170,6 @@ it('rejects an unknown shipping method without decrementing stock', function () 
     expect($fetched['stock'])->toBe(4);
 });
 
-it('rejects an unknown catalog product', function () {
-    $this->client->jsonRequest('POST', '/orders', [
-        ...deliveryFields(),
-        'items' => [
-            [
-                'productId' => '550e8400-e29b-41d4-a716-446655440000',
-                'quantity' => 1,
-            ],
-        ],
-    ], catalogCustomerHeaders());
-
-    $response = $this->client->getResponse();
-    $payload = json_decode((string) $response->getContent(), true, flags: JSON_THROW_ON_ERROR);
-
-    expect($response->getStatusCode())->toBe(404)
-        ->and($payload['error'])->toBe([
-            'code' => 'product_not_found',
-            'message' => 'The requested resource was not found.',
-        ])
-        ->and((string) $response->getContent())->not->toContain('550e8400');
-});
-
-it('rejects a quantity below one', function () {
-    $product = createOrderCatalogProduct();
-
-    $this->client->jsonRequest('POST', '/orders', [
-        ...deliveryFields(),
-        'items' => [
-            [
-                'productId' => $product['id'],
-                'quantity' => 0,
-            ],
-        ],
-    ], catalogCustomerHeaders());
-
-    $response = $this->client->getResponse();
-    $payload = json_decode((string) $response->getContent(), true, flags: JSON_THROW_ON_ERROR);
-
-    expect($response->getStatusCode())->toBe(400)
-        ->and($payload['error']['code'])->toBe('validation_error')
-        ->and($payload['error']['violations'])->toBe([
-            ['field' => 'quantity', 'message' => 'Quantity must be at least 1.'],
-        ]);
-});
-
 it('rejects an order when stock is insufficient', function () {
     $this->client->jsonRequest('POST', '/products', [
         'name' => 'Limited Tee',
@@ -233,16 +177,12 @@ it('rejects an order when stock is insufficient', function () {
         'stock' => 1,
     ], catalogAdminHeaders());
     $product = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+    addProductToCustomerCart(catalogCustomerHeaders(), $product['id'], 1);
+    $this->client->jsonRequest('PUT', '/products/'.$product['id'].'/stock', [
+        'stock' => 0,
+    ], catalogAdminHeaders());
 
-    $this->client->jsonRequest('POST', '/orders', [
-        ...deliveryFields(),
-        'items' => [
-            [
-                'productId' => $product['id'],
-                'quantity' => 2,
-            ],
-        ],
-    ], catalogCustomerHeaders());
+    $this->client->jsonRequest('POST', '/orders', deliveryFields(), catalogCustomerHeaders());
 
     $response = $this->client->getResponse();
     $payload = json_decode((string) $response->getContent(), true, flags: JSON_THROW_ON_ERROR);
@@ -253,41 +193,7 @@ it('rejects an order when stock is insufficient', function () {
     $this->client->jsonRequest('GET', '/products/'.$product['id']);
     $fetched = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
 
-    expect($fetched['stock'])->toBe(1);
-});
-
-it('does not decrement the first product when a later line has no stock', function () {
-    $this->client->jsonRequest('POST', '/products', [
-        'name' => 'Available Tee',
-        'priceCents' => 1999,
-        'stock' => 4,
-    ], catalogAdminHeaders());
-    $available = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
-
-    $this->client->jsonRequest('POST', '/products', [
-        'name' => 'Empty Tee',
-        'priceCents' => 1999,
-        'stock' => 0,
-    ], catalogAdminHeaders());
-    $empty = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
-
-    $this->client->jsonRequest('POST', '/orders', [
-        ...deliveryFields(),
-        'items' => [
-            ['productId' => $available['id'], 'quantity' => 1],
-            ['productId' => $empty['id'], 'quantity' => 1],
-        ],
-    ], catalogCustomerHeaders());
-
-    $response = $this->client->getResponse();
-    $payload = json_decode((string) $response->getContent(), true, flags: JSON_THROW_ON_ERROR);
-
-    expect($response->getStatusCode())->toBe(409)
-        ->and($payload['error']['code'])->toBe('insufficient_product_stock');
-
-    $this->client->jsonRequest('GET', '/products/'.$available['id']);
-    $fetched = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
-    expect($fetched['stock'])->toBe(4);
+    expect($fetched['stock'])->toBe(0);
 });
 
 it('decrements stock when an order is placed and restores it on cancel', function () {
@@ -297,16 +203,9 @@ it('decrements stock when an order is placed and restores it on cancel', functio
         'stock' => 5,
     ], catalogAdminHeaders());
     $product = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+    addProductToCustomerCart(catalogCustomerHeaders(), $product['id'], 2);
 
-    $this->client->jsonRequest('POST', '/orders', [
-        ...deliveryFields(),
-        'items' => [
-            [
-                'productId' => $product['id'],
-                'quantity' => 2,
-            ],
-        ],
-    ], catalogCustomerHeaders());
+    $this->client->jsonRequest('POST', '/orders', deliveryFields(), catalogCustomerHeaders());
     $order = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
 
     $this->client->jsonRequest('GET', '/products/'.$product['id']);

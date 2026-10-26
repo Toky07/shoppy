@@ -30,15 +30,7 @@ function markPaidLifecycleLogin(string $email): array
 
 function markPaidLifecyclePlaceOrder(array $headers, string $productId): array
 {
-    test()->client->jsonRequest('POST', '/orders', [
-        ...deliveryFields(),
-        'items' => [[
-            'productId' => $productId,
-            'quantity' => 1,
-        ]],
-    ], $headers);
-
-    return json_decode((string) test()->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+    return placeOrderFromCart($headers, $productId, 1);
 }
 
 it('marks a pending order as paid for an admin', function () {
