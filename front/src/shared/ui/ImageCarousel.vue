@@ -97,29 +97,108 @@ function select(next: number) {
   index.value = next
 }
 
-let pointerX: number | null = null
+const SWIPE_THRESHOLD = 40
+const SWIPE_LOCK = 8
+
+let pointerId: number | null = null
+let startX = 0
+let startY = 0
+let axis: 'x' | 'y' | null = null
+
+function capturePointer(target: EventTarget | null, id: number) {
+  if (!(target instanceof HTMLElement) || typeof target.setPointerCapture !== 'function') {
+    return
+  }
+
+  try {
+    target.setPointerCapture(id)
+  } catch {
+    /* jsdom and some browsers reject capture before a pointer is down. */
+  }
+}
+
+function releasePointer(target: EventTarget | null, id: number) {
+  if (!(target instanceof HTMLElement) || typeof target.releasePointerCapture !== 'function') {
+    return
+  }
+
+  try {
+    if (target.hasPointerCapture(id)) {
+      target.releasePointerCapture(id)
+    }
+  } catch {
+    /* capture may already have been released */
+  }
+}
+
+function resetSwipe() {
+  pointerId = null
+  axis = null
+}
 
 function onPointerDown(event: PointerEvent) {
   if (!props.interactive || !canNavigate.value) {
     return
   }
 
-  pointerX = event.clientX
-}
-
-function onPointerUp(event: PointerEvent) {
-  if (pointerX === null) {
+  if (event.pointerType === 'mouse' && event.button !== 0) {
     return
   }
 
-  const dx = event.clientX - pointerX
-  pointerX = null
+  pointerId = event.pointerId
+  startX = event.clientX
+  startY = event.clientY
+  axis = null
+  capturePointer(event.currentTarget, event.pointerId)
+}
 
-  if (dx > 40) {
+function onPointerMove(event: PointerEvent) {
+  if (pointerId !== event.pointerId) {
+    return
+  }
+
+  const dx = event.clientX - startX
+  const dy = event.clientY - startY
+
+  if (axis === null && (Math.abs(dx) > SWIPE_LOCK || Math.abs(dy) > SWIPE_LOCK)) {
+    axis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y'
+  }
+
+  if (axis === 'x' && event.cancelable) {
+    event.preventDefault()
+  }
+}
+
+function commitSwipe(event: PointerEvent) {
+  if (pointerId !== event.pointerId) {
+    return
+  }
+
+  const dx = event.clientX - startX
+  const dy = event.clientY - startY
+  const horizontal = axis === 'x' || (axis === null && Math.abs(dx) > Math.abs(dy))
+
+  releasePointer(event.currentTarget, event.pointerId)
+  resetSwipe()
+
+  if (!horizontal) {
+    return
+  }
+
+  if (dx > SWIPE_THRESHOLD) {
     go(-1)
-  } else if (dx < -40) {
+  } else if (dx < -SWIPE_THRESHOLD) {
     go(1)
   }
+}
+
+function onPointerCancel(event: PointerEvent) {
+  if (pointerId !== event.pointerId) {
+    return
+  }
+
+  releasePointer(event.currentTarget, event.pointerId)
+  resetSwipe()
 }
 </script>
 
@@ -131,7 +210,13 @@ function onPointerUp(event: PointerEvent) {
     :aria-roledescription="canNavigate ? 'carrousel' : undefined"
     :aria-label="alt"
   >
-    <div class="relative h-full w-full overflow-hidden" @pointerdown="onPointerDown" @pointerup="onPointerUp">
+    <div
+      class="carousel-track relative h-full w-full overflow-hidden select-none"
+      @pointerdown="onPointerDown"
+      @pointermove="onPointerMove"
+      @pointerup="commitSwipe"
+      @pointercancel="onPointerCancel"
+    >
       <Transition :name="slideName">
         <div :key="index" class="absolute inset-0">
           <AppImage :src="current" :alt="currentAlt" :fetch="fetchCurrent" :viewport="false" loading="lazy" />
@@ -189,6 +274,16 @@ function onPointerUp(event: PointerEvent) {
 </template>
 
 <style>
+.carousel-track {
+  touch-action: pan-y;
+}
+
+.carousel-track img {
+  pointer-events: none;
+  -webkit-user-drag: none;
+  user-select: none;
+}
+
 .media-slide-next-enter-active,
 .media-slide-next-leave-active,
 .media-slide-prev-enter-active,

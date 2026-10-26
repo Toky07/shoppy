@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/vue'
+import { fireEvent, render, screen, waitFor } from '@testing-library/vue'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import ImageCarousel from '../ImageCarousel.vue'
@@ -34,6 +34,36 @@ describe('ImageCarousel', () => {
     expect((await carouselImg('Nuvora Tee (2/3)')).getAttribute('src')).toBe('/uploads/two.jpg')
 
     await userEvent.click(screen.getByRole('button', { name: 'Image précédente' }))
+    expect((await carouselImg('Nuvora Tee (1/3)')).getAttribute('src')).toBe('/uploads/one.jpg')
+  })
+
+  it('changes slide on a horizontal swipe', async () => {
+    render(ImageCarousel, {
+      props: { images, alt: 'Nuvora Tee', interactive: true },
+    })
+
+    await carouselImg('Nuvora Tee (1/3)')
+    const track = screen.getByRole('group', { name: 'Nuvora Tee' }).firstElementChild as HTMLElement
+
+    await fireEvent.pointerDown(track, { pointerId: 1, pointerType: 'touch', clientX: 200, clientY: 40 })
+    await fireEvent.pointerMove(track, { pointerId: 1, pointerType: 'touch', clientX: 120, clientY: 42 })
+    await fireEvent.pointerUp(track, { pointerId: 1, pointerType: 'touch', clientX: 80, clientY: 44 })
+
+    expect((await carouselImg('Nuvora Tee (2/3)')).getAttribute('src')).toBe('/uploads/two.jpg')
+  })
+
+  it('ignores a vertical swipe so the page can still scroll', async () => {
+    render(ImageCarousel, {
+      props: { images, alt: 'Nuvora Tee', interactive: true },
+    })
+
+    await carouselImg('Nuvora Tee (1/3)')
+    const track = screen.getByRole('group', { name: 'Nuvora Tee' }).firstElementChild as HTMLElement
+
+    await fireEvent.pointerDown(track, { pointerId: 1, pointerType: 'touch', clientX: 120, clientY: 40 })
+    await fireEvent.pointerMove(track, { pointerId: 1, pointerType: 'touch', clientX: 118, clientY: 140 })
+    await fireEvent.pointerUp(track, { pointerId: 1, pointerType: 'touch', clientX: 116, clientY: 200 })
+
     expect((await carouselImg('Nuvora Tee (1/3)')).getAttribute('src')).toBe('/uploads/one.jpg')
   })
 
