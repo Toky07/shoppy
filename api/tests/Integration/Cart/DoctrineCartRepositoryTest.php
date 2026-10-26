@@ -10,6 +10,8 @@ use App\Cart\Domain\ValueObject\CartItem;
 use App\Cart\Domain\ValueObject\CartProductId;
 use App\Cart\Domain\ValueObject\CartQuantity;
 use App\Cart\Domain\ValueObject\CustomerId;
+use Doctrine\DBAL\Schema\Index;
+use Doctrine\DBAL\Schema\Index\IndexedColumn;
 use Doctrine\ORM\EntityManagerInterface;
 
 it('persists a cart and its items by customer', function () {
@@ -107,4 +109,20 @@ it('sums other customers reservations for several lines in one query', function 
         CartItem::of($tee, CartQuantity::fromInt(1))->lineKey() => 3,
         CartItem::of($mug, CartQuantity::fromInt(1))->lineKey() => 4,
     ]);
+});
+
+it('indexes cart items by product id for reservation lookups', function () {
+    $indexes = self::getContainer()
+        ->get(EntityManagerInterface::class)
+        ->getConnection()
+        ->createSchemaManager()
+        ->listTableIndexes('cart_items');
+
+    $columnNames = static fn (Index $index): array => array_map(
+        static fn (IndexedColumn $column): string => $column->getColumnName()->getIdentifier()->getValue(),
+        $index->getIndexedColumns(),
+    );
+
+    expect($indexes)->toHaveKey('idx_cart_items_product_id')
+        ->and($columnNames($indexes['idx_cart_items_product_id']))->toBe(['product_id']);
 });

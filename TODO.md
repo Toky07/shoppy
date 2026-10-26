@@ -72,7 +72,7 @@ Récent : avatar seul dans le header, filtres décollés sur mobile, scroll en h
 - [x] Alléger la fusion du panier invité (chaque ligne rejoue add + stock)
 - [x] JOIN FETCH des lignes de commande sur les listes (`DoctrineOrderRepository` : N+1 items)
 - [x] Paginer les avis et batcher les auteurs (`ListProductReviewsQueryHandler` charge tout ; `UserReviewAuthors` fait un `findById` par avis)
-- [ ] Index sur `cart_items.product_id` (lookup `reservedQuantity`)
+- [x] Index sur `cart_items.product_id` (lookup `reservedQuantity`)
 - [ ] Un seul `flush()` dans `DoctrineCartRepository::save()`
 - [ ] Cache court ou ETag sur `GET /products` et `GET /products/:slug`
 - [ ] Redis pour le cache applicatif (commenté dans `cache.yaml`, non déployé)

@@ -13,6 +13,7 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity]
 #[ORM\Table(name: 'cart_items')]
 #[ORM\UniqueConstraint(name: 'uniq_cart_items_cart_product_variant', columns: ['cart_id', 'product_id', 'variant_id'])]
+#[ORM\Index(name: 'idx_cart_items_product_id', columns: ['product_id'])]
 class CartItemRecord
 {
     #[ORM\Id]
