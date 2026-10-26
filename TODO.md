@@ -46,7 +46,7 @@ Récent : avatar seul dans le header, filtres décollés sur mobile, scroll en h
 
 ### Haute
 
-- [ ] `GET /media?ownerType=product&ownerId=` liste les images d’un produit même s’il est en brouillon (`MediaVoter` autorise tout owner `product`, alors que `GET /products/:id` renvoie 404)
+- [x] `GET /media?ownerType=product&ownerId=` liste les images d’un produit même s’il est en brouillon (`MediaVoter` autorise tout owner `product`, alors que `GET /products/:id` renvoie 404)
 
 ### Moyenne
 

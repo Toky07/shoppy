@@ -28,6 +28,48 @@ function createCatalogProduct(): string
     return $payload['id'];
 }
 
+it('hides unpublished product media from anonymous callers and customers', function () {
+    $this->client->jsonRequest('POST', '/products', [
+        'name' => 'Draft Tee',
+        'priceCents' => 1999,
+        'published' => false,
+    ], catalogAdminHeaders());
+    $productId = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR)['id'];
+
+    $this->client->request(
+        'POST',
+        '/media',
+        [
+            'ownerType' => 'product',
+            'ownerId' => $productId,
+        ],
+        [
+            'file' => mediaPngFile('draft-tee.png'),
+        ],
+        catalogAdminHeaders() + ['HTTP_ACCEPT' => 'application/json'],
+    );
+
+    expect($this->client->getResponse()->getStatusCode())->toBe(201);
+
+    $this->client->jsonRequest('GET', '/media?ownerType=product&ownerId='.$productId);
+    $anonymous = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+
+    expect($this->client->getResponse()->getStatusCode())->toBe(404)
+        ->and($anonymous['error']['code'])->toBe('product_not_found');
+
+    $this->client->jsonRequest('GET', '/media?ownerType=product&ownerId='.$productId, [], catalogCustomerHeaders());
+    $customer = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+
+    expect($this->client->getResponse()->getStatusCode())->toBe(404)
+        ->and($customer['error']['code'])->toBe('product_not_found');
+
+    $this->client->jsonRequest('GET', '/media?ownerType=product&ownerId='.$productId, [], catalogAdminHeaders());
+    $admin = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+
+    expect($this->client->getResponse()->getStatusCode())->toBe(200)
+        ->and($admin['items'])->toHaveCount(1);
+});
+
 it('uploads media for a product and lists it', function () {
     $productId = createCatalogProduct();
 

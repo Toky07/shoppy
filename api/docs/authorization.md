@@ -48,7 +48,7 @@ Use `GrantChecker` for checks that depend on optional query flags (draft product
 | `USER_VIEW`      | `UserVoter`    | `UserAccessSubject`  | Self or admin                             |
 | `PAYMENT_ACCESS` | `PaymentVoter` | `PaymentAccessSubject` | Owner only (no admin bypass)          |
 | `PRODUCT_ADMIN`  | `ProductVoter` | `null`               | Admin (drafts, unpublished products)      |
-| `MEDIA_LIST`     | `MediaVoter`   | `MediaListSubject`   | Public for `ownerType=product`; else admin |
+| `MEDIA_LIST`     | `MediaVoter`   | `MediaListSubject`   | Public for `ownerType=product`; else admin. Unpublished or missing products are mapped to `ProductNotFound` (404), same as `GET /products/:id`. |
 
 ### Declarative checks (value resolvers)
 
