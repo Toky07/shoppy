@@ -35,14 +35,10 @@ final readonly class DoctrineCartRepository implements CartRepository
 
             if ($record === null) {
                 $this->entityManager->persist(CartRecord::fromDomain($cart));
-                $this->entityManager->flush();
-
-                return;
+            } else {
+                $record->updateFromDomain($cart);
             }
 
-            $record->updateFromDomain($cart);
-            $this->entityManager->flush();
-            $record->addItems($cart->items());
             $this->entityManager->flush();
         });
     }

@@ -43,10 +43,20 @@ class CartItemRecord
         $record->cart = $cart;
         $record->productId = $item->productId()->value();
         $record->variantId = $item->variantId()?->value();
-        $record->quantity = $item->quantity()->value();
-        $record->position = $position;
+        $record->updateFromDomain($item, $position);
 
         return $record;
+    }
+
+    public function updateFromDomain(CartItem $item, int $position): void
+    {
+        $this->quantity = $item->quantity()->value();
+        $this->position = $position;
+    }
+
+    public function lineKey(): string
+    {
+        return $this->productId."\0".($this->variantId ?? '');
     }
 
     public function toDomain(): CartItem

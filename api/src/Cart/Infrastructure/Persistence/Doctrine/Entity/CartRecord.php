@@ -53,24 +53,12 @@ class CartRecord
 
     public function updateFromDomain(Cart $cart): void
     {
-        $this->updatedAt = $cart->updatedAt();
-        $this->version = $cart->version();
-        $this->items->clear();
+        $this->syncFromDomain($cart);
     }
 
     public function syncVersion(int $version): void
     {
         $this->version = $version;
-    }
-
-    /**
-     * @param list<CartItem> $items
-     */
-    public function addItems(array $items): void
-    {
-        foreach ($items as $position => $item) {
-            $this->items->add(CartItemRecord::fromDomain($this, $item, $position));
-        }
     }
 
     public function toDomain(): Cart
@@ -90,6 +78,39 @@ class CartRecord
     {
         $this->updatedAt = $cart->updatedAt();
         $this->version = $cart->version();
-        $this->addItems($cart->items());
+        $this->syncItems($cart->items());
+    }
+
+    /**
+     * @param list<CartItem> $items
+     */
+    private function syncItems(array $items): void
+    {
+        $indexed = [];
+
+        foreach ($this->items as $record) {
+            $indexed[$record->lineKey()] = $record;
+        }
+
+        $seen = [];
+
+        foreach ($items as $position => $item) {
+            $key = $item->lineKey();
+            $seen[$key] = true;
+            $existing = $indexed[$key] ?? null;
+
+            if ($existing === null) {
+                $this->items->add(CartItemRecord::fromDomain($this, $item, $position));
+                continue;
+            }
+
+            $existing->updateFromDomain($item, $position);
+        }
+
+        foreach ($this->items->toArray() as $record) {
+            if (!isset($seen[$record->lineKey()])) {
+                $this->items->removeElement($record);
+            }
+        }
     }
 }

@@ -10,6 +10,9 @@ use App\Cart\Domain\ValueObject\CartItem;
 use App\Cart\Domain\ValueObject\CartProductId;
 use App\Cart\Domain\ValueObject\CartQuantity;
 use App\Cart\Domain\ValueObject\CustomerId;
+use App\Cart\Infrastructure\Persistence\Doctrine\DoctrineCartRepository;
+use App\Shared\Application\Transaction\TransactionRunner;
+use App\Tests\Doubles\CountingEntityManager;
 use Doctrine\DBAL\Schema\Index;
 use Doctrine\DBAL\Schema\Index\IndexedColumn;
 use Doctrine\ORM\EntityManagerInterface;
@@ -125,4 +128,38 @@ it('indexes cart items by product id for reservation lookups', function () {
 
     expect($indexes)->toHaveKey('idx_cart_items_product_id')
         ->and($columnNames($indexes['idx_cart_items_product_id']))->toBe(['product_id']);
+});
+
+it('flushes once when updating cart lines', function () {
+    $entityManager = self::getContainer()->get(EntityManagerInterface::class);
+    $counting = new CountingEntityManager($entityManager);
+    $repository = new DoctrineCartRepository(
+        $counting,
+        self::getContainer()->get(TransactionRunner::class),
+    );
+    $customerId = CustomerId::fromString('11111111-1111-4111-8111-111111111111');
+    $tee = CartProductId::fromString('550e8400-e29b-41d4-a716-446655440000');
+    $mug = CartProductId::fromString('550e8400-e29b-41d4-a716-446655440001');
+    $now = new DateTimeImmutable('2026-08-20T12:00:00+00:00');
+    $cart = Cart::create(
+        CartId::fromString('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'),
+        $customerId,
+        $now,
+    );
+    $cart->addItem($tee, CartQuantity::fromInt(2), $now);
+    $repository->save($cart);
+    $counting->flushCalls = 0;
+
+    $found = $repository->findByCustomerId($customerId);
+    $found->setItemQuantity($tee, CartQuantity::fromInt(5), $now->modify('+1 hour'));
+    $found->addItem($mug, CartQuantity::fromInt(1), $now->modify('+1 hour'));
+    $repository->save($found);
+    $entityManager->clear();
+
+    $updated = $repository->findByCustomerId($customerId);
+
+    expect($counting->flushCalls)->toBe(1)
+        ->and($updated?->items())->toHaveCount(2)
+        ->and($updated->items()[0]->quantity()->value())->toBe(5)
+        ->and($updated->items()[1]->productId()->value())->toBe($mug->value());
 });
