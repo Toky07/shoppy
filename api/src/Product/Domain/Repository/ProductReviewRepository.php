@@ -21,4 +21,13 @@ interface ProductReviewRepository
      * @return list<ProductReview>
      */
     public function findByProduct(ProductId $productId): array;
+
+    /**
+     * @return list<ProductReview>
+     */
+    public function findPageByProduct(ProductId $productId, int $offset, int $limit): array;
+
+    public function countByProduct(ProductId $productId): int;
+
+    public function averageRatingByProduct(ProductId $productId): ?float;
 }

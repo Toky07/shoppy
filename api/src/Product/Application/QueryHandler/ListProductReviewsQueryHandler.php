@@ -11,6 +11,7 @@ use App\Product\Application\Response\ProductReviewResponse;
 use App\Product\Domain\Entity\ProductReview;
 use App\Product\Domain\Entity\Product;
 use App\Product\Domain\Exception\InvalidProductSlug;
+use App\Product\Domain\Exception\InvalidReviewPagination;
 use App\Product\Domain\Exception\ProductNotFound;
 use App\Product\Domain\Repository\ProductRepository;
 use App\Product\Domain\Repository\ProductReviewRepository;
@@ -28,39 +29,41 @@ final readonly class ListProductReviewsQueryHandler
 
     public function handle(ListProductReviewsQuery $query): ProductReviewListResponse
     {
+        if ($query->page < 1 || $query->limit < 1 || $query->limit > ListProductReviewsQuery::MAX_LIMIT) {
+            throw new InvalidReviewPagination();
+        }
+
         $product = $this->findPublished($query->productId);
 
         if ($product === null) {
             throw new ProductNotFound($query->productId);
         }
 
-        $reviews = $this->reviewRepository->findByProduct($product->id());
+        $offset = ($query->page - 1) * $query->limit;
+        $reviews = $this->reviewRepository->findPageByProduct($product->id(), $offset, $query->limit);
         $labels = $this->reviewAuthors->labelsFor(array_map(
             static fn (ProductReview $review): string => $review->authorId()->value(),
             $reviews,
         ));
         $viewerId = $query->viewerId === null ? null : strtolower($query->viewerId);
-        $total = 0;
+        $count = $this->reviewRepository->countByProduct($product->id());
+        $average = $this->reviewRepository->averageRatingByProduct($product->id());
 
         $items = array_map(
-            static function (ProductReview $review) use ($labels, $viewerId, &$total): ProductReviewResponse {
-                $total += $review->rating()->value();
-
-                return ProductReviewResponse::fromReview(
-                    $review,
-                    $labels[$review->authorId()->value()] ?? 'Client',
-                    $viewerId !== null && $review->authorId()->value() === $viewerId,
-                );
-            },
+            static fn (ProductReview $review): ProductReviewResponse => ProductReviewResponse::fromReview(
+                $review,
+                $labels[$review->authorId()->value()] ?? 'Client',
+                $viewerId !== null && $review->authorId()->value() === $viewerId,
+            ),
             $reviews,
         );
 
-        $count = count($items);
-
         return new ProductReviewListResponse(
             $items,
+            $query->page,
+            $query->limit,
             $count,
-            $count === 0 ? null : round($total / $count, 1),
+            $count === 0 || $average === null ? null : round($average, 1),
         );
     }
 

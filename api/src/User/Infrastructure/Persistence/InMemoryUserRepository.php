@@ -25,6 +25,21 @@ final class InMemoryUserRepository implements UserRepository
         return $this->users[$id->value()] ?? null;
     }
 
+    public function findByIds(array $ids): array
+    {
+        $users = [];
+
+        foreach ($ids as $id) {
+            $user = $this->findById($id);
+
+            if ($user !== null) {
+                $users[] = $user;
+            }
+        }
+
+        return $users;
+    }
+
     public function findByEmail(Email $email): ?User
     {
         foreach ($this->users as $user) {

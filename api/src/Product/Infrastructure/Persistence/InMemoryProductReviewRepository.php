@@ -50,4 +50,31 @@ final class InMemoryProductReviewRepository implements ProductReviewRepository
 
         return $matches;
     }
+
+    public function findPageByProduct(ProductId $productId, int $offset, int $limit): array
+    {
+        return array_values(array_slice($this->findByProduct($productId), $offset, $limit));
+    }
+
+    public function countByProduct(ProductId $productId): int
+    {
+        return count($this->findByProduct($productId));
+    }
+
+    public function averageRatingByProduct(ProductId $productId): ?float
+    {
+        $reviews = $this->findByProduct($productId);
+
+        if ($reviews === []) {
+            return null;
+        }
+
+        $total = 0;
+
+        foreach ($reviews as $review) {
+            $total += $review->rating()->value();
+        }
+
+        return $total / count($reviews);
+    }
 }
