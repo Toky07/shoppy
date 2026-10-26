@@ -63,7 +63,53 @@ describe('CartHttpRepository', () => {
     const repository = new CartHttpRepository(http)
 
     await expect(repository.checkout(parisCheckout)).resolves.toEqual(pendingCheckout)
-    expect(http.calls).toEqual([{ method: 'POST', path: '/cart/checkout', body: parisCheckout }])
+    expect(http.calls).toEqual([
+      {
+        method: 'POST',
+        path: '/cart/checkout',
+        body: {
+          shippingAddress: parisCheckout.shippingAddress,
+          billingSameAsShipping: true,
+          shippingMethod: 'standard',
+        },
+      },
+    ])
+  })
+
+  it('sends guest email and items at checkout', async () => {
+    const http = new FakeHttpClient(() =>
+      createCheckoutJson({
+        user: {
+          id: '11111111-1111-4111-8111-111111111111',
+          email: 'guest@shoppy.test',
+          role: 'customer',
+          createdAt: '2026-08-20T12:00:00+00:00',
+          emailVerified: false,
+        },
+      }),
+    )
+    const repository = new CartHttpRepository(http)
+
+    const result = await repository.checkout({
+      ...parisCheckout,
+      email: 'guest@shoppy.test',
+      items: [{ productId: nuvoraTee.id, quantity: 2, variantId: null }],
+    })
+
+    expect(result.user?.email).toBe('guest@shoppy.test')
+    expect(http.calls).toEqual([
+      {
+        method: 'POST',
+        path: '/cart/checkout',
+        body: {
+          shippingAddress: parisCheckout.shippingAddress,
+          billingSameAsShipping: true,
+          shippingMethod: 'standard',
+          email: 'guest@shoppy.test',
+          items: [{ productId: nuvoraTee.id, quantity: 2 }],
+        },
+      },
+    ])
   })
 
   it('propagates API errors', async () => {

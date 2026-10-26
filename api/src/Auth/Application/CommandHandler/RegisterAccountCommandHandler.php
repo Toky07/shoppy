@@ -16,6 +16,7 @@ use App\User\Application\Command\RegisterUserCommand;
 use App\User\Application\CommandHandler\RegisterUserCommandHandler;
 use App\User\Domain\Exception\EmailAlreadyRegistered;
 use App\User\Domain\Repository\UserRepository;
+use App\User\Domain\ValueObject\Email;
 use App\User\Domain\ValueObject\UserId;
 
 final readonly class RegisterAccountCommandHandler
@@ -37,9 +38,15 @@ final readonly class RegisterAccountCommandHandler
         try {
             $userId = $this->registerUser->handle(new RegisterUserCommand($command->email));
         } catch (EmailAlreadyRegistered) {
-            $this->notifier->sendEmailAlreadyRegistered($command->email);
+            $existing = $this->users->findByEmail(Email::fromString($command->email));
 
-            return null;
+            if ($existing === null || $this->credentialsRepository->findByUserId($existing->id()) !== null) {
+                $this->notifier->sendEmailAlreadyRegistered($command->email);
+
+                return null;
+            }
+
+            $userId = $existing->id();
         }
 
         $this->credentialsRepository->save(Credentials::create($userId, $hashedPassword));

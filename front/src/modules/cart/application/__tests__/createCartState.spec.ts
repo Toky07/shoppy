@@ -110,6 +110,41 @@ describe('createCartState', () => {
     })
   })
 
+  it('checks out the guest cart with the local lines', async () => {
+    const repository = new FakeCartRepository()
+    const guestCart = createMemoryGuestCart()
+    guestCart.write([
+      {
+        productId: nuvoraTee.id,
+        variantId: null,
+        quantity: 2,
+        name: nuvoraTee.name,
+        unitPriceCents: nuvoraTee.price.cents,
+        availableStock: nuvoraTee.stock,
+        imageUrl: nuvoraTee.imageUrl,
+      },
+    ])
+    const state = createCartState(repository, ref(false), guestCart)
+
+    await waitFor(() => {
+      expect(state.itemCount.value).toBe(2)
+    })
+
+    await expect(state.checkout({ ...parisCheckout, email: 'guest@shoppy.test' })).resolves.toEqual(
+      pendingCheckout,
+    )
+    expect(repository.checkouts).toEqual([
+      {
+        ...parisCheckout,
+        email: 'guest@shoppy.test',
+        items: [{ productId: nuvoraTee.id, quantity: 2, variantId: null }],
+      },
+    ])
+    expect(guestCart.read()).toEqual([])
+    expect(state.itemCount.value).toBe(0)
+    expect(repository.getCount).toBe(0)
+  })
+
   it('refreshes an empty cart after checkout', async () => {
     const repository = new FakeCartRepository(filledCart)
     const state = createCartState(repository, ref(true))

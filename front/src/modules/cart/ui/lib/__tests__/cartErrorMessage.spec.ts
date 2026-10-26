@@ -16,6 +16,9 @@ describe('cartErrorMessage', () => {
     expect(cartErrorMessage({ code: 'unauthenticated', message: 'x' })).toBe(
       'Votre session a expiré. Reconnectez-vous pour continuer.',
     )
+    expect(cartErrorMessage({ code: 'account_required', message: 'x' })).toBe(
+      'Un compte existe déjà avec cet e-mail. Connectez-vous pour commander.',
+    )
   })
 
   it('prefers the first validation violation', () => {

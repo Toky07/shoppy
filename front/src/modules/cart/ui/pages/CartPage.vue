@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, inject, reactive, ref } from 'vue'
-import { RouterLink, useRouter } from 'vue-router'
+import { RouterLink } from 'vue-router'
 import AppIcon from '@/shared/ui/AppIcon.vue'
 import EmptyState from '@/shared/ui/EmptyState.vue'
 import StatusNotice from '@/shared/ui/StatusNotice.vue'
@@ -26,12 +26,12 @@ if (!session || !cartState) {
 
 const authSession = session
 const state = cartState
-const router = useRouter()
 const { pending, errorMessage: actionError, run } = usePendingAction((error) =>
   cartErrorMessage(error),
 )
 const checkoutOrderId = ref<string>()
 const addressError = ref<string>()
+const guestEmail = ref('')
 let shipping = reactive<AddressDraft>(emptyAddressDraft())
 let billing = reactive<AddressDraft>(emptyAddressDraft())
 const billingSameAsShipping = ref(true)
@@ -86,13 +86,13 @@ function addressReady(draft: AddressDraft): boolean {
 }
 
 async function onCheckout() {
-  if (!isAuthenticated.value) {
-    await router.push({ path: '/login', query: { redirect: '/cart' } })
+  if (!addressReady(shipping) || (!billingSameAsShipping.value && !addressReady(billing))) {
+    addressError.value = 'Renseignez l’adresse de livraison et de facturation.'
     return
   }
 
-  if (!addressReady(shipping) || (!billingSameAsShipping.value && !addressReady(billing))) {
-    addressError.value = 'Renseignez l’adresse de livraison et de facturation.'
+  if (!isAuthenticated.value && guestEmail.value.trim() === '') {
+    addressError.value = 'Indiquez un e-mail pour recevoir la commande.'
     return
   }
 
@@ -103,7 +103,11 @@ async function onCheckout() {
       billingSameAsShipping: billingSameAsShipping.value,
       billingAddress: billingSameAsShipping.value ? undefined : toPostalAddress(billing),
       shippingMethod: shippingMethod.value,
+      ...(isAuthenticated.value ? {} : { email: guestEmail.value.trim() }),
     })
+    if (result.user) {
+      authSession.set({ user: result.user })
+    }
     checkoutOrderId.value = result.id
   })
 }
@@ -166,18 +170,36 @@ async function onCheckout() {
                 @update-quantity="onUpdateQuantity(item.productId, $event, item.variantId)"
                 @remove="onRemove(item.productId, item.variantId)"
               />
-              <template v-if="isAuthenticated">
-                <li>
-                  <CheckoutAddressForm
-                    v-model:shipping="shipping"
-                    v-model:billing="billing"
-                    v-model:billing-same-as-shipping="billingSameAsShipping"
-                  />
-                </li>
-                <li>
-                  <CheckoutShippingForm v-model="shippingMethod" />
-                </li>
-              </template>
+              <li v-if="!isAuthenticated">
+                <section class="panel p-6" aria-labelledby="checkout-email-title">
+                  <h2 id="checkout-email-title" class="font-display text-lg font-bold text-strong">
+                    Vos coordonnées
+                  </h2>
+                  <p class="mt-1 text-sm text-muted">
+                    Pas besoin de compte. Un e-mail suffit pour suivre le paiement.
+                  </p>
+                  <label class="mt-5 block">
+                    <span class="field-label">E-mail</span>
+                    <input
+                      v-model="guestEmail"
+                      class="field"
+                      type="email"
+                      autocomplete="email"
+                      required
+                    />
+                  </label>
+                </section>
+              </li>
+              <li>
+                <CheckoutAddressForm
+                  v-model:shipping="shipping"
+                  v-model:billing="billing"
+                  v-model:billing-same-as-shipping="billingSameAsShipping"
+                />
+              </li>
+              <li>
+                <CheckoutShippingForm v-model="shippingMethod" />
+              </li>
             </ul>
 
             <CartSummary
@@ -186,11 +208,11 @@ async function onCheckout() {
               :shipping-label="quotedShipping.label"
               :shipping-fee-cents="quotedShipping.fee.cents"
               :pending="pending"
-              :action-label="isAuthenticated ? 'Valider ma commande' : 'Se connecter pour commander'"
+              action-label="Valider ma commande"
               :note="
                 isAuthenticated
                   ? 'La commande est créée ici. Le paiement se fait sur la page suivante.'
-                  : 'Connectez-vous pour commander. Le panier sera fusionné avec votre compte.'
+                  : 'Un e-mail suffit. Le paiement se fait sur la page suivante.'
               "
               @checkout="onCheckout"
               @clear="onClear"

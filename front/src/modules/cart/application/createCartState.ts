@@ -81,6 +81,20 @@ export function createCartState(
   }
 
   async function checkout(addresses: CheckoutAddresses): Promise<CheckoutResult> {
+    if (!toValue(isAuthenticated)) {
+      const result = await repository.checkout({
+        ...addresses,
+        items: guestCart.read().map((line) => ({
+          productId: line.productId,
+          quantity: line.quantity,
+          variantId: line.variantId,
+        })),
+      })
+      guestCart.clear()
+      showGuestCart()
+      return result
+    }
+
     const result = await repository.checkout(addresses)
     cart.value = await repository.get()
     return result

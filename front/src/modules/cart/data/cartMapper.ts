@@ -1,3 +1,4 @@
+import { mapUser } from '@/modules/auth/data/userMapper'
 import { InvalidResponseError } from '@/shared/http/InvalidResponseError'
 import { mapMoney } from '@/shared/money/mapMoney'
 import { isRecord } from '@/shared/types/isRecord'
@@ -56,5 +57,6 @@ export function mapCheckoutResult(payload: unknown): CheckoutResult {
   return {
     id: payload.id,
     status: payload.status,
+    ...(payload.user === undefined ? {} : { user: mapUser(payload.user) }),
   }
 }
