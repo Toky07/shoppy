@@ -98,7 +98,9 @@ describe('AccountPage', () => {
     await userEvent.click(page().getByRole('button', { name: 'Définir par défaut' }))
     expect(addressBookRepository.markedDefault).toEqual([lyonAddress.id])
 
-    await userEvent.click(page().getAllByRole('button', { name: 'Supprimer' })[0])
+    const firstRemove = page().getAllByRole('button', { name: 'Supprimer' })[0]
+    expect(firstRemove).toBeDefined()
+    await userEvent.click(firstRemove as HTMLElement)
     expect(addressBookRepository.removed).toEqual([parisAddress.id])
   })
 

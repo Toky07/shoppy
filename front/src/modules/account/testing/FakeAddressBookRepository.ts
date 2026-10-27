@@ -20,8 +20,9 @@ export class FakeAddressBookRepository implements AddressBookRepository {
     this.removed.push(id)
     this.addresses = this.addresses.filter((address) => address.id !== id)
 
-    if (this.addresses.length > 0 && !this.addresses.some((address) => address.isDefault)) {
-      this.addresses[0] = { ...this.addresses[0], isDefault: true }
+    const first = this.addresses[0]
+    if (first !== undefined && !this.addresses.some((address) => address.isDefault)) {
+      this.addresses[0] = { ...first, isDefault: true }
     }
 
     return this.addresses.map((address) => ({ ...address }))

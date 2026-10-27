@@ -24,7 +24,12 @@ watch(
       return
     }
 
-    apply(addresses.find((address) => address.isDefault) ?? addresses[0])
+    const selected = addresses.find((address) => address.isDefault) ?? addresses[0]
+    if (selected === undefined) {
+      return
+    }
+
+    apply(selected)
   },
   { immediate: true },
 )

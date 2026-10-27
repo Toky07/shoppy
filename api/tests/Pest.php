@@ -115,6 +115,50 @@ function deliveryFields(): array
     ];
 }
 
+function repoFileOptional(string ...$relatives): ?string
+{
+    $roots = array_values(array_unique(array_filter([
+        dirname(__DIR__),
+        dirname(__DIR__, 2),
+        getcwd() ?: null,
+        getcwd() !== false ? dirname(getcwd()) : null,
+    ])));
+
+    foreach ($roots as $root) {
+        foreach ($relatives as $relative) {
+            $path = $root.'/'.$relative;
+
+            if (is_file($path)) {
+                return $path;
+            }
+        }
+    }
+
+    return null;
+}
+
+function repoFile(string ...$relatives): string
+{
+    $path = repoFileOptional(...$relatives);
+
+    if ($path === null) {
+        throw new RuntimeException('Unable to locate '.implode(' or ', $relatives));
+    }
+
+    return $path;
+}
+
+function cartProduct(string $name = 'Nuvora Tee', int $priceCents = 1999, int $stock = 10): array
+{
+    test()->client->jsonRequest('POST', '/products', [
+        'name' => $name,
+        'priceCents' => $priceCents,
+        'stock' => $stock,
+    ], catalogAdminHeaders());
+
+    return json_decode((string) test()->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+}
+
 function addProductToCustomerCart(array $headers, string $productId, int $quantity = 1): void
 {
     test()->client->jsonRequest('POST', '/cart/items', [

@@ -164,6 +164,7 @@ services:
     App\Shared\Infrastructure\Http\FileRateLimiter:
         arguments:
             $directory: '%kernel.cache_dir%/rate-limit'
+            $clock: '@App\Shared\Domain\Clock'
 
     App\Shared\Application\RateLimiter: '@App\Shared\Infrastructure\Persistence\DoctrineRateLimiter'
 

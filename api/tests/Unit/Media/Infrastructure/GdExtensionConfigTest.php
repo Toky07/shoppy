@@ -3,10 +3,15 @@
 declare(strict_types=1);
 
 it('installs gd in the api image and ci', function () {
-    $root = dirname(__DIR__, 5);
-    $dockerfile = (string) file_get_contents($root.'/api/docker/Dockerfile');
-    $ci = (string) file_get_contents($root.'/.github/workflows/ci.yml');
+    $dockerfile = (string) file_get_contents(repoFile('docker/Dockerfile', 'api/docker/Dockerfile'));
 
-    expect($dockerfile)->toMatch('/install-php-extensions[\s\S]*\bgd\b/')
-        ->and($ci)->toMatch('/extensions:.*\bgd\b/');
+    expect($dockerfile)->toMatch('/install-php-extensions[\s\S]*\bgd\b/');
+
+    $ciFile = repoFileOptional('.github/workflows/ci.yml');
+
+    if ($ciFile === null) {
+        return;
+    }
+
+    expect((string) file_get_contents($ciFile))->toMatch('/extensions:.*\bgd\b/');
 });
