@@ -24,4 +24,10 @@ describe('storefront SEO proxy', () => {
     expect(nginx).toContain('location = /robots.txt')
     expect(nginx).toContain('proxy_pass $api_upstream')
   })
+
+  it('keeps the default canonical as a site URL, not a Vite asset', () => {
+    const html = read('index.html')
+
+    expect(html).toMatch(/<link rel="canonical" href="\/"[^>]*vite-ignore/)
+  })
 })
