@@ -63,10 +63,12 @@ export function applyPageMeta(meta: PageMeta): void {
   }
 }
 
-export function resetPageMeta(): void {
+export function resetPageMeta(
+  defaults: Partial<Pick<PageMeta, 'title' | 'description'>> = {},
+): void {
   applyPageMeta({
-    title: DEFAULT_PAGE_TITLE,
-    description: DEFAULT_PAGE_DESCRIPTION,
+    title: defaults.title ?? DEFAULT_PAGE_TITLE,
+    description: defaults.description ?? DEFAULT_PAGE_DESCRIPTION,
     path: '/',
     type: 'website',
   })

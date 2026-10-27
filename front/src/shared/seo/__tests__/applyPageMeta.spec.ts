@@ -48,4 +48,23 @@ describe('applyPageMeta', () => {
     )
     expect(document.querySelector('meta[property="og:type"]')?.getAttribute('content')).toBe('website')
   })
+
+  it('restores a localized storefront title', () => {
+    applyPageMeta({
+      title: 'Nuvora Tee — Shoppy',
+      description: 'Soft cotton tee',
+      path: '/products/nuvora-tee',
+      type: 'product',
+    })
+
+    resetPageMeta({
+      title: 'Shoppy — Shop',
+      description: 'Shoppy — a short selection of useful goods, shipped fast and paid securely.',
+    })
+
+    expect(document.title).toBe('Shoppy — Shop')
+    expect(document.querySelector('meta[name="description"]')?.getAttribute('content')).toBe(
+      'Shoppy — a short selection of useful goods, shipped fast and paid securely.',
+    )
+  })
 })

@@ -8,7 +8,10 @@
     "homeTitle": "Shoppy — Shop",
     "homeDescription": "Shoppy — a short selection of useful goods, shipped fast and paid securely.",
     "adminTitle": "Console — Shoppy",
-    "adminLoginTitle": "Console sign-in — Shoppy"
+    "adminLoginTitle": "Console sign-in — Shoppy",
+    "productTitle": "{name} — Shoppy",
+    "productFallback": "{name} — available at Shoppy.",
+    "notFoundTitle": "Product not found — Shoppy"
   },
   "skipToContent": "Skip to content",
   "nav": {
