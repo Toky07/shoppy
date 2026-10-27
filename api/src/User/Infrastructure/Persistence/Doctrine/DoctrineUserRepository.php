@@ -125,6 +125,26 @@ final readonly class DoctrineUserRepository implements UserRepository
             ->getSingleScalarResult();
     }
 
+    public function findWithRole(Role $role): array
+    {
+        /** @var list<UserRecord> $records */
+        $records = $this->entityManager->createQueryBuilder()
+            ->select('u')
+            ->from(UserRecord::class, 'u')
+            ->andWhere('u.role = :role')
+            ->andWhere('u.deletedAt IS NULL')
+            ->setParameter('role', $role->value())
+            ->orderBy('u.createdAt', 'DESC')
+            ->addOrderBy('u.id', 'DESC')
+            ->getQuery()
+            ->getResult();
+
+        return array_map(
+            static fn (UserRecord $record): User => $record->toDomain(),
+            $records,
+        );
+    }
+
     private function applySearch(QueryBuilder $query, ?string $search): void
     {
         if ($search === null) {

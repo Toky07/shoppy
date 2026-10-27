@@ -71,7 +71,12 @@ final class InMemoryUserRepository implements UserRepository
 
     public function countWithRole(Role $role): int
     {
-        return count(array_filter(
+        return count($this->findWithRole($role));
+    }
+
+    public function findWithRole(Role $role): array
+    {
+        return array_values(array_filter(
             $this->users,
             static fn (User $user): bool => !$user->isDeleted() && $user->role()->value() === $role->value(),
         ));

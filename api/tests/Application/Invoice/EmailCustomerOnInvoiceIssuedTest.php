@@ -14,6 +14,7 @@ use App\Invoice\Domain\ValueObject\MoneyAmount;
 use App\Invoice\Domain\ValueObject\OrderReference;
 use App\Invoice\Domain\ValueObject\PaymentReference;
 use App\Invoice\Infrastructure\Notification\EmailCustomerOnInvoiceIssued;
+use App\Invoice\Infrastructure\Notification\InvoiceIssuedMail;
 use App\Invoice\Infrastructure\Persistence\InMemoryInvoiceRepository;
 use App\Shared\Application\Event\InvoiceIssued;
 use App\Tests\Doubles\FakeInvoicePdfStorage;
@@ -39,6 +40,11 @@ function emailedInvoice(): Invoice
     return $invoice;
 }
 
+function customerInvoiceMail(): InvoiceIssuedMail
+{
+    return new InvoiceIssuedMail('http://localhost:5173');
+}
+
 it('emails the invoice pdf when an invoice is issued', function () {
     $invoices = new InMemoryInvoiceRepository();
     $invoices->save(emailedInvoice());
@@ -51,7 +57,7 @@ it('emails the invoice pdf when an invoice is issued', function () {
         {
             return 'ada@shoppy.test';
         }
-    }, $pdfs, $events))->onInvoiceIssued(new InvoiceIssued(
+    }, $pdfs, customerInvoiceMail(), $events))->onInvoiceIssued(new InvoiceIssued(
         invoiceId: 'ffffffff-ffff-4fff-8fff-ffffffffffff',
         number: 'FAC-2026-0001',
         orderId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
@@ -64,7 +70,10 @@ it('emails the invoice pdf when an invoice is issued', function () {
         ->and($events->published[0])->toBeInstanceOf(EmailRequested::class)
         ->and($events->published[0]->to->value())->toBe('ada@shoppy.test')
         ->and($events->published[0]->subject->value())->toBe('Votre facture FAC-2026-0001')
-        ->and($events->published[0]->body->text())->toBe('Votre facture FAC-2026-0001 est disponible en pièce jointe. Total : 44,88 €.')
+        ->and($events->published[0]->body->text())->toContain('Votre facture FAC-2026-0001 est prête')
+        ->and($events->published[0]->body->text())->toContain('Total : 44,88 €')
+        ->and($events->published[0]->body->html())->toContain('Votre facture est prête')
+        ->and($events->published[0]->body->html())->toContain('Nuvora Tee')
         ->and($events->published[0]->attachments)->toHaveCount(1)
         ->and($events->published[0]->attachments[0]->filename())->toBe('FAC-2026-0001.pdf')
         ->and($events->published[0]->attachments[0]->mimeType())->toBe('application/pdf')
@@ -83,6 +92,7 @@ it('skips the invoice email when the customer has no address', function () {
             }
         },
         new FakeInvoicePdfStorage(),
+        customerInvoiceMail(),
         $events,
     ))->onInvoiceIssued(new InvoiceIssued(
         invoiceId: 'ffffffff-ffff-4fff-8fff-ffffffffffff',

@@ -6,9 +6,6 @@ namespace App\Invoice\Infrastructure\Notification;
 
 use App\Email\Domain\Event\EmailRequested;
 use App\Email\Domain\ValueObject\EmailAddress;
-use App\Email\Domain\ValueObject\EmailAttachment;
-use App\Email\Domain\ValueObject\EmailBody;
-use App\Email\Domain\ValueObject\EmailSubject;
 use App\Invoice\Application\Port\InvoiceCustomerContact;
 use App\Invoice\Application\Port\InvoicePdfStorage;
 use App\Invoice\Domain\Repository\InvoiceRepository;
@@ -24,6 +21,7 @@ final readonly class EmailCustomerOnInvoiceIssued implements EventSubscriberInte
         private InvoiceRepository $invoices,
         private InvoiceCustomerContact $contacts,
         private InvoicePdfStorage $pdfs,
+        private InvoiceIssuedMail $mail,
         private EventBus $events,
     ) {
     }
@@ -42,32 +40,12 @@ final readonly class EmailCustomerOnInvoiceIssued implements EventSubscriberInte
         }
 
         $invoice = $this->invoices->findByOrderId(OrderReference::fromString($event->orderId));
-        $attachments = [];
-        $pdfPath = $invoice?->pdf()?->relativePath();
-        $pdfContent = $pdfPath === null ? null : $this->pdfs->read($pdfPath);
-
-        if ($invoice !== null && $pdfContent !== null) {
-            $attachments[] = EmailAttachment::fromContent(
-                $invoice->pdf()?->filename() ?? 'facture.pdf',
-                'application/pdf',
-                $pdfContent,
-            );
-        }
 
         $this->events->publish(new EmailRequested(
             EmailAddress::fromString($address),
-            EmailSubject::fromString('Votre facture '.$event->number),
-            EmailBody::fromText(sprintf(
-                'Votre facture %s est disponible en pièce jointe. Total : %s.',
-                $event->number,
-                self::euro($event->amountCents),
-            )),
-            $attachments,
+            $this->mail->customerSubject($event->number),
+            $this->mail->customerBody($event, $invoice),
+            InvoicePdfMailAttachment::list($invoice, $this->pdfs),
         ));
-    }
-
-    private static function euro(int $cents): string
-    {
-        return sprintf('%d,%02d €', intdiv($cents, 100), $cents % 100);
     }
 }

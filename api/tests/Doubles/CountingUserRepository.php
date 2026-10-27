@@ -58,4 +58,9 @@ final class CountingUserRepository implements UserRepository
     {
         return $this->inner->countWithRole($role);
     }
+
+    public function findWithRole(Role $role): array
+    {
+        return $this->inner->findWithRole($role);
+    }
 }

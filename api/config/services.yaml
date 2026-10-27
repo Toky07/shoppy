@@ -156,6 +156,12 @@ services:
 
     App\Invoice\Application\Port\InvoiceCustomerContact: '@App\Invoice\Infrastructure\Customer\UserInvoiceCustomerContact'
 
+    App\Invoice\Application\Port\InvoiceAdminContact: '@App\Invoice\Infrastructure\Customer\UserInvoiceAdminContact'
+
+    App\Invoice\Infrastructure\Notification\InvoiceIssuedMail:
+        arguments:
+            $storefrontBaseUrl: '%env(FRONTEND_BASE_URL)%'
+
     App\Payment\Application\PaymentGateway: '@App\Payment\Infrastructure\Gateway\LocalPaymentGateway'
 
     App\Payment\Infrastructure\Gateway\Stripe\StripeSdkCheckoutClient:

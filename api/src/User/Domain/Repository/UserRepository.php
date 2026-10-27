@@ -32,4 +32,9 @@ interface UserRepository
     public function countAll(?string $search = null): int;
 
     public function countWithRole(Role $role): int;
+
+    /**
+     * @return list<User>
+     */
+    public function findWithRole(Role $role): array;
 }
