@@ -135,6 +135,7 @@ export function createFakeCatalogRepository(
       reviews.averageRating =
         reviews.items.reduce((total, item) => total + item.rating, 0) / reviews.items.length
     },
+    async reportReview(): Promise<void> {},
   }
 }
 
@@ -159,6 +160,9 @@ export function createFailingCatalogRepository(error: ApiError): CatalogReposito
       throw error
     },
     async submitReview(): Promise<void> {
+      throw error
+    },
+    async reportReview(): Promise<void> {
       throw error
     },
   }

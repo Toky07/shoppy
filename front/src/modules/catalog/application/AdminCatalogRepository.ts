@@ -1,3 +1,4 @@
+import type { AdminReviewPage, ListAdminReviewsQuery } from '../domain/AdminReview'
 import type { Product } from '../domain/Product'
 
 export type ProductVariantInput = {
@@ -44,4 +45,7 @@ export interface AdminCatalogRepository {
   uploadImage(productId: string, file: File, position?: number): Promise<ProductImage>
   deleteImage(id: string): Promise<void>
   reorderImages(productId: string, ids: string[]): Promise<void>
+  listReviews(query: ListAdminReviewsQuery): Promise<AdminReviewPage>
+  hideReview(id: string): Promise<void>
+  restoreReview(id: string): Promise<void>
 }

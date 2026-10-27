@@ -64,4 +64,48 @@ describe('AdminCatalogHttpRepository', () => {
 
     expect(http.calls).toEqual([{ method: 'DELETE', path: `/products/${nuvoraTee.id}` }])
   })
+
+  it('lists reviews from GET /admin/reviews', async () => {
+    const http = new FakeHttpClient(() => ({
+      items: [
+        {
+          id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1',
+          productId: nuvoraTee.id,
+          productName: nuvoraTee.name,
+          productSlug: nuvoraTee.slug,
+          author: 'ada',
+          rating: 1,
+          body: 'Spam',
+          createdAt: '2026-09-22T12:00:00+00:00',
+          reported: true,
+          hidden: false,
+        },
+      ],
+      page: 1,
+      limit: 20,
+      total: 1,
+    }))
+    const repository = new AdminCatalogHttpRepository(http)
+
+    await expect(repository.listReviews({ page: 1, limit: 20, reportedOnly: true })).resolves.toMatchObject({
+      total: 1,
+      items: [{ body: 'Spam', reported: true }],
+    })
+    expect(http.calls).toEqual([
+      { method: 'GET', path: '/admin/reviews', query: { page: 1, limit: 20, reported: 1 } },
+    ])
+  })
+
+  it('hides and restores a review', async () => {
+    const http = new FakeHttpClient(() => undefined)
+    const repository = new AdminCatalogHttpRepository(http)
+
+    await repository.hideReview('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1')
+    await repository.restoreReview('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1')
+
+    expect(http.calls).toMatchObject([
+      { method: 'POST', path: '/admin/reviews/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1/hide' },
+      { method: 'POST', path: '/admin/reviews/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1/restore' },
+    ])
+  })
 })

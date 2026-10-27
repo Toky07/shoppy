@@ -55,7 +55,7 @@ final readonly class DoctrineProductReviewRepository implements ProductReviewRep
     public function findPageByProduct(ProductId $productId, int $offset, int $limit): array
     {
         return $this->mapRecords(
-            $this->productQuery($productId)
+            $this->visibleProductQuery($productId)
                 ->setFirstResult($offset)
                 ->setMaxResults($limit)
                 ->getQuery()
@@ -69,6 +69,7 @@ final readonly class DoctrineProductReviewRepository implements ProductReviewRep
             ->select('COUNT(review.id)')
             ->from(ProductReviewRecord::class, 'review')
             ->where('review.productId = :productId')
+            ->andWhere('review.hidden = false')
             ->setParameter('productId', $productId->value())
             ->getQuery()
             ->getSingleScalarResult();
@@ -80,11 +81,36 @@ final readonly class DoctrineProductReviewRepository implements ProductReviewRep
             ->select('AVG(review.rating)')
             ->from(ProductReviewRecord::class, 'review')
             ->where('review.productId = :productId')
+            ->andWhere('review.hidden = false')
             ->setParameter('productId', $productId->value())
             ->getQuery()
             ->getSingleScalarResult();
 
         return $average === null ? null : (float) $average;
+    }
+
+    public function findModerationPage(int $offset, int $limit, bool $reportedOnly = false): array
+    {
+        return $this->mapRecords(
+            $this->moderationQuery($reportedOnly)
+                ->setFirstResult($offset)
+                ->setMaxResults($limit)
+                ->getQuery()
+                ->getResult(),
+        );
+    }
+
+    public function countModeration(bool $reportedOnly = false): int
+    {
+        $query = $this->entityManager->createQueryBuilder()
+            ->select('COUNT(review.id)')
+            ->from(ProductReviewRecord::class, 'review');
+
+        if ($reportedOnly) {
+            $query->andWhere('review.reported = true');
+        }
+
+        return (int) $query->getQuery()->getSingleScalarResult();
     }
 
     private function productQuery(ProductId $productId): QueryBuilder
@@ -95,6 +121,26 @@ final readonly class DoctrineProductReviewRepository implements ProductReviewRep
             ->where('review.productId = :productId')
             ->setParameter('productId', $productId->value())
             ->orderBy('review.createdAt', 'DESC');
+    }
+
+    private function visibleProductQuery(ProductId $productId): QueryBuilder
+    {
+        return $this->productQuery($productId)->andWhere('review.hidden = false');
+    }
+
+    private function moderationQuery(bool $reportedOnly): QueryBuilder
+    {
+        $query = $this->entityManager->createQueryBuilder()
+            ->select('review')
+            ->from(ProductReviewRecord::class, 'review')
+            ->orderBy('review.reported', 'DESC')
+            ->addOrderBy('review.createdAt', 'DESC');
+
+        if ($reportedOnly) {
+            $query->andWhere('review.reported = true');
+        }
+
+        return $query;
     }
 
     /**

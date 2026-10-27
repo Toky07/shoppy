@@ -3,6 +3,7 @@ import { InvalidResponseError } from '@/shared/http/InvalidResponseError'
 import { isRecord } from '@/shared/types/isRecord'
 import type { Category } from '../domain/Category'
 import type { Product } from '../domain/Product'
+import type { AdminReview, AdminReviewPage } from '../domain/AdminReview'
 import type { ProductReview, ProductReviewList } from '../domain/ProductReview'
 import type { ProductPage } from '../domain/ProductPage'
 
@@ -161,6 +162,56 @@ export function mapProductReviewList(payload: unknown): ProductReviewList {
     items: payload.items.map(mapProductReview),
     count: payload.count,
     averageRating: payload.averageRating,
+  }
+}
+
+export function mapAdminReview(payload: unknown): AdminReview {
+  if (
+    !isRecord(payload) ||
+    typeof payload.id !== 'string' ||
+    typeof payload.productId !== 'string' ||
+    typeof payload.productName !== 'string' ||
+    typeof payload.productSlug !== 'string' ||
+    typeof payload.author !== 'string' ||
+    typeof payload.rating !== 'number' ||
+    typeof payload.body !== 'string' ||
+    typeof payload.createdAt !== 'string' ||
+    typeof payload.reported !== 'boolean' ||
+    typeof payload.hidden !== 'boolean'
+  ) {
+    throw new InvalidResponseError('Invalid admin review payload.')
+  }
+
+  return {
+    id: payload.id,
+    productId: payload.productId,
+    productName: payload.productName,
+    productSlug: payload.productSlug,
+    author: payload.author,
+    rating: payload.rating,
+    body: payload.body,
+    createdAt: payload.createdAt,
+    reported: payload.reported,
+    hidden: payload.hidden,
+  }
+}
+
+export function mapAdminReviewPage(payload: unknown): AdminReviewPage {
+  if (
+    !isRecord(payload) ||
+    !Array.isArray(payload.items) ||
+    typeof payload.page !== 'number' ||
+    typeof payload.limit !== 'number' ||
+    typeof payload.total !== 'number'
+  ) {
+    throw new InvalidResponseError('Invalid admin review list payload.')
+  }
+
+  return {
+    items: payload.items.map(mapAdminReview),
+    page: payload.page,
+    limit: payload.limit,
+    total: payload.total,
   }
 }
 

@@ -62,6 +62,7 @@ export const routes: RouteRecordRaw[] = [
         component: () => import('@/modules/admin/ui/pages/AdminProductFormPage.vue'),
       },
       { path: 'users', name: 'admin-users', component: () => import('@/modules/admin/ui/pages/AdminUserPage.vue') },
+      { path: 'reviews', name: 'admin-reviews', component: () => import('@/modules/admin/ui/pages/AdminReviewsPage.vue') },
     ],
   },
 ]

@@ -39,6 +39,12 @@ class ProductReviewRecord
     #[ORM\Column(name: 'created_at')]
     private DateTimeImmutable $createdAt;
 
+    #[ORM\Column]
+    private bool $hidden = false;
+
+    #[ORM\Column]
+    private bool $reported = false;
+
     public static function fromDomain(ProductReview $review): self
     {
         $record = new self();
@@ -58,13 +64,15 @@ class ProductReviewRecord
 
     public function toDomain(): ProductReview
     {
-        return ProductReview::submit(
+        return ProductReview::reconstitute(
             ReviewId::fromString($this->id),
             ProductId::fromString($this->productId),
             ReviewAuthorId::fromString($this->authorId),
             Rating::fromInt($this->rating),
             ReviewBody::fromString($this->body),
             $this->createdAt,
+            $this->hidden,
+            $this->reported,
         );
     }
 
@@ -72,5 +80,7 @@ class ProductReviewRecord
     {
         $this->rating = $review->rating()->value();
         $this->body = $review->body()->value();
+        $this->hidden = $review->isHidden();
+        $this->reported = $review->isReported();
     }
 }

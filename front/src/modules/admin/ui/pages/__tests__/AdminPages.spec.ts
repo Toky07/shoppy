@@ -46,6 +46,9 @@ describe('Admin pages', () => {
       screen.getAllByRole('link', { name: 'Catalogue' }).some((link) => link.getAttribute('href') === '/admin/products'),
     ).toBe(true)
     expect(
+      screen.getAllByRole('link', { name: 'Avis' }).some((link) => link.getAttribute('href') === '/admin/reviews'),
+    ).toBe(true)
+    expect(
       screen.getAllByRole('link', { name: 'Utilisateurs' }).some((link) => link.getAttribute('href') === '/admin/users'),
     ).toBe(true)
   })
@@ -287,6 +290,49 @@ describe('Admin pages', () => {
 
     await waitFor(() => {
       expect(screen.getByRole('alert').textContent).toContain('Il doit rester au moins un administrateur.')
+    })
+  })
+
+  it('lists reviews to hide and restore', async () => {
+    const adminCatalogRepository = new FakeAdminCatalogRepository([], [
+      {
+        id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1',
+        productId: nuvoraTee.id,
+        productName: nuvoraTee.name,
+        productSlug: nuvoraTee.slug,
+        author: 'ada',
+        rating: 1,
+        body: 'Avis insultant.',
+        createdAt: '2026-09-22T12:00:00+00:00',
+        reported: true,
+        hidden: false,
+      },
+    ])
+
+    await renderApp({
+      path: '/admin/reviews',
+      session: adminSession,
+      adminCatalogRepository,
+    })
+
+    await waitFor(() => {
+      expect(screen.getByText('Avis insultant.')).toBeTruthy()
+      expect(screen.getByText('Signalé')).toBeTruthy()
+    })
+
+    await userEvent.click(screen.getByRole('button', { name: 'Masquer' }))
+
+    await waitFor(() => {
+      expect(adminCatalogRepository.hidden).toEqual(['aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1'])
+      expect(screen.getByText('Masqué')).toBeTruthy()
+      expect(screen.getByRole('button', { name: 'Restaurer' })).toBeTruthy()
+    })
+
+    await userEvent.click(screen.getByRole('button', { name: 'Restaurer' }))
+
+    await waitFor(() => {
+      expect(adminCatalogRepository.restored).toEqual(['aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1'])
+      expect(screen.queryByText('Masqué')).toBeNull()
     })
   })
 })

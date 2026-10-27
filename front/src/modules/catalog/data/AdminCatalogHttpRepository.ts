@@ -2,8 +2,9 @@ import type { HttpClient } from '@/shared/http/HttpClient'
 import { InvalidResponseError } from '@/shared/http/InvalidResponseError'
 import { isRecord } from '@/shared/types/isRecord'
 import type { AdminCatalogRepository, CreateProductInput, ProductImage, UpdateProductInput } from '../application/AdminCatalogRepository'
+import type { AdminReviewPage, ListAdminReviewsQuery } from '../domain/AdminReview'
 import type { Product } from '../domain/Product'
-import { mapProduct } from './productMapper'
+import { mapAdminReviewPage, mapProduct } from './productMapper'
 
 export class AdminCatalogHttpRepository implements AdminCatalogRepository {
   constructor(private readonly http: HttpClient) {}
@@ -92,6 +93,24 @@ export class AdminCatalogHttpRepository implements AdminCatalogRepository {
 
   async reorderImages(productId: string, ids: string[]): Promise<void> {
     await this.http.put('/media/order', { ownerType: 'product', ownerId: productId, ids })
+  }
+
+  async listReviews(query: ListAdminReviewsQuery): Promise<AdminReviewPage> {
+    return mapAdminReviewPage(
+      await this.http.get('/admin/reviews', {
+        page: query.page,
+        limit: query.limit,
+        ...(query.reportedOnly ? { reported: 1 } : {}),
+      }),
+    )
+  }
+
+  async hideReview(id: string): Promise<void> {
+    await this.http.post(`/admin/reviews/${encodeURIComponent(id)}/hide`)
+  }
+
+  async restoreReview(id: string): Promise<void> {
+    await this.http.post(`/admin/reviews/${encodeURIComponent(id)}/restore`)
   }
 }
 

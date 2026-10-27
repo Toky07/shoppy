@@ -24,6 +24,13 @@ const sections: { to: string; label: string; icon: IconName; description: string
     action: 'Gérer le catalogue',
   },
   {
+    to: '/admin/reviews',
+    label: 'Avis',
+    icon: 'star',
+    description: 'Traiter les signalements et masquer un avis du catalogue.',
+    action: 'Modérer les avis',
+  },
+  {
     to: '/admin/users',
     label: 'Utilisateurs',
     icon: 'users',
@@ -63,7 +70,7 @@ const sections: { to: string; label: string; icon: IconName; description: string
       </div>
     </div>
 
-    <div class="mt-8 grid gap-4 md:grid-cols-3">
+    <div class="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
       <RouterLink
         v-for="section in sections"
         :key="section.to"

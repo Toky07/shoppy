@@ -28,6 +28,9 @@ const reviews = ref<ProductReviewList>({ items: [], count: 0, averageRating: nul
 const rating = ref(5)
 const body = ref('')
 const loadError = ref<string>()
+const reportedIds = ref<string[]>([])
+const reportingId = ref<string>()
+const reportError = ref<string>()
 const { pending, errorMessage, run } = usePendingAction(
   (error) => error.violations[0]?.message ?? error.message,
 )
@@ -70,6 +73,23 @@ function onSubmit() {
     await load()
   })
 }
+
+async function onReport(reviewId: string) {
+  reportingId.value = reviewId
+  reportError.value = undefined
+  try {
+    await catalog.reportReview(props.productId, reviewId)
+    reportedIds.value = [...reportedIds.value, reviewId]
+  } catch (caught) {
+    reportError.value = toApiError(caught).message
+  } finally {
+    reportingId.value = undefined
+  }
+}
+
+function isReported(reviewId: string): boolean {
+  return reportedIds.value.includes(reviewId)
+}
 </script>
 
 <template>
@@ -86,6 +106,7 @@ function onSubmit() {
     </div>
 
     <StatusNotice v-if="loadError" tone="danger" class="mt-6">{{ loadError }}</StatusNotice>
+    <StatusNotice v-if="reportError" tone="danger" class="mt-6">{{ reportError }}</StatusNotice>
 
     <ul v-if="reviews.items.length > 0" class="mt-8 space-y-4">
       <li v-for="review in reviews.items" :key="review.id" class="panel p-5">
@@ -97,6 +118,18 @@ function onSubmit() {
           </p>
         </div>
         <p class="mt-3 text-sm leading-relaxed text-body">{{ review.body }}</p>
+        <div v-if="isAuthenticated && !review.mine" class="mt-4">
+          <p v-if="isReported(review.id)" class="text-xs font-semibold text-muted">Signalé</p>
+          <button
+            v-else
+            type="button"
+            class="text-xs font-semibold link-quiet"
+            :disabled="reportingId === review.id"
+            @click="onReport(review.id)"
+          >
+            Signaler
+          </button>
+        </div>
       </li>
     </ul>
     <p v-else-if="!loadError" class="mt-8 text-sm text-faint italic">Aucun avis pour le moment.</p>
