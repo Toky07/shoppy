@@ -39,6 +39,15 @@ export const pendingCheckout: CheckoutResult = {
   status: 'pending',
 }
 
+export const guestPendingCheckout: CheckoutResult = {
+  ...pendingCheckout,
+  user: {
+    ...visitorUser,
+    email: 'guest@shoppy.test',
+    emailVerified: false,
+  },
+}
+
 export const parisCheckout: CheckoutAddresses = {
   shippingAddress: {
     recipient: 'Ada Lovelace',

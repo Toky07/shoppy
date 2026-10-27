@@ -87,6 +87,11 @@ final readonly class PostalAddress
         ];
     }
 
+    public function equals(self $other): bool
+    {
+        return $this->toArray() === $other->toArray();
+    }
+
     private static function text(string $value, string $field, int $min, int $max, string $message): string
     {
         $normalized = trim($value);

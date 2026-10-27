@@ -4,6 +4,8 @@ import { describe, expect, it } from 'vitest'
 import { renderApp } from '@/shared/testing/renderApp'
 import { adminSession, visitorSession } from '@/modules/auth/testing/authFixtures'
 import { FakeAuthRepository } from '@/modules/auth/testing/FakeAuthRepository'
+import { FakeAddressBookRepository } from '@/modules/account/testing/FakeAddressBookRepository'
+import { lyonAddress, parisAddress } from '@/modules/account/testing/addressFixtures'
 
 function page() {
   return within(screen.getByRole('main'))
@@ -68,6 +70,38 @@ describe('AccountPage', () => {
     expect(authRepository.passwordChanges).toEqual([
       { currentPassword: 'secret-secret', newPassword: 'brand-new-secret' },
     ])
+  })
+
+  it('shows an empty address book', async () => {
+    await renderApp({ session: visitorSession, path: '/account' })
+
+    expect(page().getByRole('heading', { name: 'Mes adresses' })).toBeTruthy()
+    expect(
+      page().getByText('Les adresses saisies au paiement apparaissent ici pour les prochaines commandes.'),
+    ).toBeTruthy()
+    expect(page().getByText('Aucune adresse enregistrée pour le moment.')).toBeTruthy()
+  })
+
+  it('lists saved addresses and can change the default', async () => {
+    const addressBookRepository = new FakeAddressBookRepository([parisAddress, lyonAddress])
+    await renderApp({
+      session: visitorSession,
+      path: '/account',
+      addressBookRepository,
+    })
+
+    await waitFor(() => {
+      expect(page().getByText(/10 rue de la Paix/)).toBeTruthy()
+      expect(page().getByText(/2 place Bellecour/)).toBeTruthy()
+    })
+
+    await userEvent.click(page().getByRole('button', { name: 'Définir par défaut' }))
+    expect(addressBookRepository.markedDefault).toEqual([lyonAddress.id])
+
+    const firstRemove = page().getAllByRole('button', { name: 'Supprimer' })[0]
+    expect(firstRemove).toBeDefined()
+    await userEvent.click(firstRemove as HTMLElement)
+    expect(addressBookRepository.removed).toEqual([parisAddress.id])
   })
 
   it('asks to confirm an unverified email', async () => {

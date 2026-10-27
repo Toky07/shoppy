@@ -37,3 +37,14 @@ export function toPostalAddress(draft: AddressDraft): PostalAddress {
     country: draft.country.trim().toUpperCase(),
   }
 }
+
+export function fromPostalAddress(address: PostalAddress): AddressDraft {
+  return {
+    recipient: address.recipient,
+    line1: address.line1,
+    line2: address.line2 ?? '',
+    postalCode: address.postalCode,
+    city: address.city,
+    country: address.country || 'FR',
+  }
+}

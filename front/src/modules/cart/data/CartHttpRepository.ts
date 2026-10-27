@@ -55,6 +55,23 @@ export class CartHttpRepository implements CartRepository {
   }
 
   async checkout(addresses: CheckoutAddresses): Promise<CheckoutResult> {
-    return mapCheckoutResult(await this.http.post('/cart/checkout', addresses))
+    return mapCheckoutResult(
+      await this.http.post('/cart/checkout', {
+        shippingAddress: addresses.shippingAddress,
+        billingSameAsShipping: addresses.billingSameAsShipping,
+        ...(addresses.billingAddress ? { billingAddress: addresses.billingAddress } : {}),
+        shippingMethod: addresses.shippingMethod,
+        ...(addresses.email ? { email: addresses.email } : {}),
+        ...(addresses.items
+          ? {
+              items: addresses.items.map((item) => ({
+                productId: item.productId,
+                quantity: item.quantity,
+                ...(item.variantId ? { variantId: item.variantId } : {}),
+              })),
+            }
+          : {}),
+      }),
+    )
   }
 }

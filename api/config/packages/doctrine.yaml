@@ -48,6 +48,18 @@ doctrine:
                 dir: '%kernel.project_dir%/src/Cart/Infrastructure/Persistence/Doctrine/Entity'
                 prefix: 'App\Cart\Infrastructure\Persistence\Doctrine\Entity'
                 alias: Cart
+            Favorite:
+                type: attribute
+                is_bundle: false
+                dir: '%kernel.project_dir%/src/Favorite/Infrastructure/Persistence/Doctrine/Entity'
+                prefix: 'App\Favorite\Infrastructure\Persistence\Doctrine\Entity'
+                alias: Favorite
+            Address:
+                type: attribute
+                is_bundle: false
+                dir: '%kernel.project_dir%/src/Address/Infrastructure/Persistence/Doctrine/Entity'
+                prefix: 'App\Address\Infrastructure\Persistence\Doctrine\Entity'
+                alias: Address
             Payment:
                 type: attribute
                 is_bundle: false

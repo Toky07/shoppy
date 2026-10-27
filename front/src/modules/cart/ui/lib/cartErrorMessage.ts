@@ -23,6 +23,10 @@ export function cartErrorMessage(error: {
     return 'Votre session a expiré. Reconnectez-vous pour continuer.'
   }
 
+  if (error.code === 'account_required') {
+    return 'Un compte existe déjà avec cet e-mail. Connectez-vous pour commander.'
+  }
+
   const firstViolation = error.violations?.[0]?.message
   if (firstViolation) {
     return firstViolation

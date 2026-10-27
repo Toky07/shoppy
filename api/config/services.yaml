@@ -118,6 +118,12 @@ services:
 
     App\Cart\Application\Catalog: '@App\Cart\Infrastructure\Catalog\ProductCatalog'
 
+    App\Favorite\Domain\Repository\FavoriteListRepository: '@App\Favorite\Infrastructure\Persistence\Doctrine\DoctrineFavoriteListRepository'
+
+    App\Address\Domain\Repository\AddressBookRepository: '@App\Address\Infrastructure\Persistence\Doctrine\DoctrineAddressBookRepository'
+
+    App\Favorite\Application\Catalog: '@App\Favorite\Infrastructure\Catalog\ProductCatalog'
+
     App\Payment\Domain\Repository\PaymentRepository: '@App\Payment\Infrastructure\Persistence\Doctrine\DoctrinePaymentRepository'
 
     App\Payment\Application\PaymentGateway: '@App\Payment\Infrastructure\Gateway\LocalPaymentGateway'
@@ -158,6 +164,7 @@ services:
     App\Shared\Infrastructure\Http\FileRateLimiter:
         arguments:
             $directory: '%kernel.cache_dir%/rate-limit'
+            $clock: '@App\Shared\Domain\Clock'
 
     App\Shared\Application\RateLimiter: '@App\Shared\Infrastructure\Persistence\DoctrineRateLimiter'
 

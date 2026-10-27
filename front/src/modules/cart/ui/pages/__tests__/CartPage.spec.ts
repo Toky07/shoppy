@@ -5,8 +5,17 @@ import { ApiError } from '@/shared/http/ApiError'
 import { renderApp } from '@/shared/testing/renderApp'
 import { visitorSession } from '@/modules/auth/testing/authFixtures'
 import { FakeCartRepository } from '../../../testing/FakeCartRepository'
-import { emptyCart, filledCart, parisCheckout, pendingCheckout } from '../../../testing/cartFixtures'
+import {
+  emptyCart,
+  filledCart,
+  guestPendingCheckout,
+  parisCheckout,
+  pendingCheckout,
+} from '../../../testing/cartFixtures'
+import { createFakeCatalogRepository } from '@/modules/catalog/testing/fakeCatalogRepository'
 import { nuvoraTee } from '@/modules/catalog/testing/productFixtures'
+import { FakeAddressBookRepository } from '@/modules/account/testing/FakeAddressBookRepository'
+import { lyonAddress, parisAddress } from '@/modules/account/testing/addressFixtures'
 
 describe('CartPage', () => {
   async function fillDeliveryAddress() {
@@ -86,6 +95,43 @@ describe('CartPage', () => {
     })
   })
 
+  it('lets a guest place an order with an email', async () => {
+    const cartRepository = new FakeCartRepository()
+    cartRepository.checkoutResult = guestPendingCheckout
+    const { router, authSession } = await renderApp({
+      repository: createFakeCatalogRepository([nuvoraTee]),
+      cartRepository,
+      path: `/products/${nuvoraTee.slug}`,
+    })
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Ajouter au panier' })).toBeTruthy()
+    })
+    await userEvent.click(screen.getByRole('button', { name: 'Ajouter au panier' }))
+    await router.push('/cart')
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Valider ma commande/ })).toBeTruthy()
+    })
+
+    await userEvent.type(screen.getByLabelText('E-mail'), 'guest@shoppy.test')
+    await fillDeliveryAddress()
+    await userEvent.click(screen.getByRole('button', { name: /Valider ma commande/ }))
+
+    await waitFor(() => {
+      expect(cartRepository.checkoutCount).toBe(1)
+      expect(cartRepository.checkouts[0]).toMatchObject({
+        ...parisCheckout,
+        email: 'guest@shoppy.test',
+        items: [{ productId: nuvoraTee.id, quantity: 1, variantId: null }],
+      })
+      expect(authSession.session.value?.user.email).toBe('guest@shoppy.test')
+      expect(screen.getByRole('link', { name: /Payer la commande/ }).getAttribute('href')).toBe(
+        `/orders/${guestPendingCheckout.id}`,
+      )
+    })
+  })
+
   it('creates an order from checkout', async () => {
     const cartRepository = new FakeCartRepository(filledCart)
     await renderApp({
@@ -112,6 +158,45 @@ describe('CartPage', () => {
       )
       expect(screen.getByRole('heading', { name: 'Votre panier est vide' })).toBeTruthy()
     })
+  })
+
+  it('prefills the saved default address at checkout', async () => {
+    const cartRepository = new FakeCartRepository(filledCart)
+    await renderApp({
+      path: '/cart',
+      session: visitorSession,
+      cartRepository,
+      addressBookRepository: new FakeAddressBookRepository([parisAddress]),
+    })
+
+    await waitFor(() => {
+      expect((screen.getByLabelText('Destinataire') as HTMLInputElement).value).toBe('Ada Lovelace')
+    })
+
+    await userEvent.click(screen.getByRole('button', { name: /Valider ma commande/ }))
+
+    await waitFor(() => {
+      expect(cartRepository.checkouts).toEqual([parisCheckout])
+    })
+  })
+
+  it('lets the customer pick another saved address', async () => {
+    const cartRepository = new FakeCartRepository(filledCart)
+    await renderApp({
+      path: '/cart',
+      session: visitorSession,
+      cartRepository,
+      addressBookRepository: new FakeAddressBookRepository([parisAddress, lyonAddress]),
+    })
+
+    await waitFor(() => {
+      expect(screen.getByRole('radio', { name: /Lyon/ })).toBeTruthy()
+    })
+
+    await userEvent.click(screen.getByRole('radio', { name: /Lyon/ }))
+
+    expect((screen.getByLabelText('Ville') as HTMLInputElement).value).toBe('Lyon')
+    expect((screen.getByLabelText('Adresse') as HTMLInputElement).value).toBe('2 place Bellecour')
   })
 
   it('shows a stock error on checkout', async () => {

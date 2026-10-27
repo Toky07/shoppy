@@ -2,6 +2,7 @@
 import { computed, inject } from 'vue'
 import PageHeader from '@/shared/ui/PageHeader.vue'
 import { authSessionKey } from '../../application/authSessionKey'
+import AddressBookPanel from '@/modules/account/ui/components/AddressBookPanel.vue'
 import AccountActivityPanel from '../components/AccountActivityPanel.vue'
 import AccountIdentityCard from '../components/AccountIdentityCard.vue'
 import AccountPreferencesPanel from '../components/AccountPreferencesPanel.vue'
@@ -35,6 +36,7 @@ const isAuthenticated = computed(() => session?.isAuthenticated.value ?? false)
           <AccountPreferencesPanel />
         </div>
       </div>
+      <AddressBookPanel />
       <AccountSecurityPanel />
     </div>
   </section>

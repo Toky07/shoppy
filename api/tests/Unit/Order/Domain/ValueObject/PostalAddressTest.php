@@ -32,3 +32,28 @@ it('normalizes a postal address', function () {
 it('rejects a country that is not a 2-letter code', function () {
     PostalAddress::fromInput('Ada Lovelace', '10 rue de la Paix', null, '75002', 'Paris', 'France', 'shippingAddress');
 })->throws(InvalidPostalAddress::class, 'Country must be a 2-letter code.');
+
+it('compares two postal addresses by value', function () {
+    $paris = samplePostalAddress();
+    $copy = PostalAddress::fromInput(
+        'Ada Lovelace',
+        '10 rue de la Paix',
+        null,
+        '75002',
+        'Paris',
+        'FR',
+        'address',
+    );
+    $lyon = PostalAddress::fromInput(
+        'Ada Lovelace',
+        '2 place Bellecour',
+        null,
+        '69002',
+        'Lyon',
+        'FR',
+        'address',
+    );
+
+    expect($paris->equals($copy))->toBeTrue()
+        ->and($paris->equals($lyon))->toBeFalse();
+});

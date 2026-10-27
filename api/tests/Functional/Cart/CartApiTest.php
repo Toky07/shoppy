@@ -4,17 +4,6 @@ declare(strict_types=1);
 
 use App\User\Domain\ValueObject\Role;
 
-function cartProduct(string $name = 'Nuvora Tee', int $priceCents = 1999, int $stock = 10): array
-{
-    test()->client->jsonRequest('POST', '/products', [
-        'name' => $name,
-        'priceCents' => $priceCents,
-        'stock' => $stock,
-    ], catalogAdminHeaders());
-
-    return json_decode((string) test()->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
-}
-
 it('returns an empty cart for a new customer', function () {
     $this->client->jsonRequest('GET', '/cart', [], catalogCustomerHeaders());
 

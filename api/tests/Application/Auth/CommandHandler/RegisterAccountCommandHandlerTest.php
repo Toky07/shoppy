@@ -13,6 +13,7 @@ use App\Tests\Doubles\FakePasswordHasher;
 use App\Tests\Doubles\FakeTokenGenerator;
 use App\Tests\Doubles\FixedClock;
 use App\Tests\Doubles\RecordingEventBus;
+use App\User\Application\Command\RegisterUserCommand;
 use App\User\Application\CommandHandler\RegisterUserCommandHandler;
 use App\User\Domain\ValueObject\Email;
 use App\User\Domain\ValueObject\Role;
@@ -67,6 +68,23 @@ it('does not create a user when the password is invalid', function () {
         password: 'short',
     )))->toThrow(InvalidPassword::class)
         ->and($users->findByEmail(Email::fromString('ada@nuvora.test')))->toBeNull();
+});
+
+it('lets a guest set a password on the account created at checkout', function () {
+    $users = new InMemoryUserRepository();
+    $credentials = new InMemoryCredentialsRepository();
+    $clock = new FixedClock(new DateTimeImmutable('2026-08-20T12:00:00+00:00'));
+    $guestId = (new RegisterUserCommandHandler($users, $clock))->handle(
+        new RegisterUserCommand('guest@nuvora.test'),
+    );
+
+    $claimed = registerAccountHandler($users, $credentials)->handle(new RegisterAccountCommand(
+        email: 'guest@nuvora.test',
+        password: 'secret-secret',
+    ));
+
+    expect($claimed?->value())->toBe($guestId->value())
+        ->and($credentials->findByUserId($guestId)?->hashedPassword()->value())->toBe('hashed:secret-secret');
 });
 
 it('returns null when the email is already registered', function () {

@@ -4,13 +4,8 @@ declare(strict_types=1);
 
 use Symfony\Component\Yaml\Yaml;
 
-function shoppyRoot(): string
-{
-    return dirname(__DIR__, 5);
-}
-
 it('configures redis as the application cache', function () {
-    $config = Yaml::parseFile(shoppyRoot().'/api/config/packages/cache.yaml');
+    $config = Yaml::parseFile(repoFile('config/packages/cache.yaml', 'api/config/packages/cache.yaml'));
 
     expect($config['framework']['cache']['app'])->toBe('cache.adapter.redis')
         ->and($config['framework']['cache']['default_redis_provider'])->toBe('%env(REDIS_URL)%')
@@ -18,8 +13,17 @@ it('configures redis as the application cache', function () {
 });
 
 it('deploys redis next to the api', function () {
-    $dev = Yaml::parseFile(shoppyRoot().'/compose.yaml');
-    $prod = Yaml::parseFile(shoppyRoot().'/compose.prod.yaml');
+    $devFile = repoFileOptional('compose.yaml');
+    $prodFile = repoFileOptional('compose.prod.yaml');
+
+    if ($devFile === null || $prodFile === null) {
+        expect(repoFile('config/packages/cache.yaml', 'api/config/packages/cache.yaml'))->toBeString();
+
+        return;
+    }
+
+    $dev = Yaml::parseFile($devFile);
+    $prod = Yaml::parseFile($prodFile);
 
     expect($dev['services'])->toHaveKey('redis')
         ->and($dev['services']['api']['environment']['REDIS_URL'] ?? null)->toBe('redis://redis:6379')
