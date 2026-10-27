@@ -8,6 +8,8 @@ import { createLocalGuestCart } from '@/modules/cart/data/guestCartStorage'
 import { OrderHttpRepository } from '@/modules/order/data/OrderHttpRepository'
 import { PaymentHttpRepository } from '@/modules/payment/data/PaymentHttpRepository'
 import { AdminCatalogHttpRepository } from '@/modules/catalog/data/AdminCatalogHttpRepository'
+import { createAddressBookState } from '@/modules/account/application/createAddressBookState'
+import { AddressHttpRepository } from '@/modules/account/data/AddressHttpRepository'
 import { createFavoritesState } from '@/modules/catalog/application/createFavoritesState'
 import { FavoriteHttpRepository } from '@/modules/catalog/data/FavoriteHttpRepository'
 import { createLocalGuestFavorites } from '@/modules/catalog/data/guestFavoriteStorage'
@@ -40,4 +42,9 @@ export const favoritesState = createFavoritesState(
   favoriteRepository,
   authSession.isAuthenticated,
   createLocalGuestFavorites(window.localStorage),
+)
+export const addressBookRepository = new AddressHttpRepository(httpClient)
+export const addressBookState = createAddressBookState(
+  addressBookRepository,
+  authSession.isAuthenticated,
 )

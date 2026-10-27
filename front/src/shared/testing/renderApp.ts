@@ -26,6 +26,10 @@ import { FakePaymentRepository } from '@/modules/payment/testing/FakePaymentRepo
 import { FakeAdminCatalogRepository } from '@/modules/catalog/testing/FakeAdminCatalogRepository'
 import { FakeUserDirectory } from '@/modules/auth/testing/FakeUserDirectory'
 import { MemorySessionStore } from '@/modules/auth/testing/MemorySessionStore'
+import { createAddressBookState } from '@/modules/account/application/createAddressBookState'
+import type { AddressBookRepository } from '@/modules/account/application/AddressBookRepository'
+import { addressBookStateKey } from '@/modules/account/application/addressBookStateKey'
+import { FakeAddressBookRepository } from '@/modules/account/testing/FakeAddressBookRepository'
 import { createFavoritesState } from '@/modules/catalog/application/createFavoritesState'
 import { favoritesStateKey } from '@/modules/catalog/application/favoritesStateKey'
 import type { FavoriteRepository } from '@/modules/catalog/application/FavoriteRepository'
@@ -44,6 +48,7 @@ export async function renderApp(options: {
   adminCatalogRepository?: AdminCatalogRepository
   userDirectory?: UserDirectory
   favoriteRepository?: FavoriteRepository
+  addressBookRepository?: AddressBookRepository
   session?: Session | null
   path?: string
 } = {}) {
@@ -57,6 +62,10 @@ export async function renderApp(options: {
   const cartState = createCartState(cartRepository, authSession.isAuthenticated)
   const favoritesState = createFavoritesState(
     options.favoriteRepository ?? new FakeFavoriteRepository(),
+    authSession.isAuthenticated,
+  )
+  const addressBookState = createAddressBookState(
+    options.addressBookRepository ?? new FakeAddressBookRepository(),
     authSession.isAuthenticated,
   )
 
@@ -77,6 +86,7 @@ export async function renderApp(options: {
         [adminCatalogRepositoryKey as symbol]: options.adminCatalogRepository ?? new FakeAdminCatalogRepository(),
         [userDirectoryKey as symbol]: options.userDirectory ?? new FakeUserDirectory(),
         [favoritesStateKey as symbol]: favoritesState,
+        [addressBookStateKey as symbol]: addressBookState,
       },
     },
   })

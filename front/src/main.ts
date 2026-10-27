@@ -1,6 +1,7 @@
 import { createApp } from 'vue'
 import App from './App.vue'
 import {
+    addressBookState,
     authReady,
     authRepository,
     authSession,
@@ -12,6 +13,7 @@ import {
     orderRepository,
     paymentRepository,
     userDirectory } from './app/dependencies'
+import { addressBookStateKey } from './modules/account/application/addressBookStateKey'
 import { authRepositoryKey } from './modules/auth/application/authRepositoryKey'
 import { authSessionKey } from './modules/auth/application/authSessionKey'
 import { userDirectoryKey } from './modules/auth/application/userDirectoryKey'
@@ -40,6 +42,7 @@ app.provide(paymentRepositoryKey, paymentRepository);
 app.provide(adminCatalogRepositoryKey, adminCatalogRepository);
 app.provide(userDirectoryKey, userDirectory);
 app.provide(favoritesStateKey, favoritesState);
+app.provide(addressBookStateKey, addressBookState);
 
 await authReady;
 router.beforeEach(createNavigationGuard(authSession));

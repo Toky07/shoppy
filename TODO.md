@@ -12,7 +12,7 @@ Récent : avatar seul dans le header, filtres décollés sur mobile, scroll en h
 
 - [x] Favoris rattachés au compte (aujourd’hui `localStorage` `shoppy.favorites`, perdus en changeant d’appareil)
 - [x] Checkout invité réel (le panier invité existe, la commande exige encore une connexion)
-- [ ] Carnet d’adresses réutilisable (saisie uniquement au checkout)
+- [x] Carnet d’adresses réutilisable (saisie uniquement au checkout)
 
 ### Catalogue
 

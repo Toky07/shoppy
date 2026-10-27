@@ -14,6 +14,8 @@ import {
 } from '../../../testing/cartFixtures'
 import { createFakeCatalogRepository } from '@/modules/catalog/testing/fakeCatalogRepository'
 import { nuvoraTee } from '@/modules/catalog/testing/productFixtures'
+import { FakeAddressBookRepository } from '@/modules/account/testing/FakeAddressBookRepository'
+import { lyonAddress, parisAddress } from '@/modules/account/testing/addressFixtures'
 
 describe('CartPage', () => {
   async function fillDeliveryAddress() {
@@ -156,6 +158,45 @@ describe('CartPage', () => {
       )
       expect(screen.getByRole('heading', { name: 'Votre panier est vide' })).toBeTruthy()
     })
+  })
+
+  it('prefills the saved default address at checkout', async () => {
+    const cartRepository = new FakeCartRepository(filledCart)
+    await renderApp({
+      path: '/cart',
+      session: visitorSession,
+      cartRepository,
+      addressBookRepository: new FakeAddressBookRepository([parisAddress]),
+    })
+
+    await waitFor(() => {
+      expect((screen.getByLabelText('Destinataire') as HTMLInputElement).value).toBe('Ada Lovelace')
+    })
+
+    await userEvent.click(screen.getByRole('button', { name: /Valider ma commande/ }))
+
+    await waitFor(() => {
+      expect(cartRepository.checkouts).toEqual([parisCheckout])
+    })
+  })
+
+  it('lets the customer pick another saved address', async () => {
+    const cartRepository = new FakeCartRepository(filledCart)
+    await renderApp({
+      path: '/cart',
+      session: visitorSession,
+      cartRepository,
+      addressBookRepository: new FakeAddressBookRepository([parisAddress, lyonAddress]),
+    })
+
+    await waitFor(() => {
+      expect(screen.getByRole('radio', { name: /Lyon/ })).toBeTruthy()
+    })
+
+    await userEvent.click(screen.getByRole('radio', { name: /Lyon/ }))
+
+    expect((screen.getByLabelText('Ville') as HTMLInputElement).value).toBe('Lyon')
+    expect((screen.getByLabelText('Adresse') as HTMLInputElement).value).toBe('2 place Bellecour')
   })
 
   it('shows a stock error on checkout', async () => {

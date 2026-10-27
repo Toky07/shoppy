@@ -120,6 +120,8 @@ services:
 
     App\Favorite\Domain\Repository\FavoriteListRepository: '@App\Favorite\Infrastructure\Persistence\Doctrine\DoctrineFavoriteListRepository'
 
+    App\Address\Domain\Repository\AddressBookRepository: '@App\Address\Infrastructure\Persistence\Doctrine\DoctrineAddressBookRepository'
+
     App\Favorite\Application\Catalog: '@App\Favorite\Infrastructure\Catalog\ProductCatalog'
 
     App\Payment\Domain\Repository\PaymentRepository: '@App\Payment\Infrastructure\Persistence\Doctrine\DoctrinePaymentRepository'

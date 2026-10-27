@@ -1,9 +1,43 @@
 <script setup lang="ts">
-import type { AddressDraft } from '@/modules/order/domain/PostalAddress'
+import { ref, watch } from 'vue'
+import type { SavedAddress } from '@/modules/account/domain/SavedAddress'
+import { formatSavedAddress } from '@/modules/account/domain/SavedAddress'
+import {
+  emptyAddressDraft,
+  fromPostalAddress,
+  type AddressDraft,
+} from '@/modules/order/domain/PostalAddress'
+
+const props = defineProps<{
+  savedAddresses?: SavedAddress[]
+}>()
 
 const shipping = defineModel<AddressDraft>('shipping', { required: true })
 const billing = defineModel<AddressDraft>('billing', { required: true })
 const billingSameAsShipping = defineModel<boolean>('billingSameAsShipping', { required: true })
+const selectedId = ref('new')
+
+watch(
+  () => props.savedAddresses,
+  (addresses) => {
+    if (!addresses?.length || shipping.value.recipient.trim() !== '') {
+      return
+    }
+
+    apply(addresses.find((address) => address.isDefault) ?? addresses[0])
+  },
+  { immediate: true },
+)
+
+function apply(address: SavedAddress) {
+  selectedId.value = address.id
+  Object.assign(shipping.value, fromPostalAddress(address))
+}
+
+function startNew() {
+  selectedId.value = 'new'
+  Object.assign(shipping.value, emptyAddressDraft())
+}
 
 const countries = [
   { code: 'FR', name: 'France' },
@@ -22,7 +56,40 @@ const countries = [
 <template>
   <section class="panel p-6" aria-labelledby="checkout-address-title">
     <h2 id="checkout-address-title" class="font-display text-lg font-bold text-strong">Livraison</h2>
-    <p class="mt-1 text-sm text-muted">Cette adresse est enregistrée sur la commande.</p>
+    <p class="mt-1 text-sm text-muted">
+      Elle sera enregistrée dans votre carnet pour les prochaines commandes.
+    </p>
+
+    <fieldset v-if="savedAddresses?.length" class="mt-5 grid gap-2">
+      <legend class="field-label">Choisir une adresse enregistrée</legend>
+      <label
+        v-for="address in savedAddresses"
+        :key="address.id"
+        class="flex cursor-pointer items-start gap-3 rounded-2xl border border-line px-3 py-3"
+      >
+        <input
+          class="mt-1 size-4 accent-accent"
+          type="radio"
+          name="saved-address"
+          :checked="selectedId === address.id"
+          @change="apply(address)"
+        />
+        <span>
+          <span class="block text-sm font-semibold text-strong">{{ formatSavedAddress(address) }}</span>
+          <span v-if="address.isDefault" class="mt-0.5 block text-xs text-muted">Par défaut</span>
+        </span>
+      </label>
+      <label class="flex cursor-pointer items-start gap-3 rounded-2xl border border-line px-3 py-3">
+        <input
+          class="mt-1 size-4 accent-accent"
+          type="radio"
+          name="saved-address"
+          :checked="selectedId === 'new'"
+          @change="startNew"
+        />
+        <span class="text-sm font-semibold text-strong">Nouvelle adresse</span>
+      </label>
+    </fieldset>
 
     <div class="mt-5 grid gap-4 sm:grid-cols-2">
       <label class="block sm:col-span-2">

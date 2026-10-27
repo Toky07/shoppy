@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, inject, reactive, ref } from 'vue'
+import { addressBookStateKey } from '@/modules/account/application/addressBookStateKey'
 import { RouterLink } from 'vue-router'
 import AppIcon from '@/shared/ui/AppIcon.vue'
 import EmptyState from '@/shared/ui/EmptyState.vue'
@@ -19,6 +20,7 @@ import { quoteShipping, type ShippingMethodCode } from '@/modules/order/domain/S
 
 const session = inject(authSessionKey)
 const cartState = inject(cartStateKey)
+const addressBook = inject(addressBookStateKey)
 
 if (!session || !cartState) {
   throw new Error('Cart dependencies are not provided.')
@@ -109,6 +111,7 @@ async function onCheckout() {
       authSession.set({ user: result.user })
     }
     checkoutOrderId.value = result.id
+    await addressBook?.refresh()
   })
 }
 </script>
@@ -195,6 +198,7 @@ async function onCheckout() {
                   v-model:shipping="shipping"
                   v-model:billing="billing"
                   v-model:billing-same-as-shipping="billingSameAsShipping"
+                  :saved-addresses="addressBook?.addresses.value ?? []"
                 />
               </li>
               <li>
