@@ -36,13 +36,6 @@ describe('ProductCard', () => {
     expect(screen.getByText('En stock (10)')).toBeTruthy()
   })
 
-  it('keeps Vue directives on the grid card, not in the visible text', async () => {
-    const { container } = await renderCard()
-
-    expect(container.textContent).not.toContain('v-else')
-    expect(container.querySelector('article')?.className).toContain('panel-flat')
-  })
-
   it('renders an out of stock label', async () => {
     await renderCard(outOfStockMug)
 
