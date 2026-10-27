@@ -343,6 +343,7 @@
     "subtotal": "Sous-total",
     "cancel": "Annuler la commande",
     "payNow": "Procéder au paiement",
+    "paymentCancelled": "Le paiement a été annulé. Vous pouvez réessayer.",
     "notFound": "Cette commande est introuvable.",
     "customer": "Client {id}",
     "itemsHeading": "Articles"
@@ -625,6 +626,7 @@
     "orderNotFound": "Cette commande est introuvable.",
     "orderNotCancellable": "Cette commande ne peut plus être annulée.",
     "orderNotPayable": "Cette commande ne peut plus être payée.",
-    "paymentFailed": "Le paiement a échoué."
+    "paymentFailed": "Le paiement a échoué.",
+    "stripeNotConfigured": "Stripe n’est pas configuré. Ajoutez une clé secrète sk_test_ ou sk_live_."
   }
 }

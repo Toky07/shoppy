@@ -21,7 +21,11 @@ export function orderErrorMessage(
     return t('errors.orderNotPayable')
   }
 
-  if (error.code === 'payment_charge_failed' || error.code === 'payment_provider_not_configured') {
+  if (error.code === 'payment_provider_not_configured') {
+    return t('errors.stripeNotConfigured')
+  }
+
+  if (error.code === 'payment_charge_failed' || error.code === 'payment_amount_mismatch') {
     return t('errors.paymentFailed')
   }
 

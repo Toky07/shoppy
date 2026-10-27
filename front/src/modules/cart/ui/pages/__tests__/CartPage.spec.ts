@@ -16,6 +16,10 @@ import { createFakeCatalogRepository } from '@/modules/catalog/testing/fakeCatal
 import { nuvoraTee } from '@/modules/catalog/testing/productFixtures'
 import { FakeAddressBookRepository } from '@/modules/account/testing/FakeAddressBookRepository'
 import { lyonAddress, parisAddress } from '@/modules/account/testing/addressFixtures'
+import { FakeOrderRepository } from '@/modules/order/testing/FakeOrderRepository'
+import { pendingOrder } from '@/modules/order/testing/orderFixtures'
+import { FakePaymentRepository } from '@/modules/payment/testing/FakePaymentRepository'
+import { pendingPayment } from '@/modules/payment/testing/paymentFixtures'
 
 describe('CartPage', () => {
   async function fillDeliveryAddress() {
@@ -101,6 +105,8 @@ describe('CartPage', () => {
     const { router, authSession } = await renderApp({
       repository: createFakeCatalogRepository([nuvoraTee]),
       cartRepository,
+      orderRepository: new FakeOrderRepository([pendingOrder]),
+      paymentRepository: new FakePaymentRepository(pendingPayment),
       path: `/products/${nuvoraTee.slug}`,
     })
 
@@ -126,18 +132,19 @@ describe('CartPage', () => {
         items: [{ productId: nuvoraTee.id, quantity: 1, variantId: null }],
       })
       expect(authSession.session.value?.user.email).toBe('guest@shoppy.test')
-      expect(screen.getByRole('link', { name: /Payer la commande/ }).getAttribute('href')).toBe(
-        `/orders/${guestPendingCheckout.id}`,
-      )
+      expect(router.currentRoute.value.path).toBe(`/orders/${guestPendingCheckout.id}`)
+      expect(screen.getByRole('button', { name: /Procéder au paiement/ })).toBeTruthy()
     })
   })
 
   it('creates an order from checkout', async () => {
     const cartRepository = new FakeCartRepository(filledCart)
-    await renderApp({
+    const { router } = await renderApp({
       path: '/cart',
       session: visitorSession,
       cartRepository,
+      orderRepository: new FakeOrderRepository([pendingOrder]),
+      paymentRepository: new FakePaymentRepository(pendingPayment),
     })
 
     await waitFor(() => {
@@ -150,13 +157,8 @@ describe('CartPage', () => {
     await waitFor(() => {
       expect(cartRepository.checkoutCount).toBe(1)
       expect(cartRepository.checkouts).toEqual([parisCheckout])
-      expect(screen.getByRole('status').textContent).toContain(
-        `La commande n°${pendingCheckout.id} est enregistrée. Le paiement se fait sur sa page.`,
-      )
-      expect(screen.getByRole('link', { name: /Payer la commande/ }).getAttribute('href')).toBe(
-        `/orders/${pendingCheckout.id}`,
-      )
-      expect(screen.getByRole('heading', { name: 'Votre panier est vide' })).toBeTruthy()
+      expect(router.currentRoute.value.path).toBe(`/orders/${pendingCheckout.id}`)
+      expect(screen.getByRole('button', { name: /Procéder au paiement/ })).toBeTruthy()
     })
   })
 

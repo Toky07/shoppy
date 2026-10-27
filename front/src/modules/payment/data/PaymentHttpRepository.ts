@@ -16,6 +16,10 @@ export class PaymentHttpRepository implements PaymentRepository {
     return mapPayment(await this.http.post('/payments/complete', { orderId }))
   }
 
+  async confirm(orderId: string): Promise<Payment> {
+    return mapPayment(await this.http.post('/payments/confirm', { orderId }))
+  }
+
   async startCheckout(request: StartCheckoutRequest): Promise<PaymentCheckout> {
     return mapPaymentCheckout(await this.http.post('/payments/checkout', { ...request }))
   }

@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { computed, inject } from 'vue'
+import { computed, inject, watch } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import AppIcon from '@/shared/ui/AppIcon.vue'
 import PageStatus from '@/shared/ui/PageStatus.vue'
+import StatusNotice from '@/shared/ui/StatusNotice.vue'
 import AuthRequiredPanel from '@/modules/auth/ui/components/AuthRequiredPanel.vue'
 import { usePendingAction } from '@/shared/async/usePendingAction'
 import { authSessionKey } from '@/modules/auth/application/authSessionKey'
@@ -50,6 +51,23 @@ const canPay = computed(
   () => order.value?.status === 'pending' && payment.value?.status === 'pending',
 )
 const canCancel = computed(() => order.value?.status === 'pending')
+const paymentCancelled = computed(() => route.query.payment === 'cancel')
+
+watch(
+  () => [route.query.payment, isAuthenticated.value, orderId.value] as const,
+  ([paymentFlag, authed, id]) => {
+    if (!authed || paymentFlag !== 'success' || id === '') {
+      return
+    }
+
+    return run(async () => {
+      await payments.confirm(id)
+      await reload()
+      await reloadPayment()
+    })
+  },
+  { immediate: true },
+)
 
 function onPay() {
   return run(async () => {
@@ -62,6 +80,10 @@ function onPay() {
     if (checkout.redirectUrl) {
       window.location.assign(checkout.redirectUrl)
       return
+    }
+
+    if (checkout.completedImmediately) {
+      await payments.complete(orderId.value)
     }
 
     await reload()
@@ -100,6 +122,9 @@ function onCancel() {
       skeleton="rows"
     >
       <article v-if="order" class="mx-auto max-w-4xl">
+        <StatusNotice v-if="paymentCancelled" tone="accent" class="mb-6">
+          {{ t('orders.paymentCancelled') }}
+        </StatusNotice>
         <div class="panel overflow-hidden">
           <OrderDetailHeader :order="order" :payment="payment" />
           <OrderAddresses :shipping="order.shippingAddress" :billing="order.billingAddress" />

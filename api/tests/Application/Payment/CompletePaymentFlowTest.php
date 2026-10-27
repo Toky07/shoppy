@@ -35,6 +35,7 @@ use App\Payment\Infrastructure\Persistence\InMemoryPaymentRepository;
 use App\Shared\Application\Event\OrderCancelled;
 use App\Shared\Application\Event\OrderPlaced;
 use App\Shared\Application\Event\PaymentCompleted;
+use App\Tests\Doubles\FakePayerContact;
 use App\Tests\Doubles\FakePaymentGateway;
 use App\Tests\Doubles\FakeStripeCheckoutClient;
 use App\Tests\Doubles\FixedClock;
@@ -45,7 +46,7 @@ function paymentGateways(?FakeStripeCheckoutClient $stripe = null): PaymentGatew
 {
     return new PaymentGatewayRegistry([
         new LocalPaymentGateway(),
-        new StripePaymentGateway($stripe ?? new FakeStripeCheckoutClient(), 'eur'),
+        new StripePaymentGateway($stripe ?? new FakeStripeCheckoutClient(), 'eur', new FakePayerContact()),
     ], 'local');
 }
 

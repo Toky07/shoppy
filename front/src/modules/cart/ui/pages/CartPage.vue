@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, inject, reactive, ref } from 'vue'
 import { addressBookStateKey } from '@/modules/account/application/addressBookStateKey'
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRouter } from 'vue-router'
 import AppIcon from '@/shared/ui/AppIcon.vue'
 import EmptyState from '@/shared/ui/EmptyState.vue'
 import StatusNotice from '@/shared/ui/StatusNotice.vue'
@@ -29,6 +29,7 @@ if (!session || !cartState) {
 
 const authSession = session
 const state = cartState
+const router = useRouter()
 const { t } = useI18n()
 const { pending, errorMessage: actionError, run } = usePendingAction((error) =>
   cartErrorMessage(error, t),
@@ -114,6 +115,7 @@ async function onCheckout() {
     }
     checkoutOrderId.value = result.id
     await addressBook?.refresh()
+    await router.push({ name: 'order', params: { id: result.id } })
   })
 }
 </script>

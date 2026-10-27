@@ -14,6 +14,7 @@ use App\Payment\Infrastructure\Persistence\InMemoryPaymentRepository;
 use App\Shared\Application\Event\OrderPlaced;
 use App\Shared\Application\Event\PaymentCompleted;
 use App\Payment\Domain\Exception\PaymentNotPayable;
+use App\Tests\Doubles\FakePayerContact;
 use App\Tests\Doubles\FakeStripeCheckoutClient;
 use App\Tests\Doubles\FixedClock;
 use App\Tests\Doubles\PendingPayableOrder;
@@ -39,7 +40,7 @@ it('starts a stripe checkout through the registry and leaves the payment pending
         $payments,
         new PaymentGatewayRegistry([
             new LocalPaymentGateway(),
-            new StripePaymentGateway(new FakeStripeCheckoutClient(), 'eur'),
+            new StripePaymentGateway(new FakeStripeCheckoutClient(), 'eur', new FakePayerContact()),
         ], 'local'),
         new PendingPayableOrder(),
     ))->handle(new StartCheckoutCommand(
@@ -79,7 +80,7 @@ it('refuses a stripe checkout when the order is no longer pending', function () 
         $payments,
         new PaymentGatewayRegistry([
             new LocalPaymentGateway(),
-            new StripePaymentGateway(new FakeStripeCheckoutClient(), 'eur'),
+            new StripePaymentGateway(new FakeStripeCheckoutClient(), 'eur', new FakePayerContact()),
         ], 'local'),
         new PendingPayableOrder(pending: false),
     ))->handle(new StartCheckoutCommand(

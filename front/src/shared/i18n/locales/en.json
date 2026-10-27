@@ -343,6 +343,7 @@
     "subtotal": "Subtotal",
     "cancel": "Cancel the order",
     "payNow": "Proceed to payment",
+    "paymentCancelled": "Payment was cancelled. You can try again.",
     "notFound": "This order could not be found.",
     "customer": "Customer {id}",
     "itemsHeading": "Items"
@@ -625,6 +626,7 @@
     "orderNotFound": "This order could not be found.",
     "orderNotCancellable": "This order can no longer be cancelled.",
     "orderNotPayable": "This order can no longer be paid.",
-    "paymentFailed": "Payment failed."
+    "paymentFailed": "Payment failed.",
+    "stripeNotConfigured": "Stripe is not configured. Add a secret key starting with sk_test_ or sk_live_."
   }
 }

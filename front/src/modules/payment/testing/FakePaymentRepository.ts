@@ -14,9 +14,12 @@ function clonePayment(payment: Payment): Payment {
 export class FakePaymentRepository implements PaymentRepository {
   public payment: Payment | null
   public completed: string[] = []
+  public confirmed: string[] = []
   public checkouts: StartCheckoutRequest[] = []
   public completeError: Error | null = null
+  public confirmError: Error | null = null
   public checkoutError: Error | null = null
+  public confirmCompletes = true
   public getError: Error | null = null
   public onComplete: ((orderId: string) => void) | null = null
   public checkoutResult: PaymentCheckout = {
@@ -57,6 +60,19 @@ export class FakePaymentRepository implements PaymentRepository {
     this.payment = next
     this.onComplete?.(orderId)
     return clonePayment(next)
+  }
+
+  async confirm(orderId: string): Promise<Payment> {
+    this.confirmed.push(orderId)
+    if (this.confirmError) {
+      throw this.confirmError
+    }
+
+    if (!this.confirmCompletes) {
+      return this.getByOrder(orderId)
+    }
+
+    return this.complete(orderId)
   }
 
   async startCheckout(request: StartCheckoutRequest): Promise<PaymentCheckout> {

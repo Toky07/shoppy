@@ -134,6 +134,21 @@ it('ignores a client-selected provider and checks out with the server provider',
     expect($orderAfter['status'])->toBe('pending');
 });
 
+it('confirms a payment without a stripe session as a no-op', function () {
+    $product = paymentCatalogProduct();
+
+    $order = placeOrderFromCart(catalogCustomerHeaders(), $product['id']);
+
+    $this->client->jsonRequest('POST', '/payments/confirm', [
+        'orderId' => $order['id'],
+    ], catalogCustomerHeaders());
+
+    $payment = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+
+    expect($this->client->getResponse()->getStatusCode())->toBe(200)
+        ->and($payment['status'])->toBe('pending');
+});
+
 it('rejects a checkout url outside the allowed origins', function () {
     $product = paymentCatalogProduct();
 

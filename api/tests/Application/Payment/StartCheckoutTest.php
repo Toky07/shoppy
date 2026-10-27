@@ -11,6 +11,7 @@ use App\Payment\Domain\ValueObject\PaymentId;
 use App\Payment\Domain\ValueObject\PaymentStatus;
 use App\Payment\Infrastructure\Gateway\LocalPaymentGateway;
 use App\Payment\Infrastructure\Gateway\StripePaymentGateway;
+use App\Tests\Doubles\FakePayerContact;
 use App\Tests\Doubles\FakeStripeCheckoutClient;
 
 function pendingCheckoutPayment(): Payment
@@ -44,12 +45,16 @@ it('starts a local checkout as an immediate charge', function () {
 
 it('starts a stripe checkout with a redirect url and leaves the payment pending', function () {
     $payment = pendingCheckoutPayment();
-    $result = (new StripePaymentGateway(new FakeStripeCheckoutClient(), 'eur'))
+    $stripe = new FakeStripeCheckoutClient();
+    $result = (new StripePaymentGateway($stripe, 'eur', new FakePayerContact('ada@shoppy.test')))
         ->startCheckout($payment, checkoutUrls());
 
     expect($result->provider)->toBe('stripe')
         ->and($result->completedImmediately)->toBeFalse()
         ->and($result->redirectUrl)->toBe('https://checkout.test/cs_test_dddddddd-dddd-4ddd-8ddd-dddddddddddd')
         ->and($result->providerReference)->toBe('cs_test_dddddddd-dddd-4ddd-8ddd-dddddddddddd')
-        ->and($payment->status())->toEqual(PaymentStatus::pending());
+        ->and($payment->status())->toEqual(PaymentStatus::pending())
+        ->and($stripe->createdSessions)->toHaveCount(1)
+        ->and($stripe->createdSessions[0]['userId'])->toBe('11111111-1111-4111-8111-111111111111')
+        ->and($stripe->createdSessions[0]['email'])->toBe('ada@shoppy.test');
 });
