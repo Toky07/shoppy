@@ -72,6 +72,12 @@ doctrine:
                 dir: '%kernel.project_dir%/src/Media/Infrastructure/Persistence/Doctrine/Entity'
                 prefix: 'App\Media\Infrastructure\Persistence\Doctrine\Entity'
                 alias: Media
+            Audit:
+                type: attribute
+                is_bundle: false
+                dir: '%kernel.project_dir%/src/Audit/Infrastructure/Persistence/Doctrine/Entity'
+                prefix: 'App\Audit\Infrastructure\Persistence\Doctrine\Entity'
+                alias: Audit
             Shared:
                 type: attribute
                 is_bundle: false

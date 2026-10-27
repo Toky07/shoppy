@@ -33,5 +33,6 @@ describe('adminNav', () => {
     expect(adminPageTitle('/admin/orders/abc')).toBe('Détail commande')
     expect(adminPageTitle('/admin/products/new')).toBe('Nouveau produit')
     expect(adminPageTitle('/admin/reviews')).toBe('Avis')
+    expect(adminPageTitle('/admin/audit')).toBe('Journal')
   })
 })

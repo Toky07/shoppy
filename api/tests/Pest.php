@@ -10,6 +10,7 @@ use App\Order\Application\Command\PlaceOrderAddress;
 use App\Order\Domain\ValueObject\PostalAddress;
 use App\Order\Domain\ValueObject\ShippingMethod;
 use App\Product\Application\CommandHandler\CreateProductCommandHandler;
+use App\Audit\Application\Port\AuditLogger;
 use App\Product\Application\CommandHandler\UpdateProductCommandHandler;
 use App\Product\Application\UniqueProductSku;
 use App\Product\Application\UniqueProductSlug;
@@ -57,13 +58,17 @@ function createProducts(ProductRepository $repository, Clock $clock, ?CategoryRe
     );
 }
 
-function updateProducts(ProductRepository $repository, ?CategoryRepository $categories = null): UpdateProductCommandHandler
-{
+function updateProducts(
+    ProductRepository $repository,
+    ?CategoryRepository $categories = null,
+    ?AuditLogger $audit = null,
+): UpdateProductCommandHandler {
     return new UpdateProductCommandHandler(
         $repository,
         new UniqueProductSlug($repository),
         $categories ?? new InMemoryCategoryRepository(),
         new UniqueProductSku($repository),
+        $audit,
     );
 }
 

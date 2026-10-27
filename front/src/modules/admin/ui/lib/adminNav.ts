@@ -13,6 +13,7 @@ export const ADMIN_NAV: AdminNavItem[] = [
   { to: '/admin/products', label: 'Catalogue', icon: 'tag' },
   { to: '/admin/reviews', label: 'Avis', icon: 'star' },
   { to: '/admin/users', label: 'Utilisateurs', icon: 'users' },
+  { to: '/admin/audit', label: 'Journal', icon: 'list' },
 ]
 
 export function isAdminNavActive(path: string, item: AdminNavItem): boolean {
@@ -50,6 +51,10 @@ export function adminPageTitle(path: string): string {
 
   if (path === '/admin/users') {
     return 'Utilisateurs'
+  }
+
+  if (path === '/admin/audit') {
+    return 'Journal'
   }
 
   return 'Tableau de bord'

@@ -130,6 +130,12 @@ services:
 
     App\Address\Domain\Repository\AddressBookRepository: '@App\Address\Infrastructure\Persistence\Doctrine\DoctrineAddressBookRepository'
 
+    App\Audit\Domain\Repository\AuditLogRepository: '@App\Audit\Infrastructure\Persistence\Doctrine\DoctrineAuditLogRepository'
+
+    App\Audit\Application\Port\AuditLogger: '@App\Audit\Application\RecordingAuditLogger'
+
+    App\Audit\Application\Port\CurrentActor: '@App\Audit\Infrastructure\Security\SecurityCurrentActor'
+
     App\Favorite\Application\Catalog: '@App\Favorite\Infrastructure\Catalog\ProductCatalog'
 
     App\Payment\Domain\Repository\PaymentRepository: '@App\Payment\Infrastructure\Persistence\Doctrine\DoctrinePaymentRepository'

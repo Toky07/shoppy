@@ -9,6 +9,7 @@ import { OrderHttpRepository } from '@/modules/order/data/OrderHttpRepository'
 import { PaymentHttpRepository } from '@/modules/payment/data/PaymentHttpRepository'
 import { AdminCatalogHttpRepository } from '@/modules/catalog/data/AdminCatalogHttpRepository'
 import { AdminDashboardHttpRepository } from '@/modules/admin/data/AdminDashboardHttpRepository'
+import { AuditLogHttpRepository } from '@/modules/admin/data/AuditLogHttpRepository'
 import { createAddressBookState } from '@/modules/account/application/createAddressBookState'
 import { AddressHttpRepository } from '@/modules/account/data/AddressHttpRepository'
 import { createFavoritesState } from '@/modules/catalog/application/createFavoritesState'
@@ -38,6 +39,7 @@ export const orderRepository = new OrderHttpRepository(httpClient)
 export const paymentRepository = new PaymentHttpRepository(httpClient)
 export const adminCatalogRepository = new AdminCatalogHttpRepository(httpClient)
 export const adminDashboardRepository = new AdminDashboardHttpRepository(httpClient)
+export const auditLogRepository = new AuditLogHttpRepository(httpClient)
 export const userDirectory = new UserHttpDirectory(httpClient)
 export const favoriteRepository = new FavoriteHttpRepository(httpClient)
 export const favoritesState = createFavoritesState(

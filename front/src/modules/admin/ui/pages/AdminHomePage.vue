@@ -68,6 +68,13 @@ const sections: { to: string; label: string; icon: IconName; description: string
     description: 'Lister les comptes, rechercher un email et attribuer un rôle.',
     action: 'Gérer les accès',
   },
+  {
+    to: '/admin/audit',
+    label: 'Journal',
+    icon: 'list',
+    description: 'Voir qui a changé un rôle, un prix, un stock ou un paiement.',
+    action: 'Ouvrir le journal',
+  },
 ]
 </script>
 

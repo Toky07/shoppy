@@ -35,7 +35,7 @@ Récent : avatar seul dans le header, filtres décollés sur mobile, scroll en h
 ### Admin et boutique
 
 - [x] Tableau de bord (CA, commandes du jour, stock bas) — l’accueil admin ne fait que des liens
-- [ ] Journal d’audit (qui a changé un rôle, un prix, un stock, un paiement)
+- [x] Journal d’audit (qui a changé un rôle, un prix, un stock, un paiement)
 - [ ] Pages légales (CGV, confidentialité, mentions, retours) — le footer a des libellés non cliquables
 - [ ] Bandeau cookies / base RGPD
 - [ ] Newsletter du footer branchée, ou retirée (`@submit.prevent` sans envoi)

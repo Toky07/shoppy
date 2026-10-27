@@ -7,6 +7,7 @@ import {
     authSession,
     adminCatalogRepository,
     adminDashboardRepository,
+    auditLogRepository,
     cartRepository,
     cartState,
     catalogRepository,
@@ -22,6 +23,7 @@ import { cartRepositoryKey } from './modules/cart/application/cartRepositoryKey'
 import { cartStateKey } from './modules/cart/application/cartStateKey'
 import { adminCatalogRepositoryKey } from './modules/catalog/application/adminCatalogRepositoryKey'
 import { adminDashboardRepositoryKey } from './modules/admin/application/adminDashboardRepositoryKey'
+import { auditLogRepositoryKey } from './modules/admin/application/auditLogRepositoryKey'
 import { catalogRepositoryKey } from './modules/catalog/application/catalogRepositoryKey'
 import { favoritesStateKey } from './modules/catalog/application/favoritesStateKey'
 import { orderRepositoryKey } from './modules/order/application/orderRepositoryKey'
@@ -43,6 +45,7 @@ app.provide(orderRepositoryKey, orderRepository);
 app.provide(paymentRepositoryKey, paymentRepository);
 app.provide(adminCatalogRepositoryKey, adminCatalogRepository);
 app.provide(adminDashboardRepositoryKey, adminDashboardRepository);
+app.provide(auditLogRepositoryKey, auditLogRepository);
 app.provide(userDirectoryKey, userDirectory);
 app.provide(favoritesStateKey, favoritesState);
 app.provide(addressBookStateKey, addressBookState);

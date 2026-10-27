@@ -63,6 +63,7 @@ export const routes: RouteRecordRaw[] = [
       },
       { path: 'users', name: 'admin-users', component: () => import('@/modules/admin/ui/pages/AdminUserPage.vue') },
       { path: 'reviews', name: 'admin-reviews', component: () => import('@/modules/admin/ui/pages/AdminReviewsPage.vue') },
+      { path: 'audit', name: 'admin-audit', component: () => import('@/modules/admin/ui/pages/AdminAuditPage.vue') },
     ],
   },
 ]

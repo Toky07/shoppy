@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\User\Application\CommandHandler;
 
+use App\Audit\Application\Port\AuditLogger;
+use App\Audit\Domain\ValueObject\AuditAction;
+use App\Audit\Domain\ValueObject\AuditSubjectType;
 use App\Shared\Application\Event\UserRoleChanged;
 use App\User\Application\Command\AssignUserRoleCommand;
 use App\User\Domain\Exception\LastAdminAccount;
@@ -18,6 +21,7 @@ final readonly class AssignUserRoleCommandHandler
     public function __construct(
         private UserRepository $userRepository,
         private ?EventDispatcherInterface $events = null,
+        private ?AuditLogger $audit = null,
     ) {
     }
 
@@ -31,9 +35,10 @@ final readonly class AssignUserRoleCommandHandler
         }
 
         $role = Role::fromString($command->role);
+        $previous = $user->role()->value();
 
         if (
-            $user->role()->value() === Role::admin()->value()
+            $previous === Role::admin()->value()
             && $role->value() !== Role::admin()->value()
             && $this->userRepository->countWithRole(Role::admin()) <= 1
         ) {
@@ -43,5 +48,12 @@ final readonly class AssignUserRoleCommandHandler
         $user->assignRole($role);
         $this->userRepository->save($user);
         $this->events?->dispatch(new UserRoleChanged($id->value()));
+
+        if ($previous !== $role->value()) {
+            $this->audit?->record(AuditAction::ROLE_CHANGED, AuditSubjectType::USER, $id->value(), [
+                'from' => $previous,
+                'to' => $role->value(),
+            ]);
+        }
     }
 }

@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Order\Application\CommandHandler;
 
+use App\Audit\Application\Port\AuditLogger;
+use App\Audit\Domain\ValueObject\AuditAction;
+use App\Audit\Domain\ValueObject\AuditSubjectType;
 use App\Order\Application\Command\MarkOrderPaidCommand;
 use App\Order\Domain\Exception\OrderNotFound;
 use App\Order\Domain\Repository\OrderRepository;
@@ -16,6 +19,7 @@ final readonly class MarkOrderPaidCommandHandler
     public function __construct(
         private OrderRepository $orderRepository,
         private EventDispatcherInterface $eventDispatcher,
+        private ?AuditLogger $audit = null,
     ) {
     }
 
@@ -30,6 +34,10 @@ final readonly class MarkOrderPaidCommandHandler
 
         $order->markPaid();
         $this->orderRepository->save($order);
+        $this->audit?->record(AuditAction::PAYMENT_CHANGED, AuditSubjectType::ORDER, $order->id()->value(), [
+            'from' => 'pending',
+            'to' => 'paid',
+        ]);
 
         $this->eventDispatcher->dispatch(new OrderMarkedPaid(
             orderId: $order->id()->value(),
