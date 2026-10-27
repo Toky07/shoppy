@@ -74,6 +74,51 @@ describe('ProductDetailPage', () => {
     await waitFor(() => {
       expect(screen.getByRole('alert').textContent).toContain('Ce produit est introuvable.')
     })
+    expect(document.title).toBe('Produit introuvable — Shoppy')
+  })
+
+  it('titles a missing product in english', async () => {
+    await renderApp({
+      repository: createFakeCatalogRepository([nuvoraTee]),
+      path: '/products/missing',
+      locale: 'en',
+    })
+
+    await waitFor(() => {
+      expect(document.title).toBe('Product not found — Shoppy')
+    })
+  })
+
+  it('updates the missing-product title when the language changes', async () => {
+    await renderApp({
+      repository: createFakeCatalogRepository([nuvoraTee]),
+      path: '/products/missing',
+    })
+
+    await waitFor(() => {
+      expect(document.title).toBe('Produit introuvable — Shoppy')
+    })
+
+    await userEvent.click(screen.getByRole('button', { name: 'English' }))
+
+    expect(document.title).toBe('Product not found — Shoppy')
+  })
+
+  it('restores the storefront title after leaving the product', async () => {
+    await renderApp({
+      repository: createFakeCatalogRepository([nuvoraTee]),
+      path: `/products/${nuvoraTee.slug}`,
+    })
+
+    await waitFor(() => {
+      expect(document.title).toBe('Nuvora Tee — Shoppy')
+    })
+
+    await userEvent.click(screen.getByRole('link', { name: 'Retour au catalogue' }))
+
+    await waitFor(() => {
+      expect(document.title).toBe('Shoppy — Boutique')
+    })
   })
 
   it('adds the product to the cart when logged in', async () => {

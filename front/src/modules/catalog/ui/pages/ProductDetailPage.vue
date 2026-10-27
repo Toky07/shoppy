@@ -24,7 +24,7 @@ if (!repository) {
   throw new Error('CatalogRepository is not provided.')
 }
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const productRef = computed(() => String(route.params.slug ?? ''))
@@ -53,21 +53,36 @@ const errorMessage = computed(() =>
   notFound.value ? t('catalog.notFound') : error.value?.message,
 )
 
+watch(
+  [product, locale, notFound],
+  ([current]) => {
+    if (current) {
+      applyPageMeta({
+        title: t('meta.productTitle', { name: current.name }),
+        description: current.description?.trim() || t('meta.productFallback', { name: current.name }),
+        image: current.imageUrl,
+        path: `/products/${current.slug}`,
+        type: 'product',
+      })
+      return
+    }
+
+    if (notFound.value) {
+      applyPageMeta({
+        title: t('meta.notFoundTitle'),
+        description: t('catalog.notFound'),
+        path: route.path,
+      })
+    }
+  },
+)
+
 watch(product, async (current) => {
   if (current === null) {
-    resetPageMeta()
     selectedVariantId.value = ''
     related.value = []
     return
   }
-
-  applyPageMeta({
-    title: `${current.name} — Shoppy`,
-    description: current.description?.trim() || `${current.name} — disponible chez Shoppy.`,
-    image: current.imageUrl,
-    path: `/products/${current.slug}`,
-    type: 'product',
-  })
 
   if (current.variants.length > 0) {
     const available = current.variants.find((variant) => variant.stock > 0) ?? current.variants[0]
@@ -91,7 +106,10 @@ watch(product, async (current) => {
 })
 
 onBeforeUnmount(() => {
-  resetPageMeta()
+  resetPageMeta({
+    title: t('meta.homeTitle'),
+    description: t('meta.homeDescription'),
+  })
 })
 </script>
 
