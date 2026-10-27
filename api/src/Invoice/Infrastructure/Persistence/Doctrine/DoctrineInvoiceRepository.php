@@ -50,8 +50,9 @@ final readonly class DoctrineInvoiceRepository implements InvoiceRepository
     private function findRecordByOrderId(string $orderId): ?InvoiceRecord
     {
         $record = $this->entityManager->createQueryBuilder()
-            ->select('i')
+            ->select('i', 'items')
             ->from(InvoiceRecord::class, 'i')
+            ->leftJoin('i.items', 'items')
             ->where('i.orderId = :orderId')
             ->setParameter('orderId', $orderId)
             ->getQuery()

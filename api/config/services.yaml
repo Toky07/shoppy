@@ -144,6 +144,8 @@ services:
 
     App\Invoice\Domain\Repository\InvoiceRepository: '@App\Invoice\Infrastructure\Persistence\Doctrine\DoctrineInvoiceRepository'
 
+    App\Invoice\Domain\Repository\InvoiceOrderSnapshotRepository: '@App\Invoice\Infrastructure\Persistence\Doctrine\DoctrineInvoiceOrderSnapshotRepository'
+
     App\Payment\Application\PaymentGateway: '@App\Payment\Infrastructure\Gateway\LocalPaymentGateway'
 
     App\Payment\Infrastructure\Gateway\Stripe\StripeSdkCheckoutClient:

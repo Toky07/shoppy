@@ -66,7 +66,13 @@ it('places an order with catalog snapshots, ignoring later catalog prices', func
         ->and($events->dispatched)->toHaveCount(1)
         ->and($events->dispatched[0])->toBeInstanceOf(OrderPlaced::class)
         ->and($events->dispatched[0]->orderId)->toBe($orderId->value())
-        ->and($events->dispatched[0]->amountCents)->toBe(4488);
+        ->and($events->dispatched[0]->amountCents)->toBe(4488)
+        ->and($events->dispatched[0]->items)->toHaveCount(1)
+        ->and($events->dispatched[0]->items[0]->description)->toBe('Nuvora Tee')
+        ->and($events->dispatched[0]->items[0]->quantity)->toBe(2)
+        ->and($events->dispatched[0]->items[0]->unitPriceCents)->toBe(1999)
+        ->and($events->dispatched[0]->shippingLabel)->toBe('Standard')
+        ->and($events->dispatched[0]->shippingCents)->toBe(490);
 });
 
 it('decrements catalog stock when placing an order', function () {

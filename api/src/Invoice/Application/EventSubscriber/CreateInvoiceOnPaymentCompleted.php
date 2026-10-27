@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Invoice\Application\EventSubscriber;
 
 use App\Invoice\Domain\Entity\Invoice;
+use App\Invoice\Domain\Repository\InvoiceOrderSnapshotRepository;
 use App\Invoice\Domain\Repository\InvoiceRepository;
 use App\Invoice\Domain\ValueObject\CustomerReference;
 use App\Invoice\Domain\ValueObject\InvoiceId;
@@ -23,6 +24,7 @@ final readonly class CreateInvoiceOnPaymentCompleted implements EventSubscriberI
         private InvoiceRepository $invoices,
         private Clock $clock,
         private EventDispatcherInterface $eventDispatcher,
+        private InvoiceOrderSnapshotRepository $snapshots,
     ) {
     }
 
@@ -48,6 +50,7 @@ final readonly class CreateInvoiceOnPaymentCompleted implements EventSubscriberI
             PaymentReference::fromString($event->paymentId),
             MoneyAmount::fromCents($event->amountCents),
             $issuedAt,
+            $this->snapshots->findByOrderId($orderId)?->lines() ?? [],
         );
 
         $this->invoices->save($invoice);

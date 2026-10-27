@@ -7,11 +7,14 @@ namespace App\Invoice\Infrastructure\Persistence\Doctrine\Entity;
 use App\Invoice\Domain\Entity\Invoice;
 use App\Invoice\Domain\ValueObject\CustomerReference;
 use App\Invoice\Domain\ValueObject\InvoiceId;
+use App\Invoice\Domain\ValueObject\InvoiceLine;
 use App\Invoice\Domain\ValueObject\InvoiceNumber;
 use App\Invoice\Domain\ValueObject\MoneyAmount;
 use App\Invoice\Domain\ValueObject\OrderReference;
 use App\Invoice\Domain\ValueObject\PaymentReference;
 use DateTimeImmutable;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
@@ -49,6 +52,16 @@ class InvoiceRecord
     #[ORM\Column(name: 'issued_at')]
     private DateTimeImmutable $issuedAt;
 
+    /** @var Collection<int, InvoiceItemRecord> */
+    #[ORM\OneToMany(targetEntity: InvoiceItemRecord::class, mappedBy: 'invoice', cascade: ['persist'], orphanRemoval: true)]
+    #[ORM\OrderBy(['position' => 'ASC'])]
+    private Collection $items;
+
+    public function __construct()
+    {
+        $this->items = new ArrayCollection();
+    }
+
     public static function fromDomain(Invoice $invoice): self
     {
         $record = new self();
@@ -61,6 +74,10 @@ class InvoiceRecord
         $record->paymentId = $invoice->paymentId()->value();
         $record->amountCents = $invoice->amount()->cents();
         $record->issuedAt = $invoice->issuedAt();
+
+        foreach ($invoice->lines() as $position => $line) {
+            $record->items->add(InvoiceItemRecord::fromDomain($record, $line, $position));
+        }
 
         return $record;
     }
@@ -75,6 +92,9 @@ class InvoiceRecord
             PaymentReference::fromString($this->paymentId),
             MoneyAmount::fromCents($this->amountCents),
             $this->issuedAt,
+            array_values($this->items->map(
+                static fn (InvoiceItemRecord $item): InvoiceLine => $item->toDomain(),
+            )->toArray()),
         );
     }
 }

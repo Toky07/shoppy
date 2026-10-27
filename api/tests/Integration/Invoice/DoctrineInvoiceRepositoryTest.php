@@ -3,15 +3,21 @@
 declare(strict_types=1);
 
 use App\Invoice\Domain\Entity\Invoice;
+use App\Invoice\Domain\Entity\InvoiceOrderSnapshot;
+use App\Invoice\Domain\Repository\InvoiceOrderSnapshotRepository;
 use App\Invoice\Domain\Repository\InvoiceRepository;
 use App\Invoice\Domain\ValueObject\CustomerReference;
 use App\Invoice\Domain\ValueObject\InvoiceId;
+use App\Invoice\Domain\ValueObject\InvoiceLine;
 use App\Invoice\Domain\ValueObject\InvoiceNumber;
 use App\Invoice\Domain\ValueObject\MoneyAmount;
 use App\Invoice\Domain\ValueObject\OrderReference;
 use App\Invoice\Domain\ValueObject\PaymentReference;
 use Doctrine\ORM\EntityManagerInterface;
 
+/**
+ * @param list<InvoiceLine> $lines
+ */
 function persistInvoice(
     InvoiceRepository $invoices,
     string $id,
@@ -20,6 +26,7 @@ function persistInvoice(
     string $paymentId,
     DateTimeImmutable $issuedAt,
     int $amountCents = 4488,
+    array $lines = [],
 ): void {
     $invoices->save(Invoice::issue(
         InvoiceId::fromString($id),
@@ -29,6 +36,7 @@ function persistInvoice(
         PaymentReference::fromString($paymentId),
         MoneyAmount::fromCents($amountCents),
         $issuedAt,
+        $lines,
     ));
 }
 
@@ -80,4 +88,55 @@ it('numbers the next invoice after the highest sequence of the year', function (
 
     expect($repository->nextNumber(new DateTimeImmutable('2026-08-20T12:05:00+00:00'))->value())
         ->toBe('FAC-2026-0003');
+});
+
+it('persists billed invoice lines', function () {
+    $repository = self::getContainer()->get(InvoiceRepository::class);
+    $entityManager = self::getContainer()->get(EntityManagerInterface::class);
+
+    persistInvoice(
+        $repository,
+        'ffffffff-ffff-4fff-8fff-ffffffffffff',
+        'FAC-2026-0001',
+        'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+        'dddddddd-dddd-4ddd-8ddd-dddddddddddd',
+        new DateTimeImmutable('2026-08-20T12:05:00+00:00'),
+        4488,
+        [
+            InvoiceLine::of('Nuvora Tee', 2, 1999),
+            InvoiceLine::of('Livraison Standard', 1, 490),
+        ],
+    );
+    $entityManager->clear();
+
+    $found = $repository->findByOrderId(OrderReference::fromString('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'));
+
+    expect($found)->not->toBeNull()
+        ->and($found->lines())->toHaveCount(2)
+        ->and($found->lines()[0]->description())->toBe('Nuvora Tee')
+        ->and($found->lines()[0]->quantity())->toBe(2)
+        ->and($found->lines()[0]->unitPriceCents())->toBe(1999)
+        ->and($found->lines()[1]->description())->toBe('Livraison Standard')
+        ->and($found->lines()[1]->unitPriceCents())->toBe(490);
+});
+
+it('persists the order snapshot used to fill the invoice', function () {
+    $repository = self::getContainer()->get(InvoiceOrderSnapshotRepository::class);
+    $entityManager = self::getContainer()->get(EntityManagerInterface::class);
+    $orderId = OrderReference::fromString('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa');
+
+    $repository->save(new InvoiceOrderSnapshot(
+        $orderId,
+        CustomerReference::fromString('11111111-1111-4111-8111-111111111111'),
+        [InvoiceLine::of('Nuvora Tee', 2, 1999), InvoiceLine::of('Livraison Standard', 1, 490)],
+    ));
+    $entityManager->clear();
+
+    $found = $repository->findByOrderId($orderId);
+
+    expect($found)->not->toBeNull()
+        ->and($found->customerId()->value())->toBe('11111111-1111-4111-8111-111111111111')
+        ->and($found->lines())->toHaveCount(2)
+        ->and($found->lines()[0]->description())->toBe('Nuvora Tee')
+        ->and($found->lines()[1]->description())->toBe('Livraison Standard');
 });

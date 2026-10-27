@@ -22,6 +22,7 @@ use App\Order\Domain\ValueObject\ShippingMethod;
 use App\Order\Domain\ValueObject\Quantity;
 use App\Order\Domain\ValueObject\UnitPrice;
 use App\Shared\Application\Event\OrderPlaced;
+use App\Shared\Application\Event\OrderPlacedItem;
 use App\Shared\Application\Transaction\TransactionRunner;
 use App\Shared\Domain\Clock;
 
@@ -83,6 +84,16 @@ final readonly class PlaceOrderCommandHandler
             orderId: $order->id()->value(),
             customerId: $order->customerId()->value(),
             amountCents: $order->totalCents(),
+            items: array_map(
+                static fn (OrderItem $item): OrderPlacedItem => new OrderPlacedItem(
+                    description: $item->name()->value(),
+                    quantity: $item->quantity()->value(),
+                    unitPriceCents: $item->unitPrice()->cents(),
+                ),
+                $order->items(),
+            ),
+            shippingLabel: $order->shipping()?->label(),
+            shippingCents: $order->shipping()?->feeCents() ?? 0,
         ));
 
         return $order->id();
