@@ -69,7 +69,7 @@ const lowStock = computed(() => props.product.stock > 0 && props.product.stock <
     </RouterLink>
   </article>
 
-  <article>
+  <article
     v-else
     class="group panel-flat relative flex flex-col overflow-hidden transition-all duration-500 hover:-translate-y-1 hover:border-line-strong hover:shadow-float"
   >
