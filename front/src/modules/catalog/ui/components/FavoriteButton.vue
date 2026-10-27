@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from '@/shared/i18n/useI18n'
 import AppIcon from '@/shared/ui/AppIcon.vue'
 import { useFavorites } from '../../application/useFavorites'
 
@@ -12,12 +13,13 @@ const props = withDefaults(
   { size: 'sm' },
 )
 
+const { t } = useI18n()
 const { isFavorite, toggle } = useFavorites()
 const active = computed(() => isFavorite(props.productId))
 const label = computed(() =>
   active.value
-    ? `Retirer ${props.productName} de ma liste d'envies`
-    : `Ajouter ${props.productName} à ma liste d'envies`,
+    ? t('catalog.favoriteRemoveNamed', { name: props.productName })
+    : t('catalog.favoriteAddNamed', { name: props.productName }),
 )
 </script>
 

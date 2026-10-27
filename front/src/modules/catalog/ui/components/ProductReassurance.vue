@@ -1,12 +1,15 @@
 <script setup lang="ts">
+import { computed } from 'vue'
+import { useI18n } from '@/shared/i18n/useI18n'
 import AppIcon from '@/shared/ui/AppIcon.vue'
 
-const items = [
-  { icon: 'truck', title: 'Expédié sous 48 h', text: 'Suivi inclus, emballage sobre' },
-  { icon: 'refresh', title: 'Retour sous 30 jours', text: 'Remboursé sans discuter' },
-  { icon: 'shield', title: 'Garantie 2 ans', text: "Pièces et main d'œuvre" },
-  { icon: 'lock', title: 'Paiement sécurisé', text: 'Carte bancaire via Stripe' },
-] as const
+const { t } = useI18n()
+const items = computed(() => [
+  { icon: 'truck' as const, title: t('catalog.reassurance.shipTitle'), text: t('catalog.reassurance.shipText') },
+  { icon: 'refresh' as const, title: t('catalog.reassurance.returnTitle'), text: t('catalog.reassurance.returnText') },
+  { icon: 'shield' as const, title: t('catalog.reassurance.warrantyTitle'), text: t('catalog.reassurance.warrantyText') },
+  { icon: 'lock' as const, title: t('catalog.reassurance.payTitle'), text: t('catalog.reassurance.payText') },
+])
 </script>
 
 <template>

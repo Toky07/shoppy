@@ -1,27 +1,33 @@
-export function authErrorMessage(error: {
-  code: string
-  message: string
-  violations?: Array<{ field?: string; message: string }>
-}): string {
+import { translateFr } from '@/shared/i18n/catalogs'
+import type { Translate } from '@/shared/i18n/translate'
+
+export function authErrorMessage(
+  error: {
+    code: string
+    message: string
+    violations?: Array<{ field?: string; message: string }>
+  },
+  t: Translate = translateFr,
+): string {
   if (error.code === 'invalid_credentials') {
-    return 'Identifiants invalides.'
+    return t('auth.invalidCredentials')
   }
 
   if (error.code === 'email_already_registered') {
-    return 'Cet email est déjà utilisé.'
+    return t('auth.emailTaken')
   }
 
   if (error.code === 'last_admin_account') {
-    return 'Il doit rester au moins un administrateur.'
+    return t('auth.lastAdmin')
   }
 
   const firstViolation = error.violations?.[0]
   if (firstViolation?.field === 'token') {
-    return 'Ce lien est invalide ou a expiré.'
+    return t('auth.invalidLink')
   }
 
   if (firstViolation?.message === 'Email is unchanged.') {
-    return 'Cette adresse est déjà la vôtre.'
+    return t('auth.emailUnchanged')
   }
 
   if (firstViolation?.message) {

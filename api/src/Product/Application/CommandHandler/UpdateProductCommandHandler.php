@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Product\Application\CommandHandler;
 
+use App\Audit\Application\Port\AuditLogger;
+use App\Audit\Domain\ValueObject\AuditAction;
+use App\Audit\Domain\ValueObject\AuditSubjectType;
 use App\Product\Application\Command\UpdateProductCommand;
 use App\Product\Application\ProductVariants;
 use App\Product\Application\UniqueProductSku;
@@ -26,6 +29,7 @@ final readonly class UpdateProductCommandHandler
         private UniqueProductSlug $uniqueProductSlug,
         private CategoryRepository $categoryRepository,
         private UniqueProductSku $uniqueProductSku,
+        private ?AuditLogger $audit = null,
     ) {
     }
 
@@ -45,7 +49,15 @@ final readonly class UpdateProductCommandHandler
         }
 
         if ($command->priceCents !== null) {
+            $previousPrice = $product->price()->cents();
             $product->changePrice(ProductPrice::fromCents($command->priceCents));
+
+            if ($previousPrice !== $command->priceCents) {
+                $this->audit?->record(AuditAction::PRICE_CHANGED, AuditSubjectType::PRODUCT, $id->value(), [
+                    'fromCents' => $previousPrice,
+                    'toCents' => $command->priceCents,
+                ]);
+            }
         }
 
         if ($command->descriptionProvided) {

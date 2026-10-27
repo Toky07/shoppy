@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import type { ImageVariant } from '@/shared/media/imageDerivatives'
+import { useI18n } from '@/shared/i18n/useI18n'
 import AppIcon from './AppIcon.vue'
 import AppImage from './AppImage.vue'
-import type { ImageVariant } from '@/shared/media/imageDerivatives'
 import { useInViewport } from './useInViewport'
+
+const { t } = useI18n()
 
 const props = withDefaults(
   defineProps<{
@@ -241,7 +244,7 @@ function onPointerCancel(event: PointerEvent) {
       <button
         type="button"
         class="pointer-events-auto flex size-8 items-center justify-center rounded-full bg-canvas/90 text-strong shadow-lifted transition duration-200 hover:bg-canvas active:scale-95"
-        aria-label="Image précédente"
+        :aria-label="t('common.previousImage')"
         @click.stop="go(-1)"
       >
         <AppIcon name="chevron-left" :size="16" />
@@ -249,7 +252,7 @@ function onPointerCancel(event: PointerEvent) {
       <button
         type="button"
         class="pointer-events-auto flex size-8 items-center justify-center rounded-full bg-canvas/90 text-strong shadow-lifted transition duration-200 hover:bg-canvas active:scale-95"
-        aria-label="Image suivante"
+        :aria-label="t('common.nextImage')"
         @click.stop="go(1)"
       >
         <AppIcon name="chevron-right" :size="16" />
@@ -260,7 +263,7 @@ function onPointerCancel(event: PointerEvent) {
       v-if="canNavigate"
       class="absolute inset-x-0 bottom-3 z-20 flex justify-center"
       role="tablist"
-      aria-label="Images du produit"
+      :aria-label="t('common.productImages')"
     >
       <div class="flex gap-1.5 rounded-full bg-black/40 px-2 py-1.5 backdrop-blur-sm">
         <button
@@ -271,14 +274,14 @@ function onPointerCancel(event: PointerEvent) {
           :class="slide === index ? 'w-4 bg-white' : 'w-1.5 bg-white/45 hover:bg-white/80'"
           role="tab"
           :aria-selected="slide === index"
-          :aria-label="`Aller à l'image ${slide + 1}`"
+          :aria-label="t('common.goToImage', { index: slide + 1 })"
           @click.stop="select(slide)"
         />
       </div>
     </div>
 
     <p v-if="canNavigate" class="sr-only" aria-live="polite">
-      Image {{ index + 1 }} sur {{ sources.length }}
+      {{ t('common.imageOf', { page: index + 1, count: sources.length }) }}
     </p>
   </div>
 </template>

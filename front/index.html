@@ -15,7 +15,7 @@
     <meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
     <title>Shoppy — Boutique</title>
     <script>
-      // Applique le thème avant le premier paint pour éviter le flash blanc.
+      // Applique le thème et la langue avant le premier paint.
       try {
         const stored = localStorage.getItem('shoppy.theme')
         const dark =
@@ -23,6 +23,12 @@
           ((stored === null || stored === 'system') &&
             window.matchMedia('(prefers-color-scheme: dark)').matches)
         document.documentElement.classList.toggle('dark', dark)
+      } catch {}
+      try {
+        const locale = localStorage.getItem('shoppy.locale')
+        if (locale === 'fr' || locale === 'en') {
+          document.documentElement.lang = locale
+        }
       } catch {}
     </script>
   </head>

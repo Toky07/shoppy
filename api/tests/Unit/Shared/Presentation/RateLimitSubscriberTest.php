@@ -39,7 +39,7 @@ function accountRateLimitSubscriber(int $accountLimit = 2, int $loginLimit = 20,
     );
 }
 
-it('rate limits password reset, email verification and token confirmation routes', function (string $path) {
+it('rate limits password reset, email verification, token confirmation and newsletter routes', function (string $path) {
     $subscriber = accountRateLimitSubscriber();
     $event = rateLimitRequestEvent(Request::create($path, 'POST', server: ['REMOTE_ADDR' => '203.0.113.8']));
 
@@ -53,6 +53,7 @@ it('rate limits password reset, email verification and token confirmation routes
     '/auth/email-verifications',
     '/auth/email-verifications/request',
     '/auth/email-changes/confirm',
+    '/newsletter',
 ]);
 
 it('rate limits direct order placement like cart checkout', function () {

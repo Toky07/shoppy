@@ -1,3 +1,5 @@
+import { translateFr } from '@/shared/i18n/catalogs'
+import type { Translate } from '@/shared/i18n/translate'
 import type { IconName } from '@/shared/ui/icons'
 
 export type AccountShortcut = {
@@ -7,38 +9,43 @@ export type AccountShortcut = {
   detail: string
 }
 
-function countLabel(count: number, singular: string, plural: string, empty: string) {
+function countLabel(count: number, emptyKey: string, oneKey: string, manyKey: string, t: Translate) {
   if (count === 0) {
-    return empty
+    return t(emptyKey)
   }
 
-  return `${count} ${count > 1 ? plural : singular}`
+  return t(count > 1 ? manyKey : oneKey, { count })
 }
 
-export function accountShortcuts(favoriteCount: number, cartCount: number): AccountShortcut[] {
+export function accountShortcuts(
+  favoriteCount: number,
+  cartCount: number,
+  t: Translate = translateFr,
+): AccountShortcut[] {
   return [
     {
       to: '/orders',
-      label: 'Mes commandes',
+      label: t('account.orders'),
       icon: 'package',
-      detail: 'Suivi, statuts et justificatifs',
+      detail: t('account.ordersDetail'),
     },
     {
       to: '/favorites',
-      label: "Ma liste d'envies",
+      label: t('favorites.title'),
       icon: 'heart',
       detail: countLabel(
         favoriteCount,
-        'produit gardé',
-        'produits gardés',
-        'Aucun produit pour le moment',
+        'account.favoritesEmpty',
+        'account.favoritesOne',
+        'account.favoritesMany',
+        t,
       ),
     },
     {
       to: '/cart',
-      label: 'Mon panier',
+      label: t('account.cart'),
       icon: 'cart',
-      detail: countLabel(cartCount, 'article en attente', 'articles en attente', 'Votre panier est vide'),
+      detail: countLabel(cartCount, 'account.cartEmpty', 'account.cartOne', 'account.cartMany', t),
     },
   ]
 }

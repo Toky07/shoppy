@@ -7,6 +7,7 @@ import PageHeader from '@/shared/ui/PageHeader.vue'
 import PageStatus from '@/shared/ui/PageStatus.vue'
 import Pagination from '@/shared/ui/Pagination.vue'
 import AuthRequiredPanel from '@/modules/auth/ui/components/AuthRequiredPanel.vue'
+import { useI18n } from '@/shared/i18n/useI18n'
 import { parsePageQuery } from '@/shared/routing/parsePageQuery'
 import { authSessionKey } from '@/modules/auth/application/authSessionKey'
 import { orderRepositoryKey } from '../../application/orderRepositoryKey'
@@ -24,6 +25,7 @@ if (!session || !repository) {
 
 const authSession = session
 const orderRepository = repository
+const { t } = useI18n()
 const isAuthenticated = computed(() => authSession.isAuthenticated.value)
 const route = useRoute()
 const query = computed(() => ({
@@ -31,21 +33,21 @@ const query = computed(() => ({
   limit: DEFAULT_ORDER_LIMIT,
 }))
 const { status, page, error } = useOrderList(orderRepository, query, isAuthenticated)
-const loadError = computed(() => (error.value ? orderErrorMessage(error.value) : undefined))
+const loadError = computed(() => (error.value ? orderErrorMessage(error.value, t) : undefined))
 </script>
 
 <template>
   <section class="animate-fade-in">
     <PageHeader
-      eyebrow="Historique"
-      title="Mes Commandes"
+      :eyebrow="t('orders.eyebrow')"
+      :title="t('orders.pageTitle')"
       icon="package"
-      description="Suivez l'état de vos achats et retrouvez vos justificatifs."
+      :description="t('orders.description')"
     />
 
     <AuthRequiredPanel
       v-if="!isAuthenticated"
-      message="Vous devez être connecté pour voir l'historique de vos commandes."
+      :message="t('orders.authRequired')"
       redirect="/orders"
     />
 
@@ -54,11 +56,11 @@ const loadError = computed(() => (error.value ? orderErrorMessage(error.value) :
         <template #empty>
           <EmptyState
             icon="package"
-            title="Aucune commande"
-            description="Vous n'avez pas encore passé de commande. Le catalogue vous attend."
+            :title="t('orders.empty')"
+            :description="t('orders.emptyDescription')"
           >
             <RouterLink to="/" class="btn-primary btn-lg">
-              Explorer le catalogue
+              {{ t('orders.explore') }}
               <AppIcon name="arrow-right" :size="16" />
             </RouterLink>
           </EmptyState>

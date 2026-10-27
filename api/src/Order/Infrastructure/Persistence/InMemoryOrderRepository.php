@@ -8,6 +8,8 @@ use App\Order\Domain\Entity\Order;
 use App\Order\Domain\Repository\OrderRepository;
 use App\Order\Domain\ValueObject\CustomerId;
 use App\Order\Domain\ValueObject\OrderId;
+use App\Order\Domain\ValueObject\OrderStatus;
+use DateTimeImmutable;
 
 final class InMemoryOrderRepository implements OrderRepository
 {
@@ -71,5 +73,43 @@ final class InMemoryOrderRepository implements OrderRepository
     public function all(): array
     {
         return array_values($this->orders);
+    }
+
+    public function paidRevenueCents(?DateTimeImmutable $from = null, ?DateTimeImmutable $until = null): int
+    {
+        return array_reduce(
+            $this->paidInPeriod($from, $until),
+            static fn (int $total, Order $order): int => $total + $order->totalCents(),
+            0,
+        );
+    }
+
+    public function countPlacedBetween(DateTimeImmutable $from, DateTimeImmutable $until): int
+    {
+        return count(array_filter(
+            $this->orders,
+            static fn (Order $order): bool => $order->createdAt() >= $from && $order->createdAt() < $until,
+        ));
+    }
+
+    /**
+     * @return list<Order>
+     */
+    private function paidInPeriod(?DateTimeImmutable $from, ?DateTimeImmutable $until): array
+    {
+        return array_values(array_filter(
+            $this->orders,
+            static function (Order $order) use ($from, $until): bool {
+                if (!$order->status()->equals(OrderStatus::paid())) {
+                    return false;
+                }
+
+                if ($from !== null && $order->createdAt() < $from) {
+                    return false;
+                }
+
+                return $until === null || $order->createdAt() < $until;
+            },
+        ));
     }
 }

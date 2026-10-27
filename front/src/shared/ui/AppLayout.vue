@@ -1,8 +1,12 @@
 <script setup lang="ts">
+import { useI18n } from '@/shared/i18n/useI18n'
 import AppFooter from './AppFooter.vue'
 import AppHeader from './AppHeader.vue'
 import AppTrustBanner from './AppTrustBanner.vue'
 import BackToTop from './BackToTop.vue'
+import CookieBanner from './CookieBanner.vue'
+
+const { t } = useI18n()
 </script>
 
 <template>
@@ -11,7 +15,7 @@ import BackToTop from './BackToTop.vue'
       href="#main"
       class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-60 focus:rounded-full focus:bg-primary focus:px-4 focus:py-2 focus:text-sm focus:text-primary-fg"
     >
-      Aller au contenu
+      {{ t('skipToContent') }}
     </a>
 
     <AppTrustBanner />
@@ -22,6 +26,7 @@ import BackToTop from './BackToTop.vue'
     </main>
 
     <AppFooter />
+    <CookieBanner />
     <BackToTop />
   </div>
 </template>

@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { useI18n } from '@/shared/i18n/useI18n'
 import AppIcon from './AppIcon.vue'
+
+const { t } = useI18n()
 
 const visible = ref(false)
 
@@ -33,8 +36,8 @@ function toTop() {
       v-if="visible"
       type="button"
       class="btn-outline fixed right-5 bottom-5 z-40 size-11 p-0 shadow-lifted backdrop-blur-md"
-      aria-label="Revenir en haut"
-      title="Revenir en haut"
+      :aria-label="t('common.backToTop')"
+      :title="t('common.backToTop')"
       @click="toTop"
     >
       <AppIcon name="arrow-up" :size="17" />

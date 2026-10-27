@@ -1,30 +1,36 @@
-export function cartErrorMessage(error: {
-  code: string
-  message: string
-  violations?: Array<{ message: string }>
-}): string {
+import { translateFr } from '@/shared/i18n/catalogs'
+import type { Translate } from '@/shared/i18n/translate'
+
+export function cartErrorMessage(
+  error: {
+    code: string
+    message: string
+    violations?: Array<{ message: string }>
+  },
+  t: Translate = translateFr,
+): string {
   if (error.code === 'insufficient_product_stock') {
-    return 'Stock insuffisant pour ce produit.'
+    return t('errors.insufficientStock')
   }
 
   if (error.code === 'empty_cart') {
-    return 'Le panier est vide.'
+    return t('errors.emptyCart')
   }
 
   if (error.code === 'cart_already_checking_out') {
-    return 'Cette commande est déjà en cours de validation.'
+    return t('errors.cartCheckingOut')
   }
 
   if (error.code === 'cart_item_not_found') {
-    return "Cet article n'est plus dans le panier."
+    return t('errors.cartItemMissing')
   }
 
   if (error.code === 'unauthenticated') {
-    return 'Votre session a expiré. Reconnectez-vous pour continuer.'
+    return t('errors.sessionExpired')
   }
 
   if (error.code === 'account_required') {
-    return 'Un compte existe déjà avec cet e-mail. Connectez-vous pour commander.'
+    return t('errors.accountRequired')
   }
 
   const firstViolation = error.violations?.[0]?.message

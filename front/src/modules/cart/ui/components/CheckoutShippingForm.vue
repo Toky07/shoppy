@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { SHIPPING_METHODS, type ShippingMethodCode } from '@/modules/order/domain/ShippingMethod'
+import { useI18n } from '@/shared/i18n/useI18n'
 import { formatMoney } from '@/shared/money/formatMoney'
 
+const { t, intlLocale } = useI18n()
 const shippingMethod = defineModel<ShippingMethodCode>({ required: true })
 
 function tariff(code: ShippingMethodCode): string {
@@ -10,23 +12,23 @@ function tariff(code: ShippingMethodCode): string {
     return ''
   }
 
-  const price = formatMoney({ cents: method.feeCents, currency: 'EUR' })
+  const price = formatMoney({ cents: method.feeCents, currency: 'EUR' }, intlLocale.value)
   if (method.freeFromCents === null) {
     return price
   }
 
-  const threshold = formatMoney({ cents: method.freeFromCents, currency: 'EUR' })
-  return `${price}, offerte dès ${threshold}`
+  const threshold = formatMoney({ cents: method.freeFromCents, currency: 'EUR' }, intlLocale.value)
+  return t('checkout.tariffFreeFrom', { price, threshold })
 }
 </script>
 
 <template>
   <section class="panel p-6" aria-labelledby="checkout-shipping-title">
-    <h2 id="checkout-shipping-title" class="font-display text-lg font-bold text-strong">Mode de livraison</h2>
-    <p class="mt-1 text-sm text-muted">Le montant est calculé sur le sous-total et figé sur la commande.</p>
+    <h2 id="checkout-shipping-title" class="font-display text-lg font-bold text-strong">{{ t('checkout.methodTitle') }}</h2>
+    <p class="mt-1 text-sm text-muted">{{ t('checkout.methodHint') }}</p>
 
     <fieldset class="mt-5 space-y-3">
-      <legend class="sr-only">Mode de livraison</legend>
+      <legend class="sr-only">{{ t('checkout.methodTitle') }}</legend>
       <label
         v-for="method in SHIPPING_METHODS"
         :key="method.code"
@@ -40,7 +42,7 @@ function tariff(code: ShippingMethodCode): string {
           :value="method.code"
         />
         <span>
-          <span class="block text-sm font-semibold text-strong">{{ method.label }}</span>
+          <span class="block text-sm font-semibold text-strong">{{ t(`shipping.${method.code}`) }}</span>
           <span class="mt-0.5 block text-sm text-muted">{{ tariff(method.code) }}</span>
         </span>
       </label>

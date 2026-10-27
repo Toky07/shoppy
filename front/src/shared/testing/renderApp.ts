@@ -11,6 +11,12 @@ import { cartStateKey } from '@/modules/cart/application/cartStateKey'
 import { createCartState } from '@/modules/cart/application/createCartState'
 import type { AdminCatalogRepository } from '@/modules/catalog/application/AdminCatalogRepository'
 import { adminCatalogRepositoryKey } from '@/modules/catalog/application/adminCatalogRepositoryKey'
+import type { AdminDashboardRepository } from '@/modules/admin/application/AdminDashboardRepository'
+import { adminDashboardRepositoryKey } from '@/modules/admin/application/adminDashboardRepositoryKey'
+import { FakeAdminDashboardRepository } from '@/modules/admin/testing/FakeAdminDashboardRepository'
+import type { AuditLogRepository } from '@/modules/admin/application/AuditLogRepository'
+import { auditLogRepositoryKey } from '@/modules/admin/application/auditLogRepositoryKey'
+import { FakeAuditLogRepository } from '@/modules/admin/testing/FakeAuditLogRepository'
 import type { CatalogRepository } from '@/modules/catalog/application/CatalogRepository'
 import { catalogRepositoryKey } from '@/modules/catalog/application/catalogRepositoryKey'
 import type { OrderRepository } from '@/modules/order/application/OrderRepository'
@@ -35,7 +41,20 @@ import { favoritesStateKey } from '@/modules/catalog/application/favoritesStateK
 import type { FavoriteRepository } from '@/modules/catalog/application/FavoriteRepository'
 import { FakeFavoriteRepository } from '@/modules/catalog/testing/FakeFavoriteRepository'
 import { createFakeCatalogRepository } from '@/modules/catalog/testing/fakeCatalogRepository'
+import type { NewsletterRepository } from '@/modules/newsletter/application/NewsletterRepository'
+import { newsletterRepositoryKey } from '@/modules/newsletter/application/newsletterRepositoryKey'
+import { FakeNewsletterRepository } from '@/modules/newsletter/testing/FakeNewsletterRepository'
 import type { Session } from '@/modules/auth/domain/Session'
+import { cookieConsentKey } from '@/shared/consent/cookieConsentKey'
+import {
+  createCookieConsentState,
+  type CookieConsentState,
+} from '@/shared/consent/createCookieConsentState'
+import { createMemoryCookieConsentStore } from '@/shared/consent/cookieConsentStore'
+import { createLocaleState, type LocaleState } from '@/shared/i18n/createLocaleState'
+import { localeStateKey } from '@/shared/i18n/localeStateKey'
+import { createMemoryLocaleStore } from '@/shared/i18n/localeStore'
+import type { Locale } from '@/shared/i18n/locale'
 import { createNavigationGuard } from '@/router/navigationGuard'
 import { routes } from '@/router/routes'
 
@@ -46,9 +65,15 @@ export async function renderApp(options: {
   orderRepository?: OrderRepository
   paymentRepository?: PaymentRepository
   adminCatalogRepository?: AdminCatalogRepository
+  dashboardRepository?: AdminDashboardRepository
+  auditLogRepository?: AuditLogRepository
   userDirectory?: UserDirectory
   favoriteRepository?: FavoriteRepository
   addressBookRepository?: AddressBookRepository
+  cookieConsent?: CookieConsentState
+  localeState?: LocaleState
+  locale?: Locale
+  newsletterRepository?: NewsletterRepository
   session?: Session | null
   path?: string
 } = {}) {
@@ -84,9 +109,20 @@ export async function renderApp(options: {
         [orderRepositoryKey as symbol]: options.orderRepository ?? new FakeOrderRepository(),
         [paymentRepositoryKey as symbol]: options.paymentRepository ?? new FakePaymentRepository(),
         [adminCatalogRepositoryKey as symbol]: options.adminCatalogRepository ?? new FakeAdminCatalogRepository(),
+        [adminDashboardRepositoryKey as symbol]:
+          options.dashboardRepository ?? new FakeAdminDashboardRepository(),
+        [auditLogRepositoryKey as symbol]: options.auditLogRepository ?? new FakeAuditLogRepository(),
         [userDirectoryKey as symbol]: options.userDirectory ?? new FakeUserDirectory(),
         [favoritesStateKey as symbol]: favoritesState,
         [addressBookStateKey as symbol]: addressBookState,
+        [cookieConsentKey as symbol]:
+          options.cookieConsent ??
+          createCookieConsentState(createMemoryCookieConsentStore('necessary')),
+        [localeStateKey as symbol]:
+          options.localeState ??
+          createLocaleState(createMemoryLocaleStore(options.locale ?? 'fr')),
+        [newsletterRepositoryKey as symbol]:
+          options.newsletterRepository ?? new FakeNewsletterRepository(),
       },
     },
   })

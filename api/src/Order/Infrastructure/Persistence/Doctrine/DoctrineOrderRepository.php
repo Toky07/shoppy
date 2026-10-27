@@ -8,6 +8,8 @@ use App\Order\Domain\Entity\Order;
 use App\Order\Domain\Repository\OrderRepository;
 use App\Order\Domain\ValueObject\CustomerId;
 use App\Order\Domain\ValueObject\OrderId;
+use App\Order\Domain\ValueObject\OrderStatus;
+use DateTimeImmutable;
 use App\Order\Infrastructure\Persistence\Doctrine\Entity\OrderRecord;
 use App\User\Infrastructure\Persistence\Doctrine\Entity\UserRecord;
 use Doctrine\ORM\EntityManagerInterface;
@@ -85,6 +87,58 @@ final readonly class DoctrineOrderRepository implements OrderRepository
             ->from(OrderRecord::class, 'o')
             ->getQuery()
             ->getSingleScalarResult();
+    }
+
+    public function paidRevenueCents(?DateTimeImmutable $from = null, ?DateTimeImmutable $until = null): int
+    {
+        $merchandise = (int) $this->paidPeriodQuery(
+            $this->entityManager->createQueryBuilder()
+                ->select('COALESCE(SUM(items.quantity * items.unitPriceCents), 0)')
+                ->from(OrderRecord::class, 'o')
+                ->join('o.items', 'items'),
+            $from,
+            $until,
+        )->getQuery()->getSingleScalarResult();
+
+        $shipping = (int) $this->paidPeriodQuery(
+            $this->entityManager->createQueryBuilder()
+                ->select('COALESCE(SUM(o.shippingFeeCents), 0)')
+                ->from(OrderRecord::class, 'o'),
+            $from,
+            $until,
+        )->getQuery()->getSingleScalarResult();
+
+        return $merchandise + $shipping;
+    }
+
+    public function countPlacedBetween(DateTimeImmutable $from, DateTimeImmutable $until): int
+    {
+        return (int) $this->entityManager->createQueryBuilder()
+            ->select('COUNT(o.id)')
+            ->from(OrderRecord::class, 'o')
+            ->where('o.createdAt >= :from')
+            ->andWhere('o.createdAt < :until')
+            ->setParameter('from', $from)
+            ->setParameter('until', $until)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    private function paidPeriodQuery(QueryBuilder $query, ?DateTimeImmutable $from, ?DateTimeImmutable $until): QueryBuilder
+    {
+        $query
+            ->andWhere('o.status = :paid')
+            ->setParameter('paid', OrderStatus::paid()->value());
+
+        if ($from !== null) {
+            $query->andWhere('o.createdAt >= :from')->setParameter('from', $from);
+        }
+
+        if ($until !== null) {
+            $query->andWhere('o.createdAt < :until')->setParameter('until', $until);
+        }
+
+        return $query;
     }
 
     /**

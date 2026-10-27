@@ -1,22 +1,28 @@
-export function orderErrorMessage(error: {
-  code: string
-  message: string
-  violations?: Array<{ message: string }>
-}): string {
+import { translateFr } from '@/shared/i18n/catalogs'
+import type { Translate } from '@/shared/i18n/translate'
+
+export function orderErrorMessage(
+  error: {
+    code: string
+    message: string
+    violations?: Array<{ message: string }>
+  },
+  t: Translate = translateFr,
+): string {
   if (error.code === 'order_not_found' || error.code === 'forbidden') {
-    return 'Cette commande est introuvable.'
+    return t('errors.orderNotFound')
   }
 
   if (error.code === 'invalid_order_transition') {
-    return 'Cette commande ne peut plus être annulée.'
+    return t('errors.orderNotCancellable')
   }
 
   if (error.code === 'payment_not_payable' || error.code === 'payment_already_completed') {
-    return 'Cette commande ne peut plus être payée.'
+    return t('errors.orderNotPayable')
   }
 
   if (error.code === 'payment_charge_failed' || error.code === 'payment_provider_not_configured') {
-    return 'Le paiement a échoué.'
+    return t('errors.paymentFailed')
   }
 
   const firstViolation = error.violations?.[0]?.message

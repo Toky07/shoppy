@@ -159,6 +159,31 @@ final readonly class DoctrineProductRepository implements ProductRepository
             ->getSingleScalarResult();
     }
 
+    public function findLowStock(int $maxStock, int $limit): array
+    {
+        if ($limit < 1) {
+            return [];
+        }
+
+        /** @var list<ProductRecord> $records */
+        $records = $this->entityManager->createQueryBuilder()
+            ->select('product')
+            ->from(ProductRecord::class, 'product')
+            ->where('product.stock <= :maxStock')
+            ->andWhere('product.published = true')
+            ->setParameter('maxStock', $maxStock)
+            ->orderBy('product.stock', 'ASC')
+            ->addOrderBy('product.name', 'ASC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+
+        return array_map(
+            static fn (ProductRecord $record): Product => $record->toListDomain(),
+            $records,
+        );
+    }
+
     private function createListQueryBuilder(ProductListCriteria $criteria): QueryBuilder
     {
         $queryBuilder = $this->entityManager->createQueryBuilder()

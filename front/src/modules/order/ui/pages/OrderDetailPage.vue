@@ -14,6 +14,7 @@ import OrderCheckoutPanel from '../components/OrderCheckoutPanel.vue'
 import OrderAddresses from '../components/OrderAddresses.vue'
 import OrderDetailHeader from '../components/OrderDetailHeader.vue'
 import OrderLine from '../components/OrderLine.vue'
+import { useI18n } from '@/shared/i18n/useI18n'
 import { orderErrorMessage } from '../lib/orderErrorMessage'
 
 const session = inject(authSessionKey)
@@ -24,6 +25,7 @@ if (!session || !orderRepository || !paymentRepository) {
   throw new Error('Order dependencies are not provided.')
 }
 
+const { t } = useI18n()
 const authSession = session
 const orders = orderRepository
 const payments = paymentRepository
@@ -33,7 +35,7 @@ const orderId = computed(() => String(route.params.id ?? ''))
 const { status, order, error, reload } = useOrder(orders, orderId, isAuthenticated)
 const { payment, reload: reloadPayment } = usePaymentByOrder(payments, orderId, isAuthenticated)
 const { pending, errorMessage: actionError, run } = usePendingAction((error) =>
-  orderErrorMessage(error),
+  orderErrorMessage(error, t),
 )
 const notFound = computed(
   () => error.value?.code === 'order_not_found' || error.value?.code === 'forbidden',
@@ -42,7 +44,7 @@ const loadError = computed(() => {
   if (!error.value) {
     return undefined
   }
-  return notFound.value ? 'Cette commande est introuvable.' : orderErrorMessage(error.value)
+  return notFound.value ? t('orders.notFound') : orderErrorMessage(error.value, t)
 })
 const canPay = computed(
   () => order.value?.status === 'pending' && payment.value?.status === 'pending',
@@ -78,16 +80,16 @@ function onCancel() {
 
 <template>
   <section class="animate-fade-in">
-    <nav class="mb-8 text-sm" aria-label="Fil d'Ariane">
+    <nav class="mb-8 text-sm" :aria-label="t('catalog.breadcrumb')">
       <RouterLink to="/orders" class="inline-flex items-center gap-2 font-medium link-quiet">
         <AppIcon name="arrow-left" :size="15" />
-        Retour aux commandes
+        {{ t('orders.back') }}
       </RouterLink>
     </nav>
 
     <AuthRequiredPanel
       v-if="!isAuthenticated"
-      message="Vous devez être connecté pour voir les détails de cette commande."
+      :message="t('orders.authDetail')"
       :redirect="route.path"
     />
 
@@ -103,7 +105,7 @@ function onCancel() {
           <OrderAddresses :shipping="order.shippingAddress" :billing="order.billingAddress" />
 
           <div class="p-6 sm:p-8">
-            <h2 class="field-label">Articles commandés</h2>
+            <h2 class="field-label">{{ t('orders.itemsTitle') }}</h2>
             <ul class="divide-y divide-line">
               <OrderLine v-for="item in order.items" :key="item.productId" :item="item" />
             </ul>
@@ -123,7 +125,7 @@ function onCancel() {
 
         <p class="mt-6 flex items-center justify-center gap-2 text-xs text-faint">
           <AppIcon name="shield" :size="14" />
-          Paiement traité par Stripe · votre commande est confirmée dès validation bancaire
+          {{ t('orders.stripeNote') }}
         </p>
       </article>
     </PageStatus>

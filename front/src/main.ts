@@ -6,10 +6,15 @@ import {
     authRepository,
     authSession,
     adminCatalogRepository,
+    adminDashboardRepository,
+    auditLogRepository,
     cartRepository,
     cartState,
     catalogRepository,
+    cookieConsent,
     favoritesState,
+    localeState,
+    newsletterRepository,
     orderRepository,
     paymentRepository,
     userDirectory } from './app/dependencies'
@@ -20,11 +25,16 @@ import { userDirectoryKey } from './modules/auth/application/userDirectoryKey'
 import { cartRepositoryKey } from './modules/cart/application/cartRepositoryKey'
 import { cartStateKey } from './modules/cart/application/cartStateKey'
 import { adminCatalogRepositoryKey } from './modules/catalog/application/adminCatalogRepositoryKey'
+import { adminDashboardRepositoryKey } from './modules/admin/application/adminDashboardRepositoryKey'
+import { auditLogRepositoryKey } from './modules/admin/application/auditLogRepositoryKey'
 import { catalogRepositoryKey } from './modules/catalog/application/catalogRepositoryKey'
 import { favoritesStateKey } from './modules/catalog/application/favoritesStateKey'
 import { orderRepositoryKey } from './modules/order/application/orderRepositoryKey'
 import { paymentRepositoryKey } from './modules/payment/application/paymentRepositoryKey'
 import router from './router'
+import { newsletterRepositoryKey } from './modules/newsletter/application/newsletterRepositoryKey'
+import { cookieConsentKey } from './shared/consent/cookieConsentKey'
+import { localeStateKey } from './shared/i18n/localeStateKey'
 import { createNavigationGuard } from './router/navigationGuard'
 import '@fontsource-variable/inter'
 import '@fontsource-variable/bricolage-grotesque/standard.css'
@@ -40,9 +50,14 @@ app.provide(cartStateKey, cartState);
 app.provide(orderRepositoryKey, orderRepository);
 app.provide(paymentRepositoryKey, paymentRepository);
 app.provide(adminCatalogRepositoryKey, adminCatalogRepository);
+app.provide(adminDashboardRepositoryKey, adminDashboardRepository);
+app.provide(auditLogRepositoryKey, auditLogRepository);
 app.provide(userDirectoryKey, userDirectory);
 app.provide(favoritesStateKey, favoritesState);
 app.provide(addressBookStateKey, addressBookState);
+app.provide(cookieConsentKey, cookieConsent);
+app.provide(localeStateKey, localeState);
+app.provide(newsletterRepositoryKey, newsletterRepository);
 
 await authReady;
 router.beforeEach(createNavigationGuard(authSession));

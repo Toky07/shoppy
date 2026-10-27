@@ -1,5 +1,8 @@
 <script setup lang="ts">
+import { useI18n } from '@/shared/i18n/useI18n'
 import AppIcon from './AppIcon.vue'
+
+const { t } = useI18n()
 </script>
 
 <template>
@@ -9,15 +12,15 @@ import AppIcon from './AppIcon.vue'
     >
       <span class="inline-flex items-center gap-2">
         <AppIcon name="truck" :size="14" />
-        Livraison offerte dès 49 €
+        {{ t('trust.shipping') }}
       </span>
       <span class="hidden items-center gap-2 md:inline-flex">
         <AppIcon name="refresh" :size="14" />
-        Retours sous 30 jours
+        {{ t('trust.returns') }}
       </span>
       <span class="hidden items-center gap-2 lg:inline-flex">
         <AppIcon name="shield" :size="14" />
-        Paiement sécurisé par Stripe
+        {{ t('trust.payment') }}
       </span>
     </div>
   </div>

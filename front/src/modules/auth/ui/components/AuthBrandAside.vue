@@ -1,12 +1,18 @@
 <script setup lang="ts">
+import { computed } from 'vue'
+import { useI18n } from '@/shared/i18n/useI18n'
 import AppIcon from '@/shared/ui/AppIcon.vue'
 import BrandMark from '@/shared/ui/BrandMark.vue'
 
-const perks = [
-  { icon: 'lock', title: 'Paiement sécurisé', text: 'Carte bancaire traitée par Stripe' },
-  { icon: 'package', title: 'Suivi de commande', text: 'Historique et statuts en temps réel' },
-  { icon: 'truck', title: 'Expédition 48 h', text: "Offerte dès 49 € d'achat" },
-] as const
+const { t } = useI18n()
+const perks = computed(
+  () =>
+    [
+      { icon: 'lock' as const, title: t('auth.perkPayTitle'), text: t('auth.perkPayText') },
+      { icon: 'package' as const, title: t('auth.perkTrackTitle'), text: t('auth.perkTrackText') },
+      { icon: 'truck' as const, title: t('auth.perkShipTitle'), text: t('auth.perkShipText') },
+    ] as const,
+)
 </script>
 
 <template>
@@ -16,11 +22,10 @@ const perks = [
     <div class="relative z-1">
       <span class="text-strong"><BrandMark :size="38" /></span>
       <p class="display-tight mt-8 text-3xl text-strong">
-        Une boutique courte, <span class="text-accent-strong">sans bruit</span>.
+        {{ t('auth.brandTitle') }} <span class="text-accent-strong">{{ t('auth.brandAccent') }}</span>.
       </p>
       <p class="mt-4 max-w-xs text-sm leading-relaxed text-muted">
-        On ne vend pas tout, on vend ce qui dure. Votre compte garde vos commandes et vos envies au
-        même endroit.
+        {{ t('auth.brandBody') }}
       </p>
     </div>
 

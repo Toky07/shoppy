@@ -1,18 +1,21 @@
+import { translateFr } from '@/shared/i18n/catalogs'
+import type { Translate } from '@/shared/i18n/translate'
 import type { IconName } from '@/shared/ui/icons'
 
 export type AdminNavItem = {
   to: string
-  label: string
+  labelKey: string
   icon: IconName
   exact?: boolean
 }
 
 export const ADMIN_NAV: AdminNavItem[] = [
-  { to: '/admin', label: 'Tableau de bord', icon: 'grid', exact: true },
-  { to: '/admin/orders', label: 'Commandes', icon: 'package' },
-  { to: '/admin/products', label: 'Catalogue', icon: 'tag' },
-  { to: '/admin/reviews', label: 'Avis', icon: 'star' },
-  { to: '/admin/users', label: 'Utilisateurs', icon: 'users' },
+  { to: '/admin', labelKey: 'admin.nav.dashboard', icon: 'grid', exact: true },
+  { to: '/admin/orders', labelKey: 'admin.nav.orders', icon: 'package' },
+  { to: '/admin/products', labelKey: 'admin.nav.catalog', icon: 'tag' },
+  { to: '/admin/reviews', labelKey: 'admin.nav.reviews', icon: 'star' },
+  { to: '/admin/users', labelKey: 'admin.nav.users', icon: 'users' },
+  { to: '/admin/audit', labelKey: 'admin.nav.audit', icon: 'list' },
 ]
 
 export function isAdminNavActive(path: string, item: AdminNavItem): boolean {
@@ -23,34 +26,38 @@ export function isAdminNavActive(path: string, item: AdminNavItem): boolean {
   return path === item.to || path.startsWith(`${item.to}/`)
 }
 
-export function adminPageTitle(path: string): string {
+export function adminPageTitle(path: string, t: Translate = translateFr): string {
   if (path.startsWith('/admin/orders/')) {
-    return 'Détail commande'
+    return t('admin.titles.orderDetail')
   }
 
   if (path === '/admin/orders') {
-    return 'Commandes'
+    return t('admin.titles.orders')
   }
 
   if (path === '/admin/products/new') {
-    return 'Nouveau produit'
+    return t('admin.titles.productNew')
   }
 
   if (path.startsWith('/admin/products/') && path !== '/admin/products') {
-    return 'Modifier le produit'
+    return t('admin.titles.productEdit')
   }
 
   if (path === '/admin/products') {
-    return 'Catalogue'
+    return t('admin.titles.catalog')
   }
 
   if (path === '/admin/reviews') {
-    return 'Avis'
+    return t('admin.titles.reviews')
   }
 
   if (path === '/admin/users') {
-    return 'Utilisateurs'
+    return t('admin.titles.users')
   }
 
-  return 'Tableau de bord'
+  if (path === '/admin/audit') {
+    return t('admin.titles.audit')
+  }
+
+  return t('admin.titles.dashboard')
 }

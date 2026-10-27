@@ -9,6 +9,7 @@ import { catalogRepositoryKey } from '@/modules/catalog/application/catalogRepos
 import { usePendingAction } from '@/shared/async/usePendingAction'
 import AdminPageHeader from '../components/AdminPageHeader.vue'
 import AdminProductForm from '../components/AdminProductForm.vue'
+import { useI18n } from '@/shared/i18n/useI18n'
 import AdminProductGallery, { type GalleryImage } from '../components/AdminProductGallery.vue'
 import { emptyProductDraft } from '../lib/productDraft'
 import type { Category } from '@/modules/catalog/domain/Category'
@@ -20,6 +21,7 @@ if (!catalog || !adminCatalog) {
   throw new Error('Admin catalog dependencies are not provided.')
 }
 
+const { t } = useI18n()
 const catalogRepository = catalog
 const adminRepository = adminCatalog
 const router = useRouter()
@@ -154,8 +156,8 @@ function onSubmit() {
 }
 
 function onDelete() {
-  const name = draft.value.name.trim() || 'ce produit'
-  if (!window.confirm(`Supprimer « ${name} » du catalogue ? Cette action est définitive.`)) {
+  const name = draft.value.name.trim() || t('admin.unnamed')
+  if (!window.confirm(t('admin.deleteConfirm', { name }))) {
     return
   }
 
@@ -238,15 +240,11 @@ function onMoveImage(index: number, direction: -1 | 1) {
 <template>
   <section class="animate-fade-in">
     <AdminPageHeader
-      :title="isCreate ? 'Nouveau produit' : draft.name.trim() || 'Modifier le produit'"
+      :title="isCreate ? t('admin.createTitle') : draft.name.trim() || t('admin.editTitle')"
       :icon="isCreate ? 'plus' : 'settings'"
-      :description="
-        isCreate
-          ? 'Composez la fiche, le prix et le stock. L’aperçu boutique se met à jour en direct.'
-          : 'Ajustez la fiche, le prix et le stock. L’aperçu boutique reflète vos changements.'
-      "
+      :description="isCreate ? t('admin.createDescription') : t('admin.editDescription')"
       back-to="/admin/products"
-      back-label="Retour au catalogue"
+      :back-label="t('admin.backToCatalog')"
     />
 
     <StatusNotice v-if="loadError" tone="danger" class="mt-6 max-w-xl">{{ loadError }}</StatusNotice>

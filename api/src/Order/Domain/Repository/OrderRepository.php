@@ -7,6 +7,7 @@ namespace App\Order\Domain\Repository;
 use App\Order\Domain\Entity\Order;
 use App\Order\Domain\ValueObject\CustomerId;
 use App\Order\Domain\ValueObject\OrderId;
+use DateTimeImmutable;
 
 interface OrderRepository
 {
@@ -27,4 +28,8 @@ interface OrderRepository
     public function findPage(int $offset, int $limit): array;
 
     public function countAll(): int;
+
+    public function paidRevenueCents(?DateTimeImmutable $from = null, ?DateTimeImmutable $until = null): int;
+
+    public function countPlacedBetween(DateTimeImmutable $from, DateTimeImmutable $until): int;
 }

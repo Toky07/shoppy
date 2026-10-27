@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, inject } from 'vue'
+import { useI18n } from '@/shared/i18n/useI18n'
 import PageHeader from '@/shared/ui/PageHeader.vue'
 import { authSessionKey } from '../../application/authSessionKey'
 import AddressBookPanel from '@/modules/account/ui/components/AddressBookPanel.vue'
@@ -9,6 +10,7 @@ import AccountPreferencesPanel from '../components/AccountPreferencesPanel.vue'
 import AccountSecurityPanel from '../components/AccountSecurityPanel.vue'
 import AuthRequiredPanel from '../components/AuthRequiredPanel.vue'
 
+const { t } = useI18n()
 const session = inject(authSessionKey)
 const isAuthenticated = computed(() => session?.isAuthenticated.value ?? false)
 </script>
@@ -16,15 +18,15 @@ const isAuthenticated = computed(() => session?.isAuthenticated.value ?? false)
 <template>
   <section class="animate-fade-in">
     <PageHeader
-      eyebrow="Compte"
-      title="Mon profil"
+      :eyebrow="t('account.eyebrow')"
+      :title="t('account.pageTitle')"
       icon="user"
-      description="Vos informations, vos raccourcis et vos préférences d'affichage."
+      :description="t('account.pageDescription')"
     />
 
     <AuthRequiredPanel
       v-if="!isAuthenticated"
-      message="Connectez-vous pour consulter votre profil."
+      :message="t('account.authRequired')"
       redirect="/account"
     />
 

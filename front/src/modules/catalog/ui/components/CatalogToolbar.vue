@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
+import { useI18n } from '@/shared/i18n/useI18n'
 import AppIcon from '@/shared/ui/AppIcon.vue'
 import { parseSearchQuery } from '@/shared/routing/parseSearchQuery'
 import {
@@ -21,6 +22,7 @@ const props = withDefaults(
   { showView: true, categories: () => [] },
 )
 
+const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const { view, setView } = useCatalogView()
@@ -57,9 +59,15 @@ const activeCategory = computed(() =>
   typeof route.query.category === 'string' && route.query.category !== '' ? route.query.category : undefined,
 )
 let priceDebounceId: ReturnType<typeof setTimeout> | undefined
-const countLabel = computed(() =>
-  props.total === undefined ? '' : `${props.total} produit${props.total > 1 ? 's' : ''}`,
-)
+const countLabel = computed(() => {
+  if (props.total === undefined) {
+    return ''
+  }
+
+  return props.total > 1
+    ? t('catalog.countPlural', { count: props.total })
+    : t('catalog.count', { count: props.total })
+})
 
 async function pushCatalogQuery(patch: {
   q?: string
@@ -194,7 +202,7 @@ function onStockChange(event: Event) {
 
 <template>
   <div class="panel-flat flex flex-col gap-3 p-3">
-    <nav v-if="props.categories.length > 0" class="flex flex-wrap gap-2" aria-label="Catégories">
+    <nav v-if="props.categories.length > 0" class="flex flex-wrap gap-2" :aria-label="t('catalog.categories')">
       <RouterLink v-slot="{ href, navigate }" custom :to="categoryLocation()">
         <a
           :href="href"
@@ -203,7 +211,7 @@ function onStockChange(event: Event) {
           :aria-current="activeCategory === undefined ? 'page' : undefined"
           @click="navigate"
         >
-          Tous
+          {{ t('catalog.all') }}
         </a>
       </RouterLink>
       <RouterLink
@@ -229,7 +237,7 @@ function onStockChange(event: Event) {
 
     <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:gap-4">
     <form class="relative min-w-0 flex-1" role="search" @submit.prevent="onSearchSubmit">
-      <label class="sr-only" for="catalog-search">Rechercher un produit</label>
+      <label class="sr-only" for="catalog-search">{{ t('catalog.searchProduct') }}</label>
       <span class="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-faint">
         <AppIcon name="search" :size="17" />
       </span>
@@ -238,14 +246,14 @@ function onStockChange(event: Event) {
         v-model="searchInput"
         type="search"
         name="q"
-        placeholder="Rechercher un produit..."
+        :placeholder="t('catalog.searchProductPlaceholder')"
         class="field rounded-full border-transparent bg-surface-inset py-3 pl-11.5 pr-11"
       />
       <button
         v-if="searchInput"
         type="button"
         class="absolute top-1/2 right-2.5 flex size-7 -translate-y-1/2 items-center justify-center rounded-full text-faint transition-colors hover:bg-surface-muted hover:text-strong"
-        aria-label="Effacer la recherche"
+        :aria-label="t('catalog.clearSearch')"
         @click="onClearSearch"
       >
         <AppIcon name="close" :size="14" />
@@ -254,7 +262,7 @@ function onStockChange(event: Event) {
 
     <div class="flex flex-wrap items-end gap-3">
       <div>
-        <label class="field-label" for="catalog-min-price">Prix min (€)</label>
+        <label class="field-label" for="catalog-min-price">{{ t('catalog.minPrice') }}</label>
         <input
           id="catalog-min-price"
           v-model="minPrice"
@@ -265,7 +273,7 @@ function onStockChange(event: Event) {
         />
       </div>
       <div>
-        <label class="field-label" for="catalog-max-price">Prix max (€)</label>
+        <label class="field-label" for="catalog-max-price">{{ t('catalog.maxPrice') }}</label>
         <input
           id="catalog-max-price"
           v-model="maxPrice"
@@ -277,7 +285,7 @@ function onStockChange(event: Event) {
       </div>
       <label class="mb-3 flex items-center gap-2 text-sm font-medium text-strong">
         <input type="checkbox" class="size-4" :checked="inStockOnly" @change="onStockChange" />
-        En stock seulement
+        {{ t('catalog.inStockOnly') }}
       </label>
     </div>
 
@@ -287,7 +295,7 @@ function onStockChange(event: Event) {
       </p>
 
       <div class="relative inline-flex min-w-48 items-center">
-        <label class="sr-only" for="catalog-sort">Trier les produits</label>
+        <label class="sr-only" for="catalog-sort">{{ t('catalog.sortLabel') }}</label>
         <span class="pointer-events-none absolute left-4 text-faint">
           <AppIcon name="sliders" :size="16" />
         </span>
@@ -298,7 +306,7 @@ function onStockChange(event: Event) {
           @change="onSortChange"
         >
           <option v-for="option in PRODUCT_SORT_OPTIONS" :key="option.value" :value="option.value">
-            {{ option.label }}
+            {{ t(`catalog.sort.${option.value}`) }}
           </option>
         </select>
         <span class="pointer-events-none absolute right-4 text-faint">
@@ -310,13 +318,13 @@ function onStockChange(event: Event) {
         v-if="props.showView"
         class="hidden items-center gap-0.5 rounded-full border border-line bg-surface-inset p-1 sm:flex"
         role="group"
-        aria-label="Affichage"
+        :aria-label="t('catalog.view')"
       >
         <button
           type="button"
           class="inline-flex size-8 items-center justify-center rounded-full transition-colors"
           :class="view === 'grid' ? 'bg-primary text-primary-fg' : 'text-faint hover:text-strong'"
-          aria-label="Affichage en grille"
+          :aria-label="t('catalog.viewGrid')"
           :aria-pressed="view === 'grid'"
           @click="setView('grid')"
         >
@@ -326,7 +334,7 @@ function onStockChange(event: Event) {
           type="button"
           class="inline-flex size-8 items-center justify-center rounded-full transition-colors"
           :class="view === 'list' ? 'bg-primary text-primary-fg' : 'text-faint hover:text-strong'"
-          aria-label="Affichage en liste"
+          :aria-label="t('catalog.viewList')"
           :aria-pressed="view === 'list'"
           @click="setView('list')"
         >

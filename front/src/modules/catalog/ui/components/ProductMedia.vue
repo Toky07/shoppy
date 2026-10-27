@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import { useI18n } from '@/shared/i18n/useI18n'
 import AppIcon from '@/shared/ui/AppIcon.vue'
 import AppImage from '@/shared/ui/AppImage.vue'
 import ImageCarousel from '@/shared/ui/ImageCarousel.vue'
@@ -13,6 +14,7 @@ const props = defineProps<{
   stock: number
 }>()
 
+const { t } = useI18n()
 const slide = ref(0)
 const images = computed(() => props.product.imageUrls)
 const { copied, copy } = useCopyToClipboard()
@@ -30,8 +32,8 @@ function onCopyLink() {
     >
       <ImageCarousel v-model="slide" :images="images" :alt="product.name" variant="detail" interactive />
       <div class="absolute top-5 left-5 z-20 flex flex-col gap-2">
-        <span v-if="outOfStock" class="badge-danger">Rupture</span>
-        <span v-else class="badge-accent">Disponible</span>
+        <span v-if="outOfStock" class="badge-danger">{{ t('catalog.soldOut') }}</span>
+        <span v-else class="badge-accent">{{ t('catalog.available') }}</span>
       </div>
       <div class="absolute top-5 right-5 z-20">
         <FavoriteButton :product-id="product.id" :product-name="product.name" size="lg" />
@@ -49,7 +51,7 @@ function onCopyLink() {
             ? 'border-line-strong ring-2 ring-accent/40'
             : 'border-line hover:border-line-strong'
         "
-        :aria-label="`Voir l'image ${index + 1}`"
+        :aria-label="t('common.viewImage', { index: index + 1 })"
         :aria-current="slide === index ? 'true' : undefined"
         @click="slide = index"
       >
@@ -58,14 +60,14 @@ function onCopyLink() {
     </div>
 
     <div class="mt-4 flex items-center justify-between px-1">
-      <p class="text-xs text-faint">Réf. {{ reference }}</p>
+      <p class="text-xs text-faint">{{ t('catalog.sku', { sku: reference }) }}</p>
       <button
         type="button"
         class="inline-flex items-center gap-2 text-xs font-semibold link-quiet"
         @click="onCopyLink"
       >
         <AppIcon :name="copied ? 'check' : 'copy'" :size="14" />
-        {{ copied ? 'Lien copié' : 'Partager' }}
+        {{ copied ? t('catalog.linkCopied') : t('catalog.share') }}
       </button>
     </div>
   </div>

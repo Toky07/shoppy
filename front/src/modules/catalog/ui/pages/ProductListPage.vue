@@ -13,6 +13,7 @@ import { parseProductSort } from '../../application/productSort'
 import type { Category } from '../../domain/Category'
 import { useCatalogView } from '../../application/useCatalogView'
 import { useProductList } from '../../application/useProductList'
+import { useI18n } from '@/shared/i18n/useI18n'
 import CatalogHero from '../components/CatalogHero.vue'
 import CatalogToolbar from '../components/CatalogToolbar.vue'
 import ProductCard from '../components/ProductCard.vue'
@@ -23,6 +24,7 @@ if (!repository) {
   throw new Error('CatalogRepository is not provided.')
 }
 
+const { t } = useI18n()
 const route = useRoute();
 const { view } = useCatalogView();
 const categories = ref<Category[]>([]);
@@ -77,16 +79,16 @@ const { status, page, error } = useProductList(repository, query);
         <EmptyState
           class="mt-6"
           icon="search"
-          :title="filtered ? 'Aucun résultat' : 'Aucun produit'"
+          :title="filtered ? t('catalog.noResults') : t('catalog.noProducts')"
           :description="
             search
-              ? `Aucun produit ne correspond à « ${search} ».`
+              ? t('catalog.emptySearch', { search })
               : filtered
-                ? 'Aucun produit ne correspond à ces filtres.'
-                : 'Revenez bientôt : de nouvelles pièces arrivent chaque mois.'
+                ? t('catalog.emptyFilters')
+                : t('catalog.emptySoon')
           "
         >
-          <RouterLink v-if="filtered" to="/" class="btn-primary">Voir tout le catalogue</RouterLink>
+          <RouterLink v-if="filtered" to="/" class="btn-primary">{{ t('catalog.seeAll') }}</RouterLink>
         </EmptyState>
       </template>
 

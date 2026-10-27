@@ -21,6 +21,8 @@ export class FakeAuthRepository implements AuthRepository {
   public logoutAllCount = 0
   public deletions: string[] = []
   public actionError: Error | null = null
+  public currentUserCalls = 0
+  public currentUserError: Error | null = null
 
   async login(credentials: AuthCredentials): Promise<Session> {
     this.logins.push(credentials)
@@ -38,6 +40,10 @@ export class FakeAuthRepository implements AuthRepository {
   }
 
   async currentUser(): Promise<User> {
+    this.currentUserCalls += 1
+    if (this.currentUserError) {
+      throw this.currentUserError
+    }
     return this.registerResult
   }
 

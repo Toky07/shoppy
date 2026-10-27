@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { RouterLink } from 'vue-router'
+import { useI18n } from '@/shared/i18n/useI18n'
 import AppIcon from '@/shared/ui/AppIcon.vue'
 import ProductPrice from '@/modules/catalog/ui/components/ProductPrice.vue'
 import { formatDate } from '@/shared/datetime/formatDate'
@@ -8,12 +9,14 @@ import type { Order } from '../../domain/Order'
 import { orderStatusLabel } from '../lib/orderStatusLabel'
 import { orderStatusStyle } from '../lib/orderStatusStyle'
 
+const { t, intlLocale } = useI18n()
+
 defineProps<{
   order: Order
 }>()
 
 function itemCount(count: number) {
-  return `${count} article${count > 1 ? 's' : ''}`
+  return count > 1 ? t('orders.itemsPlural', { count }) : t('orders.items', { count })
 }
 </script>
 
@@ -28,12 +31,12 @@ function itemCount(count: number) {
         </p>
         <p class="mt-2 flex items-center gap-2 text-sm font-medium text-body">
           <AppIcon name="calendar" :size="14" />
-          {{ formatDate(order.createdAt) }}
+          {{ formatDate(order.createdAt, intlLocale) }}
         </p>
       </div>
       <span :class="orderStatusStyle(order.status).badge">
         <AppIcon :name="orderStatusStyle(order.status).icon" :size="12" />
-        {{ orderStatusLabel(order.status) }}
+        {{ orderStatusLabel(order.status, t) }}
       </span>
     </div>
 
@@ -51,7 +54,7 @@ function itemCount(count: number) {
         :to="{ name: 'order', params: { id: order.id } }"
         class="inline-flex items-center gap-2 text-sm font-semibold text-strong"
       >
-        Voir les détails
+        {{ t('orders.viewDetails') }}
         <AppIcon
           name="arrow-right"
           :size="15"

@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
+import { useI18n } from '@/shared/i18n/useI18n'
 import AppIcon from './AppIcon.vue'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   page: number
@@ -42,13 +45,13 @@ function toPage(target: number) {
 </script>
 
 <template>
-  <nav v-if="visible" aria-label="Pagination" class="flex flex-col items-center gap-4">
+  <nav v-if="visible" :aria-label="t('common.pagination')" class="flex flex-col items-center gap-4">
     <div class="flex items-center gap-2">
       <RouterLink
         v-if="page > 1"
         :to="toPage(page - 1)"
         class="btn-outline size-10 p-0"
-        aria-label="Page précédente"
+        :aria-label="t('common.previousPage')"
       >
         <AppIcon name="chevron-left" :size="16" />
       </RouterLink>
@@ -78,7 +81,7 @@ function toPage(target: number) {
         v-if="page < pageCount"
         :to="toPage(page + 1)"
         class="btn-outline size-10 p-0"
-        aria-label="Page suivante"
+        :aria-label="t('common.nextPage')"
       >
         <AppIcon name="chevron-right" :size="16" />
       </RouterLink>
@@ -87,6 +90,6 @@ function toPage(target: number) {
       </span>
     </div>
 
-    <p class="numeric text-xs text-muted">Page {{ page }} sur {{ pageCount }} · {{ total }} résultats</p>
+    <p class="numeric text-xs text-muted">{{ t('common.pageOf', { page, count: pageCount, total }) }}</p>
   </nav>
 </template>

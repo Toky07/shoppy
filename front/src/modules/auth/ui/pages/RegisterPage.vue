@@ -5,6 +5,7 @@ import { usePendingAction } from '@/shared/async/usePendingAction'
 import { authRepositoryKey } from '../../application/authRepositoryKey'
 import { register } from '../../application/register'
 import AuthCredentialsForm from '../components/AuthCredentialsForm.vue'
+import { useI18n } from '@/shared/i18n/useI18n'
 import { authErrorMessage } from '../lib/authErrorMessage'
 
 const repository = inject(authRepositoryKey)
@@ -14,8 +15,9 @@ if (!repository) {
 }
 
 const authRepository = repository
+const { t } = useI18n()
 const accepted = ref(false)
-const { pending, errorMessage, run } = usePendingAction((error) => authErrorMessage(error))
+const { pending, errorMessage, run } = usePendingAction((error) => authErrorMessage(error, t))
 
 function onSubmit(credentials: { email: string; password: string }) {
   return run(async () => {
@@ -27,14 +29,16 @@ function onSubmit(credentials: { email: string; password: string }) {
 
 <template>
   <p v-if="accepted" class="mx-auto max-w-md text-sm leading-6 text-muted">
-    Si cette adresse peut recevoir un message, un email vient d'être envoyé. Vous pouvez ensuite
-    <RouterLink to="/login" class="font-semibold text-strong underline underline-offset-2">vous connecter</RouterLink>.
+    {{ t('auth.registerSent') }}
+    <RouterLink to="/login" class="font-semibold text-strong underline underline-offset-2">{{
+      t('auth.registerSentLogin')
+    }}</RouterLink>.
   </p>
   <AuthCredentialsForm
     v-else
-    title="Inscription"
-    subtitle="Deux champs, trente secondes, et c'est fait."
-    submit-label="Créer un compte"
+    :title="t('auth.registerTitle')"
+    :subtitle="t('auth.registerSubtitle')"
+    :submit-label="t('auth.createAccount')"
     :pending="pending"
     :error-message="errorMessage"
     password-autocomplete="new-password"
@@ -42,9 +46,9 @@ function onSubmit(credentials: { email: string; password: string }) {
     :password-max-length="4096"
     @submit="onSubmit"
   >
-    Déjà un compte ?
+    {{ t('auth.alreadyAccount') }}
     <RouterLink to="/login" class="ml-1 font-semibold text-strong underline underline-offset-2">
-      Se connecter
+      {{ t('auth.loginSubmit') }}
     </RouterLink>
   </AuthCredentialsForm>
 </template>

@@ -266,6 +266,31 @@ it('keeps the page size when listed orders have several lines', function () {
         ->and($page[1]->items())->toHaveCount(2);
 });
 
+it('sums paid revenue and counts orders placed in a period', function () {
+    $repository = self::getContainer()->get(OrderRepository::class);
+    $entityManager = self::getContainer()->get(EntityManagerInterface::class);
+    $today = new DateTimeImmutable('2026-10-27T09:00:00+00:00');
+    $yesterday = new DateTimeImmutable('2026-10-26T15:00:00+00:00');
+
+    $paidYesterday = twoLineOrder('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1', '11111111-1111-4111-8111-111111111111', $yesterday->format(DateTimeInterface::ATOM), 'Old A', 'Old B');
+    $paidYesterday->markPaid();
+    $paidToday = twoLineOrder('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa2', '11111111-1111-4111-8111-111111111111', $today->format(DateTimeInterface::ATOM), 'New A', 'New B');
+    $paidToday->markPaid();
+    $pendingToday = twoLineOrder('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa3', '22222222-2222-4222-8222-222222222222', $today->format(DateTimeInterface::ATOM), 'Pend A', 'Pend B');
+
+    $repository->save($paidYesterday);
+    $repository->save($paidToday);
+    $repository->save($pendingToday);
+    $entityManager->clear();
+
+    $startOfDay = new DateTimeImmutable('2026-10-27T00:00:00+00:00');
+    $startOfTomorrow = new DateTimeImmutable('2026-10-28T00:00:00+00:00');
+
+    expect($repository->paidRevenueCents())->toBe(6000)
+        ->and($repository->paidRevenueCents($startOfDay, $startOfTomorrow))->toBe(3000)
+        ->and($repository->countPlacedBetween($startOfDay, $startOfTomorrow))->toBe(2);
+});
+
 it('loads items for the admin order list without shrinking the page', function () {
     $repository = self::getContainer()->get(OrderRepository::class);
     $entityManager = self::getContainer()->get(EntityManagerInterface::class);

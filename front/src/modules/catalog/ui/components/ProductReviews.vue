@@ -7,6 +7,7 @@ import type { ProductReviewList } from '../../domain/ProductReview'
 import { formatDate } from '@/shared/datetime/formatDate'
 import { toApiError } from '@/shared/http/toApiError'
 import { usePendingAction } from '@/shared/async/usePendingAction'
+import { useI18n } from '@/shared/i18n/useI18n'
 import AppIcon from '@/shared/ui/AppIcon.vue'
 import StatusNotice from '@/shared/ui/StatusNotice.vue'
 
@@ -23,6 +24,7 @@ if (!repository) {
 }
 
 const catalog = repository
+const { t, intlLocale } = useI18n()
 const isAuthenticated = computed(() => session?.isAuthenticated.value ?? false)
 const reviews = ref<ProductReviewList>({ items: [], count: 0, averageRating: null })
 const rating = ref(5)
@@ -37,14 +39,13 @@ const { pending, errorMessage, run } = usePendingAction(
 
 const summary = computed(() => {
   if (reviews.value.count === 0 || reviews.value.averageRating === null) {
-    return 'Aucun avis'
+    return t('reviews.none')
   }
-  const note = reviews.value.averageRating.toLocaleString('fr-FR', {
+  const note = reviews.value.averageRating.toLocaleString(intlLocale.value, {
     minimumFractionDigits: 1,
     maximumFractionDigits: 1,
   })
-  const label = 'avis'
-  return `${note} / 5 · ${reviews.value.count} ${label}`
+  return t('reviews.summary', { note, count: reviews.value.count })
 })
 
 const ownReview = computed(() => reviews.value.items.find((review) => review.mine) ?? null)
@@ -96,8 +97,8 @@ function isReported(reviewId: string): boolean {
   <section class="mt-16 border-t border-line pt-12" aria-labelledby="product-reviews-title">
     <div class="flex flex-wrap items-end justify-between gap-4">
       <div>
-        <p class="text-[0.7rem] font-semibold tracking-[0.16em] text-muted uppercase">Avis clients</p>
-        <h2 id="product-reviews-title" class="mt-2 font-display text-3xl font-extrabold text-strong">Avis</h2>
+        <p class="text-[0.7rem] font-semibold tracking-[0.16em] text-muted uppercase">{{ t('reviews.eyebrow') }}</p>
+        <h2 id="product-reviews-title" class="mt-2 font-display text-3xl font-extrabold text-strong">{{ t('reviews.title') }}</h2>
       </div>
       <p class="inline-flex items-center gap-2 text-sm font-semibold text-strong">
         <AppIcon name="star" :size="16" filled />
@@ -114,12 +115,12 @@ function isReported(reviewId: string): boolean {
           <p class="font-semibold text-strong">{{ review.author }}</p>
           <p class="text-sm text-muted">
             <span class="font-semibold text-strong">{{ review.rating }}/5</span>
-            · {{ formatDate(review.createdAt) }}
+            · {{ formatDate(review.createdAt, intlLocale) }}
           </p>
         </div>
         <p class="mt-3 text-sm leading-relaxed text-body">{{ review.body }}</p>
         <div v-if="isAuthenticated && !review.mine" class="mt-4">
-          <p v-if="isReported(review.id)" class="text-xs font-semibold text-muted">Signalé</p>
+          <p v-if="isReported(review.id)" class="text-xs font-semibold text-muted">{{ t('reviews.reported') }}</p>
           <button
             v-else
             type="button"
@@ -127,21 +128,21 @@ function isReported(reviewId: string): boolean {
             :disabled="reportingId === review.id"
             @click="onReport(review.id)"
           >
-            Signaler
+            {{ t('reviews.report') }}
           </button>
         </div>
       </li>
     </ul>
-    <p v-else-if="!loadError" class="mt-8 text-sm text-faint italic">Aucun avis pour le moment.</p>
+    <p v-else-if="!loadError" class="mt-8 text-sm text-faint italic">{{ t('reviews.noneYet') }}</p>
 
     <form v-if="isAuthenticated" class="panel mt-8 space-y-4 p-5 sm:p-6" @submit.prevent="onSubmit">
       <p class="font-display text-lg font-bold text-strong">
-        {{ ownReview ? 'Modifier votre avis' : 'Donner votre avis' }}
+        {{ ownReview ? t('reviews.editYours') : t('reviews.giveYours') }}
       </p>
       <StatusNotice v-if="errorMessage" tone="danger">{{ errorMessage }}</StatusNotice>
       <div>
-        <p class="field-label">Note</p>
-        <div class="mt-2 flex gap-2" role="radiogroup" aria-label="Note">
+        <p class="field-label">{{ t('reviews.rating') }}</p>
+        <div class="mt-2 flex gap-2" role="radiogroup" :aria-label="t('reviews.rating')">
           <label v-for="value in [1, 2, 3, 4, 5]" :key="value" class="cursor-pointer">
             <input v-model.number="rating" class="peer sr-only" type="radio" name="rating" :value="value" />
             <span
@@ -153,11 +154,11 @@ function isReported(reviewId: string): boolean {
         </div>
       </div>
       <label class="block">
-        <span class="field-label">Commentaire</span>
+        <span class="field-label">{{ t('reviews.comment') }}</span>
         <textarea v-model="body" required maxlength="1000" rows="4" class="field mt-2 resize-y" />
       </label>
       <button type="submit" class="btn-primary" :disabled="pending">
-        {{ ownReview ? 'Mettre à jour' : "Publier l'avis" }}
+        {{ ownReview ? t('reviews.update') : t('reviews.publish') }}
       </button>
     </form>
     <p v-else class="mt-8 text-sm text-muted">
@@ -165,9 +166,9 @@ function isReported(reviewId: string): boolean {
         :to="{ path: '/login', query: { redirect: `/products/${productSlug}` } }"
         class="font-semibold link-quiet"
       >
-        Connectez-vous
+        {{ t('auth.signInCta') }}
       </RouterLink>
-      pour donner votre avis.
+      {{ t('reviews.signInSuffix') }}
     </p>
   </section>
 </template>

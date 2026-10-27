@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { RouterLink } from 'vue-router'
+import { useI18n } from '@/shared/i18n/useI18n'
 import AppIcon from '@/shared/ui/AppIcon.vue'
 import ImageCarousel from '@/shared/ui/ImageCarousel.vue'
 import type { Product } from '../../domain/Product'
@@ -8,6 +9,7 @@ import FavoriteButton from './FavoriteButton.vue'
 import ProductPrice from './ProductPrice.vue'
 import { stockLabel } from '../lib/stockLabel'
 
+const { t } = useI18n()
 const props = withDefaults(
   defineProps<{
     product: Product
@@ -35,7 +37,7 @@ const lowStock = computed(() => props.product.stock > 0 && props.product.stock <
         <div class="min-w-0">
           <h2 class="truncate font-display text-lg font-bold text-strong">{{ product.name }}</h2>
           <p class="mt-1.5 text-xs font-medium" :class="outOfStock ? 'text-danger' : 'text-muted'">
-            <span>{{ stockLabel(product.stock) }}</span>
+            <span>{{ stockLabel(product.stock, t) }}</span>
           </p>
         </div>
         <p class="numeric shrink-0 font-display text-xl font-extrabold text-strong">
@@ -49,7 +51,7 @@ const lowStock = computed(() => props.product.stock > 0 && props.product.stock <
 
       <div class="mt-auto flex items-center justify-between gap-4 pt-4">
         <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-strong">
-          Voir le produit
+          {{ t('catalog.seeProduct') }}
           <AppIcon
             name="arrow-right"
             :size="15"
@@ -63,11 +65,11 @@ const lowStock = computed(() => props.product.stock > 0 && props.product.stock <
     </div>
 
     <RouterLink :to="to" class="stretched-link rounded-card">
-      <span class="sr-only">Voir {{ product.name }}</span>
+      <span class="sr-only">{{ t('catalog.seeProductNamed', { name: product.name }) }}</span>
     </RouterLink>
   </article>
 
-  <article
+  <article>
     v-else
     class="group panel-flat relative flex flex-col overflow-hidden transition-all duration-500 hover:-translate-y-1 hover:border-line-strong hover:shadow-float"
   >
@@ -78,8 +80,8 @@ const lowStock = computed(() => props.product.stock > 0 && props.product.stock <
       ></div>
 
       <div class="absolute top-3 left-3 z-20 flex flex-col items-start gap-2">
-        <span v-if="outOfStock" class="badge-danger">Rupture</span>
-        <span v-else-if="lowStock" class="badge-warning">Derniers exemplaires</span>
+        <span v-if="outOfStock" class="badge-danger">{{ t('catalog.soldOut') }}</span>
+        <span v-else-if="lowStock" class="badge-warning">{{ t('catalog.lastCopies') }}</span>
       </div>
 
       <div class="absolute top-3 right-3 z-20">
@@ -97,19 +99,19 @@ const lowStock = computed(() => props.product.stock > 0 && props.product.stock <
 
       <div class="mt-4 flex items-center justify-between gap-3 border-t border-line pt-4">
         <span class="text-xs font-medium" :class="outOfStock ? 'text-danger' : 'text-muted'">{{
-          stockLabel(product.stock)
+          stockLabel(product.stock, t)
         }}</span>
         <span
           class="inline-flex items-center gap-1 text-xs font-semibold text-strong opacity-0 transition-all duration-300 group-hover:opacity-100"
         >
-          Découvrir
+          {{ t('catalog.discover') }}
           <AppIcon name="arrow-right" :size="14" />
         </span>
       </div>
     </div>
 
     <RouterLink :to="to" class="stretched-link rounded-card">
-      <span class="sr-only">Voir {{ product.name }}</span>
+      <span class="sr-only">{{ t('catalog.seeProductNamed', { name: product.name }) }}</span>
     </RouterLink>
   </article>
 </template>

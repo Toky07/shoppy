@@ -5,20 +5,22 @@ import AppIcon from '@/shared/ui/AppIcon.vue'
 import { cartStateKey } from '@/modules/cart/application/cartStateKey'
 import { useFavorites } from '@/modules/catalog/application/useFavorites'
 import { authSessionKey } from '../../application/authSessionKey'
+import { useI18n } from '@/shared/i18n/useI18n'
 import { accountShortcuts } from '../lib/accountShortcuts'
 
+const { t } = useI18n()
 const session = inject(authSessionKey)
 const cartState = inject(cartStateKey)
 const { count: favoriteCount } = useFavorites()
 
 const isAdmin = computed(() => session?.session.value?.user.role === 'admin')
 const cartCount = computed(() => cartState?.itemCount.value ?? 0)
-const shortcuts = computed(() => accountShortcuts(favoriteCount.value, cartCount.value))
+const shortcuts = computed(() => accountShortcuts(favoriteCount.value, cartCount.value, t))
 </script>
 
 <template>
   <div class="panel p-6 sm:p-7">
-    <h2 class="font-display text-lg font-bold text-strong">Mon activité</h2>
+    <h2 class="font-display text-lg font-bold text-strong">{{ t('account.activity') }}</h2>
     <div class="mt-5 grid gap-2">
       <RouterLink
         v-for="shortcut in shortcuts"
@@ -53,8 +55,8 @@ const shortcuts = computed(() => accountShortcuts(favoriteCount.value, cartCount
           <AppIcon name="settings" :size="18" />
         </span>
         <span class="min-w-0 flex-1">
-          <span class="block text-sm font-semibold text-strong">Administration</span>
-          <span class="block truncate text-xs text-muted">Commandes, catalogue et accès</span>
+          <span class="block text-sm font-semibold text-strong">{{ t('account.admin') }}</span>
+          <span class="block truncate text-xs text-muted">{{ t('account.adminDetail') }}</span>
         </span>
         <AppIcon
           name="arrow-right"

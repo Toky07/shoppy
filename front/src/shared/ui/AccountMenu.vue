@@ -4,6 +4,7 @@ import { RouterLink, useRoute } from 'vue-router'
 import { cartStateKey } from '@/modules/cart/application/cartStateKey'
 import { useFavorites } from '@/modules/catalog/application/useFavorites'
 import { userInitials } from '@/shared/text/userInitials'
+import { useI18n } from '@/shared/i18n/useI18n'
 import AppIcon from './AppIcon.vue'
 import ThemeToggle from './ThemeToggle.vue'
 import { usePopupMenu } from './usePopupMenu'
@@ -19,6 +20,7 @@ const emit = defineEmits<{
   logout: []
 }>()
 
+const { t } = useI18n()
 const route = useRoute()
 const cartState = inject(cartStateKey)
 const { count: favoriteCount } = useFavorites()
@@ -29,12 +31,12 @@ const cartCount = computed(() => cartState?.itemCount.value ?? 0)
 type Entry = { to: string; label: string; icon: IconName; count?: number }
 
 const entries = computed<Entry[]>(() => [
-  { to: '/account', label: 'Mon profil', icon: 'user' },
-  { to: '/favorites', label: 'Mes favoris', icon: 'heart', count: favoriteCount.value },
-  { to: '/orders', label: 'Mes commandes', icon: 'package' },
-  { to: '/cart', label: 'Mon panier', icon: 'cart', count: cartCount.value },
+  { to: '/account', label: t('account.profile'), icon: 'user' },
+  { to: '/favorites', label: t('account.favorites'), icon: 'heart', count: favoriteCount.value },
+  { to: '/orders', label: t('account.orders'), icon: 'package' },
+  { to: '/cart', label: t('account.cart'), icon: 'cart', count: cartCount.value },
   ...(props.isAdmin
-    ? ([{ to: '/admin', label: 'Administration', icon: 'settings' }] as Entry[])
+    ? ([{ to: '/admin', label: t('account.admin'), icon: 'settings' }] as Entry[])
     : []),
 ])
 
@@ -61,7 +63,7 @@ function onLogout() {
           : 'hover:bg-surface-muted'
       "
       aria-haspopup="menu"
-      aria-label="Mon compte"
+      :aria-label="t('account.menu')"
       :aria-expanded="open"
       @click="open = !open"
       @keydown="onTriggerKeydown"
@@ -100,7 +102,7 @@ function onLogout() {
         <div
           ref="menuEl"
           role="menu"
-          aria-label="Mon compte"
+          :aria-label="t('account.menu')"
           class="mt-2 grid gap-0.5"
           @keydown="onMenuKeydown"
         >
@@ -145,7 +147,7 @@ function onLogout() {
             <span
               class="text-sm font-semibold text-strong transition-colors group-hover:text-danger"
             >
-              Déconnexion
+              {{ t('account.logout') }}
             </span>
           </button>
         </div>
@@ -154,7 +156,7 @@ function onLogout() {
           class="mt-2 flex items-center justify-between gap-3 rounded-2xl bg-surface-inset px-3 py-2.5"
         >
           <span class="text-[0.7rem] font-semibold tracking-[0.1em] text-muted uppercase">
-            Apparence
+            {{ t('account.appearance') }}
           </span>
           <ThemeToggle />
         </div>

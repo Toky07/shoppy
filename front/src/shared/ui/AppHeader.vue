@@ -7,15 +7,18 @@ import { logout } from '@/modules/auth/application/logout'
 import { userRoleLabel } from '@/modules/auth/ui/lib/userRoleLabel'
 import { cartStateKey } from '@/modules/cart/application/cartStateKey'
 import { parseSearchQuery } from '@/shared/routing/parseSearchQuery'
+import { useI18n } from '@/shared/i18n/useI18n'
 import AccountMenu from './AccountMenu.vue'
 import AppIcon from './AppIcon.vue'
 import AppMobileNav from './AppMobileNav.vue'
 import AppSearchForm from './AppSearchForm.vue'
 import BrandMark from './BrandMark.vue'
+import LanguageSwitcher from './LanguageSwitcher.vue'
 
 const session = inject(authSessionKey)
 const repository = inject(authRepositoryKey)
 const cartState = inject(cartStateKey)
+const { t } = useI18n()
 const router = useRouter()
 const route = useRoute()
 
@@ -25,10 +28,12 @@ const email = computed(() => session?.session.value?.user.email ?? '')
 const roleLabel = computed(() => {
   const user = session?.session.value?.user
 
-  return user ? userRoleLabel(user.role) : ''
+  return user ? userRoleLabel(user.role, t) : ''
 })
 const itemCount = computed(() => cartState?.itemCount.value ?? 0)
-const cartLabel = computed(() => (itemCount.value > 0 ? `Panier (${itemCount.value})` : 'Panier'))
+const cartLabel = computed(() =>
+  itemCount.value > 0 ? t('header.cartCount', { count: itemCount.value }) : t('header.cart'),
+)
 
 const headerSearch = ref(parseSearchQuery(route.query.q))
 const menuOpen = ref(false)
@@ -104,11 +109,11 @@ async function onLogout() {
         <span class="display-tight hidden text-2xl text-strong sm:block">Shoppy</span>
       </RouterLink>
 
-      <nav class="ml-6 hidden items-center gap-7 lg:flex" aria-label="Navigation principale">
-        <RouterLink to="/" class="nav-link">Catalogue</RouterLink>
+      <nav class="ml-6 hidden items-center gap-7 lg:flex" :aria-label="t('nav.main')">
+        <RouterLink to="/" class="nav-link">{{ t('nav.catalog') }}</RouterLink>
         <template v-if="isAuthenticated">
-          <RouterLink to="/orders" class="nav-link">Commandes</RouterLink>
-          <RouterLink v-if="isAdmin" to="/admin" class="nav-link">Admin</RouterLink>
+          <RouterLink to="/orders" class="nav-link">{{ t('nav.orders') }}</RouterLink>
+          <RouterLink v-if="isAdmin" to="/admin" class="nav-link">{{ t('nav.admin') }}</RouterLink>
         </template>
       </nav>
 
@@ -116,13 +121,16 @@ async function onLogout() {
         <AppSearchForm
           id="header-search"
           v-model="headerSearch"
-          label="Rechercher dans le catalogue"
-          placeholder="Rechercher..."
+          :label="t('header.searchLabel')"
+          :placeholder="t('header.searchPlaceholder')"
           @submit="onHeaderSearch"
         />
       </div>
 
       <div class="ml-auto flex items-center gap-1.5 lg:ml-3">
+        <span class="hidden sm:inline-flex">
+          <LanguageSwitcher />
+        </span>
         <RouterLink to="/cart" class="btn-icon relative" :aria-label="cartLabel">
           <AppIcon name="cart" :size="19" />
           <span
@@ -143,14 +151,14 @@ async function onLogout() {
           </span>
         </template>
         <template v-else>
-          <RouterLink to="/login" class="btn-ghost hidden md:inline-flex">Connexion</RouterLink>
-          <RouterLink to="/register" class="btn-primary hidden md:inline-flex">Inscription</RouterLink>
+          <RouterLink to="/login" class="btn-ghost hidden md:inline-flex">{{ t('header.login') }}</RouterLink>
+          <RouterLink to="/register" class="btn-primary hidden md:inline-flex">{{ t('header.register') }}</RouterLink>
         </template>
 
         <button
           type="button"
           class="btn-icon lg:hidden"
-          :aria-label="menuOpen ? 'Fermer le menu' : 'Ouvrir le menu'"
+          :aria-label="menuOpen ? t('header.closeMenu') : t('header.openMenu')"
           :aria-expanded="menuOpen"
           @click="menuOpen = !menuOpen"
         >

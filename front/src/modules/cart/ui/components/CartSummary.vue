@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from '@/shared/i18n/useI18n'
 import AppIcon from '@/shared/ui/AppIcon.vue'
 import ProductPrice from '@/modules/catalog/ui/components/ProductPrice.vue'
 import type { Money } from '@/shared/money/Money'
@@ -23,6 +24,13 @@ const grandTotal = computed<Money>(() => ({
   currency: props.total.currency,
 }))
 
+const { t } = useI18n()
+const subtotalLabel = computed(() =>
+  props.itemCount > 1
+    ? t('cart.subtotalPlural', { count: props.itemCount })
+    : t('cart.subtotal', { count: props.itemCount }),
+)
+
 const emit = defineEmits<{
   checkout: []
   clear: []
@@ -31,20 +39,20 @@ const emit = defineEmits<{
 
 <template>
   <div class="panel sticky top-28 p-6">
-    <h2 class="font-display text-lg font-bold text-strong">Résumé</h2>
+    <h2 class="font-display text-lg font-bold text-strong">{{ t('cart.summary') }}</h2>
 
     <dl class="mt-6 space-y-3 text-sm">
       <div class="flex items-baseline justify-between gap-4">
         <dt class="text-muted">
-          Sous-total ({{ itemCount }} article{{ itemCount > 1 ? 's' : '' }})
+          {{ subtotalLabel }}
         </dt>
         <dd class="numeric font-semibold text-strong">
           <ProductPrice :price="total" />
         </dd>
       </div>
       <div class="flex items-baseline justify-between gap-4">
-        <dt class="text-muted">Livraison {{ shippingLabel }}</dt>
-        <dd v-if="shippingFee.cents === 0" class="font-semibold text-positive">Offerte</dd>
+        <dt class="text-muted">{{ t('cart.shipping', { label: shippingLabel }) }}</dt>
+        <dd v-if="shippingFee.cents === 0" class="font-semibold text-positive">{{ t('cart.shippingFree') }}</dd>
         <dd v-else class="numeric font-semibold text-strong">
           <ProductPrice :price="shippingFee" />
         </dd>
@@ -52,7 +60,7 @@ const emit = defineEmits<{
     </dl>
 
     <div class="mt-6 flex items-baseline justify-between gap-4 border-t border-line pt-6">
-      <span class="font-semibold text-strong">Total TTC</span>
+      <span class="font-semibold text-strong">{{ t('cart.totalTtc') }}</span>
       <span class="numeric font-display text-2xl font-extrabold text-strong">
         <ProductPrice :price="grandTotal" />
       </span>
@@ -69,17 +77,17 @@ const emit = defineEmits<{
           <AppIcon name="loader" :size="17" />
         </span>
         <AppIcon v-else name="lock" :size="16" />
-        {{ actionLabel ?? 'Valider ma commande' }}
+        {{ actionLabel ?? t('cart.checkoutAction') }}
       </button>
       <button type="button" class="btn-ghost w-full" :disabled="pending" @click="emit('clear')">
         <AppIcon name="trash" :size="15" />
-        Vider le panier
+        {{ t('cart.clear') }}
       </button>
     </div>
 
     <p class="mt-6 flex items-center justify-center gap-2 text-center text-[0.7rem] text-faint">
       <AppIcon name="shield" :size="14" />
-      {{ note ?? 'La commande est créée ici. Le paiement se fait sur la page suivante.' }}
+      {{ note ?? t('cart.checkoutNoteAuth') }}
     </p>
   </div>
 </template>

@@ -71,6 +71,11 @@ final class CountingProductRepository implements ProductRepository
         return $this->inner->countAll($criteria);
     }
 
+    public function findLowStock(int $maxStock, int $limit): array
+    {
+        return $this->inner->findLowStock($maxStock, $limit);
+    }
+
     public function findRelated(Product $product, int $limit): array
     {
         return $this->inner->findRelated($product, $limit);
