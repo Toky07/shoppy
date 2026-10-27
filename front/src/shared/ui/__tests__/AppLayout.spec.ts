@@ -73,3 +73,22 @@ describe('AppLayout auth nav', () => {
     expect(screen.getByRole('group', { name: 'Apparence' })).toBeTruthy()
   })
 })
+
+describe('AppLayout footer', () => {
+  it('links to the legal pages', async () => {
+    await renderApp()
+
+    expect(screen.getByRole('link', { name: 'CGV' }).getAttribute('href')).toBe('/cgv')
+    expect(screen.getByRole('link', { name: 'Confidentialité' }).getAttribute('href')).toBe(
+      '/confidentialite',
+    )
+    expect(screen.getByRole('link', { name: 'Mentions légales' }).getAttribute('href')).toBe(
+      '/mentions',
+    )
+    expect(screen.getByRole('link', { name: /^Retours$/ }).getAttribute('href')).toBe('/retours')
+    expect(screen.getByRole('link', { name: 'Livraison & retours' }).getAttribute('href')).toBe(
+      '/retours',
+    )
+  })
+})
+

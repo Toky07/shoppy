@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { RouterLink } from 'vue-router'
+import { legalDocuments } from '@/modules/legal/data/legalDocuments'
 import AppIcon from './AppIcon.vue'
 import BrandMark from './BrandMark.vue'
 
@@ -47,7 +48,7 @@ const year = new Date().getFullYear()
         <div>
           <p class="field-label">Aide</p>
           <ul class="space-y-3 text-sm">
-            <li><span class="link-quiet">Livraison &amp; retours</span></li>
+            <li><RouterLink to="/retours" class="link-quiet">Livraison &amp; retours</RouterLink></li>
             <li><span class="link-quiet">Paiement sécurisé</span></li>
             <li><span class="link-quiet">Nous écrire</span></li>
             <li><span class="link-quiet">Questions fréquentes</span></li>
@@ -64,14 +65,27 @@ const year = new Date().getFullYear()
         </div>
       </div>
 
-      <div
-        class="mt-12 flex flex-col-reverse items-center justify-between gap-6 border-t border-line pt-8 sm:flex-row"
-      >
-        <p class="text-xs text-faint">© {{ year }} Shoppy · Conçu et développé avec soin.</p>
-        <div class="flex items-center gap-2 text-faint">
-          <span class="badge-neutral"><AppIcon name="credit-card" :size="13" /> Visa</span>
-          <span class="badge-neutral">Mastercard</span>
-          <span class="badge-neutral"><AppIcon name="lock" :size="13" /> Stripe</span>
+      <div class="mt-12 border-t border-line pt-8">
+        <nav
+          class="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs sm:justify-start"
+          aria-label="Informations légales"
+        >
+          <RouterLink
+            v-for="page in legalDocuments"
+            :key="page.slug"
+            :to="page.path"
+            class="link-quiet"
+          >
+            {{ page.navLabel }}
+          </RouterLink>
+        </nav>
+        <div class="mt-6 flex flex-col-reverse items-center justify-between gap-6 sm:flex-row">
+          <p class="text-xs text-faint">© {{ year }} Shoppy · Conçu et développé avec soin.</p>
+          <div class="flex items-center gap-2 text-faint">
+            <span class="badge-neutral"><AppIcon name="credit-card" :size="13" /> Visa</span>
+            <span class="badge-neutral">Mastercard</span>
+            <span class="badge-neutral"><AppIcon name="lock" :size="13" /> Stripe</span>
+          </div>
         </div>
       </div>
     </div>

@@ -36,7 +36,7 @@ Récent : avatar seul dans le header, filtres décollés sur mobile, scroll en h
 
 - [x] Tableau de bord (CA, commandes du jour, stock bas) — l’accueil admin ne fait que des liens
 - [x] Journal d’audit (qui a changé un rôle, un prix, un stock, un paiement)
-- [ ] Pages légales (CGV, confidentialité, mentions, retours) — le footer a des libellés non cliquables
+- [x] Pages légales (CGV, confidentialité, mentions, retours) — le footer a des libellés non cliquables
 - [ ] Bandeau cookies / base RGPD
 - [ ] Newsletter du footer branchée, ou retirée (`@submit.prevent` sans envoi)
 - [ ] i18n (textes français en dur, devise EUR fixe)
