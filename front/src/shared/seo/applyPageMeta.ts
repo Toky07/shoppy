@@ -24,10 +24,10 @@ function upsertMeta(attribute: 'name' | 'property', key: string, content: string
 }
 
 function upsertLink(rel: string, href: string): void {
-  let element = document.head.querySelector(`link[rel="${rel}"]`)
+  const existing = document.head.querySelector(`link[rel="${rel}"]`)
+  const element = existing instanceof HTMLLinkElement ? existing : document.createElement('link')
 
-  if (!(element instanceof HTMLLinkElement)) {
-    element = document.createElement('link')
+  if (element !== existing) {
     element.rel = rel
     document.head.appendChild(element)
   }
