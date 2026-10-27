@@ -16,6 +16,7 @@ use App\Payment\Infrastructure\Persistence\InMemoryPaymentRepository;
 use App\Shared\Application\Event\OrderPlaced;
 use App\Shared\Application\Event\PaymentCompleted;
 use App\Payment\Domain\Exception\PaymentAmountMismatch;
+use App\Tests\Doubles\FakePayerContact;
 use App\Tests\Doubles\FakeStripeCheckoutClient;
 use App\Tests\Doubles\FixedClock;
 use App\Tests\Doubles\PendingPayableOrder;
@@ -37,7 +38,7 @@ it('completes a pending stripe payment when checkout.session.completed is receiv
         $payments,
         new PaymentGatewayRegistry([
             new LocalPaymentGateway(),
-            new StripePaymentGateway(new FakeStripeCheckoutClient(), 'eur'),
+            new StripePaymentGateway(new FakeStripeCheckoutClient(), 'eur', new FakePayerContact()),
         ], 'local'),
         new PendingPayableOrder(),
     ))->handle(new StartCheckoutCommand(
@@ -84,7 +85,7 @@ it('does not complete a payment when the stripe amount differs from the order', 
         $payments,
         new PaymentGatewayRegistry([
             new LocalPaymentGateway(),
-            new StripePaymentGateway(new FakeStripeCheckoutClient(), 'eur'),
+            new StripePaymentGateway(new FakeStripeCheckoutClient(), 'eur', new FakePayerContact()),
         ], 'local'),
         new PendingPayableOrder(),
     ))->handle(new StartCheckoutCommand(
@@ -121,7 +122,7 @@ it('ignores a late webhook when the order is no longer pending', function () {
         $payments,
         new PaymentGatewayRegistry([
             new LocalPaymentGateway(),
-            new StripePaymentGateway(new FakeStripeCheckoutClient(), 'eur'),
+            new StripePaymentGateway(new FakeStripeCheckoutClient(), 'eur', new FakePayerContact()),
         ], 'local'),
         new PendingPayableOrder(),
     ))->handle(new StartCheckoutCommand(

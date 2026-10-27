@@ -13,7 +13,11 @@ interface StripeCheckoutClient
         string $currency,
         string $successUrl,
         string $cancelUrl,
+        string $userId,
+        ?string $email = null,
     ): CreatedStripeSession;
+
+    public function retrieveSession(string $sessionId): ?RetrievedStripeSession;
 
     public function expireSession(string $sessionId): void;
 }

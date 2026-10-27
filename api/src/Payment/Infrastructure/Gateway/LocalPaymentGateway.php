@@ -6,6 +6,7 @@ namespace App\Payment\Infrastructure\Gateway;
 
 use App\Payment\Application\PaymentGateway;
 use App\Payment\Application\Response\CheckoutContext;
+use App\Payment\Application\Response\HostedCheckout;
 use App\Payment\Application\Response\PaymentChargeResult;
 use App\Payment\Application\Response\PaymentCheckoutResult;
 use App\Payment\Domain\Entity\Payment;
@@ -31,6 +32,11 @@ final class LocalPaymentGateway implements PaymentGateway
     public function startCheckout(Payment $payment, CheckoutContext $context): PaymentCheckoutResult
     {
         return PaymentCheckoutResult::immediate(self::NAME);
+    }
+
+    public function hostedCheckout(Payment $payment): ?HostedCheckout
+    {
+        return null;
     }
 
     public function expireCheckout(Payment $payment): void

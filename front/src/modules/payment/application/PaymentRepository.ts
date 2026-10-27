@@ -5,5 +5,6 @@ import type { StartCheckoutRequest } from './StartCheckoutRequest'
 export interface PaymentRepository {
   getByOrder(orderId: string): Promise<Payment>
   complete(orderId: string): Promise<Payment>
+  confirm(orderId: string): Promise<Payment>
   startCheckout(request: StartCheckoutRequest): Promise<PaymentCheckout>
 }

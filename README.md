@@ -54,7 +54,7 @@ Pour repartir d’une base vide avant le seed : `docker compose exec api bin/con
 
 Comptes démo : `admin@shoppy.test` / `visitor@shoppy.test`, mot de passe `password1234`. Le seed refuse de tourner en production.
 
-Paiement : `PAYMENT_PROVIDER=local` par défaut en développement, ou `stripe` avec `STRIPE_SECRET_KEY` et `STRIPE_WEBHOOK_SECRET`. En production le provider local est refusé.
+Paiement : `PAYMENT_PROVIDER=stripe` en développement. Dans `api/.env`, `STRIPE_SECRET_KEY` doit être la clé **secrète** (`sk_test_…` ou `sk_live_…`) du [dashboard Stripe](https://dashboard.stripe.com/test/apikeys), pas la clé publiable `pk_`. Recréez l’API après modification (`docker compose up -d --force-recreate api`). Pour que le webhook `checkout.session.completed` arrive en local : `make stripe-listen`, puis copiez le `whsec_…` affiché dans `STRIPE_WEBHOOK_SECRET`. Au retour de Checkout, l’app confirme aussi la session auprès de Stripe. En production le provider `local` est refusé.
 
 Emails : `MAILER_DSN=null://null` par défaut (aucun envoi). Expéditeur : `MAILER_FROM`. Les autres modules demandent un envoi en publiant `EmailRequested` sur le bus d’événements. L’événement accepte des pièces jointes. Une commande confirmée joint `recu.txt`.
 

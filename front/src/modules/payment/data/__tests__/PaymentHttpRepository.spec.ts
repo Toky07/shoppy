@@ -26,6 +26,18 @@ describe('PaymentHttpRepository', () => {
     ])
   })
 
+  it('confirms a stripe payment with POST /payments/confirm', async () => {
+    const http = new FakeHttpClient(() =>
+      createPaymentJson({ status: 'completed', completedAt: completedPayment.completedAt }),
+    )
+    const repository = new PaymentHttpRepository(http)
+
+    await expect(repository.confirm(pendingOrder.id)).resolves.toEqual(completedPayment)
+    expect(http.calls).toEqual([
+      { method: 'POST', path: '/payments/confirm', body: { orderId: pendingOrder.id } },
+    ])
+  })
+
   it('starts a stripe checkout with POST /payments/checkout', async () => {
     const http = new FakeHttpClient(() => ({
       provider: 'stripe',

@@ -47,13 +47,15 @@ it('rejects a stripe webhook with an invalid signature', function () {
     );
 })->throws(InvalidPaymentWebhook::class);
 
-it('does not start a stripe checkout without a secret key', function () {
-    (new StripeSdkCheckoutClient(''))->createSession(
+it('does not start a stripe checkout without a secret key', function (string $secretKey) {
+    (new StripeSdkCheckoutClient($secretKey))->createSession(
         'dddddddd-dddd-4ddd-8ddd-dddddddddddd',
         'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
         3998,
         'eur',
         'http://localhost:5173/success',
         'http://localhost:5173/cancel',
+        '11111111-1111-4111-8111-111111111111',
+        'ada@shoppy.test',
     );
-})->throws(PaymentProviderNotConfigured::class);
+})->with(['', 'pk_test_publishable'])->throws(PaymentProviderNotConfigured::class);

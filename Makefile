@@ -1,4 +1,4 @@
-.PHONY: help dev prod down logs seed test
+.PHONY: help dev prod down logs seed test stripe-listen
 
 export DOCKER_BUILDKIT=1
 export COMPOSE_DOCKER_CLI_BUILD=1
@@ -16,6 +16,7 @@ help:
 	@echo "  make logs   logs (dev)"
 	@echo "  make seed   catalogue de démo (dev)"
 	@echo "  make test   tests API sur Postgres (dev)"
+	@echo "  make stripe-listen  webhooks Stripe → API locale"
 
 dev:
 	$(COMPOSE_DEV) up --build
@@ -36,3 +37,6 @@ seed:
 test:
 	$(COMPOSE_DEV) up -d --wait database
 	$(COMPOSE_DEV) run --rm --no-deps -T --entrypoint "" api composer test:parallel
+
+stripe-listen:
+	stripe listen --forward-to localhost:8000/payments/webhooks/stripe
