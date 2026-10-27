@@ -150,6 +150,12 @@ services:
 
     App\Invoice\Application\Port\InvoiceLogoStorage: '@App\Invoice\Infrastructure\Storage\FilesystemInvoiceLogoStorage'
 
+    App\Invoice\Application\Port\InvoicePdfStorage: '@App\Invoice\Infrastructure\Storage\FilesystemInvoicePdfStorage'
+
+    App\Invoice\Application\Port\InvoicePdfRenderer: '@App\Invoice\Infrastructure\Pdf\TcpdfInvoicePdfRenderer'
+
+    App\Invoice\Application\Port\InvoiceCustomerContact: '@App\Invoice\Infrastructure\Customer\UserInvoiceCustomerContact'
+
     App\Payment\Application\PaymentGateway: '@App\Payment\Infrastructure\Gateway\LocalPaymentGateway'
 
     App\Payment\Infrastructure\Gateway\Stripe\StripeSdkCheckoutClient:

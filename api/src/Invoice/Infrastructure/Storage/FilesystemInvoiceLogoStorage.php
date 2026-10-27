@@ -35,4 +35,17 @@ final readonly class FilesystemInvoiceLogoStorage implements InvoiceLogoStorage
 
         return 'invoices/logos/'.$filename;
     }
+
+    public function read(string $relativePath): ?string
+    {
+        $absolutePath = $this->uploadDirectory.'/'.$relativePath;
+
+        if (!is_file($absolutePath)) {
+            return null;
+        }
+
+        $contents = file_get_contents($absolutePath);
+
+        return $contents === false ? null : $contents;
+    }
 }

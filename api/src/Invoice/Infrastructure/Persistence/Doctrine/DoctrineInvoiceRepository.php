@@ -20,11 +20,14 @@ final readonly class DoctrineInvoiceRepository implements InvoiceRepository
 
     public function save(Invoice $invoice): void
     {
-        if ($this->findRecordByOrderId($invoice->orderId()->value()) !== null) {
-            return;
+        $record = $this->findRecordByOrderId($invoice->orderId()->value());
+
+        if ($record === null) {
+            $this->entityManager->persist(InvoiceRecord::fromDomain($invoice));
+        } else {
+            $record->updateFromDomain($invoice);
         }
 
-        $this->entityManager->persist(InvoiceRecord::fromDomain($invoice));
         $this->entityManager->flush();
     }
 

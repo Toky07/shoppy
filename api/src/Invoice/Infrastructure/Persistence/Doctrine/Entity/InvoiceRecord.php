@@ -10,6 +10,7 @@ use App\Invoice\Domain\ValueObject\InvoiceId;
 use App\Invoice\Domain\ValueObject\InvoiceLine;
 use App\Invoice\Domain\ValueObject\InvoiceLogo;
 use App\Invoice\Domain\ValueObject\InvoiceNumber;
+use App\Invoice\Domain\ValueObject\InvoicePdf;
 use App\Invoice\Domain\ValueObject\MoneyAmount;
 use App\Invoice\Domain\ValueObject\OrderReference;
 use App\Invoice\Domain\ValueObject\PaymentReference;
@@ -59,6 +60,9 @@ class InvoiceRecord
     #[ORM\Column(name: 'logo_mime_type', length: 32, nullable: true)]
     private ?string $logoMimeType = null;
 
+    #[ORM\Column(name: 'pdf_relative_path', length: 255, nullable: true)]
+    private ?string $pdfRelativePath = null;
+
     /** @var Collection<int, InvoiceItemRecord> */
     #[ORM\OneToMany(targetEntity: InvoiceItemRecord::class, mappedBy: 'invoice', cascade: ['persist'], orphanRemoval: true)]
     #[ORM\OrderBy(['position' => 'ASC'])]
@@ -83,6 +87,7 @@ class InvoiceRecord
         $record->issuedAt = $invoice->issuedAt();
         $record->logoRelativePath = $invoice->logo()?->relativePath();
         $record->logoMimeType = $invoice->logo()?->mimeType();
+        $record->pdfRelativePath = $invoice->pdf()?->relativePath();
 
         foreach ($invoice->lines() as $position => $line) {
             $record->items->add(InvoiceItemRecord::fromDomain($record, $line, $position));
@@ -91,9 +96,14 @@ class InvoiceRecord
         return $record;
     }
 
+    public function updateFromDomain(Invoice $invoice): void
+    {
+        $this->pdfRelativePath = $invoice->pdf()?->relativePath();
+    }
+
     public function toDomain(): Invoice
     {
-        return Invoice::issue(
+        $invoice = Invoice::issue(
             InvoiceId::fromString($this->id),
             InvoiceNumber::fromString($this->number),
             OrderReference::fromString($this->orderId),
@@ -108,5 +118,11 @@ class InvoiceRecord
                 ? InvoiceLogo::of($this->logoRelativePath, $this->logoMimeType)
                 : null,
         );
+
+        if ($this->pdfRelativePath !== null) {
+            $invoice->attachPdf(InvoicePdf::of($this->pdfRelativePath));
+        }
+
+        return $invoice;
     }
 }

@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace App\Invoice\Domain\Entity;
 
 use App\Invoice\Domain\Exception\InvoiceAmountMismatch;
+use App\Invoice\Domain\Exception\InvoicePdfAlreadyAttached;
 use App\Invoice\Domain\ValueObject\CustomerReference;
 use App\Invoice\Domain\ValueObject\InvoiceId;
 use App\Invoice\Domain\ValueObject\InvoiceLine;
 use App\Invoice\Domain\ValueObject\InvoiceLogo;
 use App\Invoice\Domain\ValueObject\InvoiceNumber;
+use App\Invoice\Domain\ValueObject\InvoicePdf;
 use App\Invoice\Domain\ValueObject\MoneyAmount;
 use App\Invoice\Domain\ValueObject\OrderReference;
 use App\Invoice\Domain\ValueObject\PaymentReference;
@@ -30,6 +32,7 @@ final class Invoice
         private DateTimeImmutable $issuedAt,
         private array $lines,
         private ?InvoiceLogo $logo,
+        private ?InvoicePdf $pdf = null,
     ) {
     }
 
@@ -60,6 +63,15 @@ final class Invoice
         }
 
         return new self($id, $number, $orderId, $customerId, $paymentId, $amount, $issuedAt, $lines, $logo);
+    }
+
+    public function attachPdf(InvoicePdf $pdf): void
+    {
+        if ($this->pdf !== null) {
+            throw new InvoicePdfAlreadyAttached();
+        }
+
+        $this->pdf = $pdf;
     }
 
     public function id(): InvoiceId
@@ -108,5 +120,10 @@ final class Invoice
     public function logo(): ?InvoiceLogo
     {
         return $this->logo;
+    }
+
+    public function pdf(): ?InvoicePdf
+    {
+        return $this->pdf;
     }
 }

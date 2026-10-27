@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 use App\Invoice\Domain\Entity\Invoice;
 use App\Invoice\Domain\Exception\InvoiceAmountMismatch;
+use App\Invoice\Domain\Exception\InvoicePdfAlreadyAttached;
 use App\Invoice\Domain\ValueObject\CustomerReference;
 use App\Invoice\Domain\ValueObject\InvoiceId;
 use App\Invoice\Domain\ValueObject\InvoiceLine;
 use App\Invoice\Domain\ValueObject\InvoiceLogo;
 use App\Invoice\Domain\ValueObject\InvoiceNumber;
+use App\Invoice\Domain\ValueObject\InvoicePdf;
 use App\Invoice\Domain\ValueObject\MoneyAmount;
 use App\Invoice\Domain\ValueObject\OrderReference;
 use App\Invoice\Domain\ValueObject\PaymentReference;
@@ -65,3 +67,27 @@ it('keeps the shop logo that was current when the invoice was issued', function 
     expect($invoice->logo())->toBe($logo)
         ->and($invoice->logo()?->publicUrl())->toBe('/uploads/invoices/logos/shop.png');
 });
+
+it('attaches a generated pdf once', function () {
+    $invoice = issueInvoice(
+        4488,
+        InvoiceLine::of('Nuvora Tee', 2, 1999),
+        InvoiceLine::of('Livraison Standard', 1, 490),
+    );
+    $pdf = InvoicePdf::pathFor($invoice->number());
+
+    $invoice->attachPdf($pdf);
+
+    expect($invoice->pdf())->toBe($pdf)
+        ->and($invoice->pdf()?->filename())->toBe('FAC-2026-0001.pdf');
+});
+
+it('rejects attaching a second pdf', function () {
+    $invoice = issueInvoice(
+        4488,
+        InvoiceLine::of('Nuvora Tee', 2, 1999),
+        InvoiceLine::of('Livraison Standard', 1, 490),
+    );
+    $invoice->attachPdf(InvoicePdf::pathFor($invoice->number()));
+    $invoice->attachPdf(InvoicePdf::pathFor($invoice->number()));
+})->throws(InvoicePdfAlreadyAttached::class);

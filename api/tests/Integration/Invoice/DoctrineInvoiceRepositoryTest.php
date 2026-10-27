@@ -13,6 +13,7 @@ use App\Invoice\Domain\Repository\InvoiceBrandingRepository;
 use App\Invoice\Domain\ValueObject\InvoiceLine;
 use App\Invoice\Domain\ValueObject\InvoiceLogo;
 use App\Invoice\Domain\ValueObject\InvoiceNumber;
+use App\Invoice\Domain\ValueObject\InvoicePdf;
 use App\Invoice\Domain\ValueObject\MoneyAmount;
 use App\Invoice\Domain\ValueObject\OrderReference;
 use App\Invoice\Domain\ValueObject\PaymentReference;
@@ -185,4 +186,35 @@ it('persists the shop invoice branding', function () {
 
     expect($found->logo()?->relativePath())->toBe('invoices/logos/shop.png')
         ->and($found->logo()?->publicUrl())->toBe('/uploads/invoices/logos/shop.png');
+});
+
+it('persists the generated invoice pdf path', function () {
+    $repository = self::getContainer()->get(InvoiceRepository::class);
+    $entityManager = self::getContainer()->get(EntityManagerInterface::class);
+    $orderId = OrderReference::fromString('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa');
+
+    persistInvoice(
+        $repository,
+        'ffffffff-ffff-4fff-8fff-ffffffffffff',
+        'FAC-2026-0001',
+        $orderId->value(),
+        'dddddddd-dddd-4ddd-8ddd-dddddddddddd',
+        new DateTimeImmutable('2026-08-20T12:05:00+00:00'),
+        4488,
+        [
+            InvoiceLine::of('Nuvora Tee', 2, 1999),
+            InvoiceLine::of('Livraison Standard', 1, 490),
+        ],
+    );
+
+    $invoice = $repository->findByOrderId($orderId);
+    expect($invoice)->not->toBeNull();
+    $invoice->attachPdf(InvoicePdf::pathFor($invoice->number()));
+    $repository->save($invoice);
+    $entityManager->clear();
+
+    $found = $repository->findByOrderId($orderId);
+
+    expect($found?->pdf()?->relativePath())->toBe('invoices/pdf/FAC-2026-0001.pdf')
+        ->and($found?->pdf()?->filename())->toBe('FAC-2026-0001.pdf');
 });

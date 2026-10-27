@@ -18,4 +18,9 @@ final class FakeInvoiceLogoStorage implements InvoiceLogoStorage
 
         return $path;
     }
+
+    public function read(string $relativePath): ?string
+    {
+        return $this->files[$relativePath] ?? null;
+    }
 }
