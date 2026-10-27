@@ -20,6 +20,8 @@ final class ProductReview
         private Rating $rating,
         private ReviewBody $body,
         private DateTimeImmutable $createdAt,
+        private bool $hidden,
+        private bool $reported,
     ) {
     }
 
@@ -31,7 +33,20 @@ final class ProductReview
         ReviewBody $body,
         DateTimeImmutable $createdAt,
     ): self {
-        return new self($id, $productId, $authorId, $rating, $body, $createdAt);
+        return new self($id, $productId, $authorId, $rating, $body, $createdAt, false, false);
+    }
+
+    public static function reconstitute(
+        ReviewId $id,
+        ProductId $productId,
+        ReviewAuthorId $authorId,
+        Rating $rating,
+        ReviewBody $body,
+        DateTimeImmutable $createdAt,
+        bool $hidden,
+        bool $reported,
+    ): self {
+        return new self($id, $productId, $authorId, $rating, $body, $createdAt, $hidden, $reported);
     }
 
     public function id(): ReviewId
@@ -64,9 +79,34 @@ final class ProductReview
         return $this->createdAt;
     }
 
+    public function isHidden(): bool
+    {
+        return $this->hidden;
+    }
+
+    public function isReported(): bool
+    {
+        return $this->reported;
+    }
+
     public function revise(Rating $rating, ReviewBody $body): void
     {
         $this->rating = $rating;
         $this->body = $body;
+    }
+
+    public function report(): void
+    {
+        $this->reported = true;
+    }
+
+    public function hide(): void
+    {
+        $this->hidden = true;
+    }
+
+    public function restore(): void
+    {
+        $this->hidden = false;
     }
 }

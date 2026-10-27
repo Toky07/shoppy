@@ -138,4 +138,18 @@ describe('ProductHttpRepository', () => {
       code: 'product_not_found',
     })
   })
+
+  it('reports a review with POST /products/:id/reviews/:reviewId/report', async () => {
+    const http = new FakeHttpClient(() => undefined)
+    const repository = new ProductHttpRepository(http)
+
+    await repository.reportReview(nuvoraTee.id, 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1')
+
+    expect(http.calls).toMatchObject([
+      {
+        method: 'POST',
+        path: `/products/${nuvoraTee.id}/reviews/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1/report`,
+      },
+    ])
+  })
 })

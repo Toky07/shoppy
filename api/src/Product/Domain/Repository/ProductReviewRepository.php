@@ -23,6 +23,8 @@ interface ProductReviewRepository
     public function findByProduct(ProductId $productId): array;
 
     /**
+     * Visible reviews only, newest first.
+     *
      * @return list<ProductReview>
      */
     public function findPageByProduct(ProductId $productId, int $offset, int $limit): array;
@@ -30,4 +32,11 @@ interface ProductReviewRepository
     public function countByProduct(ProductId $productId): int;
 
     public function averageRatingByProduct(ProductId $productId): ?float;
+
+    /**
+     * @return list<ProductReview>
+     */
+    public function findModerationPage(int $offset, int $limit, bool $reportedOnly = false): array;
+
+    public function countModeration(bool $reportedOnly = false): int;
 }

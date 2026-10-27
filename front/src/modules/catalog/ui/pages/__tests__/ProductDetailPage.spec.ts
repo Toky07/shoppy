@@ -26,6 +26,14 @@ describe('ProductDetailPage', () => {
     expect(screen.getByText('Réf. NUVORA-TEE')).toBeTruthy()
     expect(screen.getByRole('link', { name: 'Connectez-vous' })).toBeTruthy()
     expect(screen.queryByRole('button', { name: "Publier l'avis" })).toBeNull()
+    expect(document.title).toBe('Nuvora Tee — Shoppy')
+    expect(document.querySelector('meta[name="description"]')?.getAttribute('content')).toBe(
+      'Soft cotton tee',
+    )
+    expect(document.querySelector('meta[property="og:type"]')?.getAttribute('content')).toBe('product')
+    expect(document.querySelector('link[rel="canonical"]')?.getAttribute('href')).toContain(
+      `/products/${nuvoraTee.slug}`,
+    )
   })
 
   it('shows a thumbnail list to browse the gallery', async () => {
@@ -264,6 +272,38 @@ describe('ProductDetailPage', () => {
     await waitFor(() => {
       expect(screen.getByText('Très beau tee')).toBeTruthy()
       expect(screen.getByText('ada')).toBeTruthy()
+    })
+  })
+
+  it('lets a signed-in customer report another review', async () => {
+    await renderApp({
+      repository: createFakeCatalogRepository([nuvoraTee], [], {
+        items: [
+          {
+            id: 'review-other',
+            rating: 2,
+            body: 'Pas terrible',
+            author: 'bob',
+            createdAt: '2026-09-22T12:00:00+00:00',
+            mine: false,
+          },
+        ],
+        count: 1,
+        averageRating: 2,
+      }),
+      session: visitorSession,
+      path: `/products/${nuvoraTee.slug}`,
+    })
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Signaler' })).toBeTruthy()
+    })
+
+    await userEvent.click(screen.getByRole('button', { name: 'Signaler' }))
+
+    await waitFor(() => {
+      expect(screen.getByText('Signalé')).toBeTruthy()
+      expect(screen.queryByRole('button', { name: 'Signaler' })).toBeNull()
     })
   })
 })

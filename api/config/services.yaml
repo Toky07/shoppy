@@ -86,6 +86,14 @@ services:
         arguments:
             $frontendBaseUrl: '%env(FRONTEND_BASE_URL)%'
 
+    App\Product\Application\CatalogSitemap:
+        arguments:
+            $storefrontBaseUrl: '%env(FRONTEND_BASE_URL)%'
+
+    App\Product\Application\RobotsTxt:
+        arguments:
+            $storefrontBaseUrl: '%env(FRONTEND_BASE_URL)%'
+
     App\Auth\Application\PasswordHasher: '@App\Auth\Infrastructure\Security\NativePasswordHasher'
 
     App\Auth\Application\TokenGenerator: '@App\Auth\Infrastructure\Security\RandomTokenGenerator'

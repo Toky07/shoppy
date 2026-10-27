@@ -24,4 +24,5 @@ export interface CatalogRepository {
   listRelated(id: string): Promise<Product[]>
   listReviews(productId: string): Promise<ProductReviewList>
   submitReview(productId: string, input: SubmitReviewInput): Promise<void>
+  reportReview(productId: string, reviewId: string): Promise<void>
 }

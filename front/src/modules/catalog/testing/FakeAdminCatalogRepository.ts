@@ -1,5 +1,6 @@
 import { ApiError } from '@/shared/http/ApiError'
 import type { AdminCatalogRepository, CreateProductInput, ProductImage, UpdateProductInput } from '../application/AdminCatalogRepository'
+import type { AdminReview, AdminReviewPage, ListAdminReviewsQuery } from '../domain/AdminReview'
 import type { Product } from '../domain/Product'
 import { nuvoraTee } from './productFixtures'
 
@@ -20,9 +21,13 @@ export class FakeAdminCatalogRepository implements AdminCatalogRepository {
   public updateError: Error | null = null
   public deleteError: Error | null = null
   public products: Product[]
+  public reviews: AdminReview[]
+  public hidden: string[] = []
+  public restored: string[] = []
 
-  constructor(products: Product[] = []) {
+  constructor(products: Product[] = [], reviews: AdminReview[] = []) {
     this.products = products.map(cloneProduct)
+    this.reviews = reviews.map((review) => ({ ...review }))
   }
 
   async create(input: CreateProductInput): Promise<Product> {
@@ -99,5 +104,27 @@ export class FakeAdminCatalogRepository implements AdminCatalogRepository {
       const image = this.images.find((item) => item.id === id)
       return image ? [{ ...image, position }] : []
     })
+  }
+
+  async listReviews(query: ListAdminReviewsQuery): Promise<AdminReviewPage> {
+    const items = this.reviews.filter((review) => !query.reportedOnly || review.reported)
+    const start = (query.page - 1) * query.limit
+
+    return {
+      items: items.slice(start, start + query.limit).map((review) => ({ ...review })),
+      page: query.page,
+      limit: query.limit,
+      total: items.length,
+    }
+  }
+
+  async hideReview(id: string): Promise<void> {
+    this.hidden.push(id)
+    this.reviews = this.reviews.map((review) => (review.id === id ? { ...review, hidden: true } : review))
+  }
+
+  async restoreReview(id: string): Promise<void> {
+    this.restored.push(id)
+    this.reviews = this.reviews.map((review) => (review.id === id ? { ...review, hidden: false } : review))
   }
 }

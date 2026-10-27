@@ -53,17 +53,17 @@ final class InMemoryProductReviewRepository implements ProductReviewRepository
 
     public function findPageByProduct(ProductId $productId, int $offset, int $limit): array
     {
-        return array_values(array_slice($this->findByProduct($productId), $offset, $limit));
+        return array_values(array_slice($this->visibleByProduct($productId), $offset, $limit));
     }
 
     public function countByProduct(ProductId $productId): int
     {
-        return count($this->findByProduct($productId));
+        return count($this->visibleByProduct($productId));
     }
 
     public function averageRatingByProduct(ProductId $productId): ?float
     {
-        $reviews = $this->findByProduct($productId);
+        $reviews = $this->visibleByProduct($productId);
 
         if ($reviews === []) {
             return null;
@@ -76,5 +76,56 @@ final class InMemoryProductReviewRepository implements ProductReviewRepository
         }
 
         return $total / count($reviews);
+    }
+
+    public function findModerationPage(int $offset, int $limit, bool $reportedOnly = false): array
+    {
+        return array_values(array_slice($this->moderationList($reportedOnly), $offset, $limit));
+    }
+
+    public function countModeration(bool $reportedOnly = false): int
+    {
+        return count($this->moderationList($reportedOnly));
+    }
+
+    /**
+     * @return list<ProductReview>
+     */
+    private function visibleByProduct(ProductId $productId): array
+    {
+        return array_values(array_filter(
+            $this->findByProduct($productId),
+            static fn (ProductReview $review): bool => !$review->isHidden(),
+        ));
+    }
+
+    /**
+     * @return list<ProductReview>
+     */
+    private function moderationList(bool $reportedOnly): array
+    {
+        $matches = array_values($this->reviews);
+
+        if ($reportedOnly) {
+            $matches = array_values(array_filter(
+                $matches,
+                static fn (ProductReview $review): bool => $review->isReported(),
+            ));
+        }
+
+        usort(
+            $matches,
+            static function (ProductReview $left, ProductReview $right): int {
+                $reported = $right->isReported() <=> $left->isReported();
+
+                if ($reported !== 0) {
+                    return $reported;
+                }
+
+                return $right->createdAt() <=> $left->createdAt();
+            },
+        );
+
+        return $matches;
     }
 }

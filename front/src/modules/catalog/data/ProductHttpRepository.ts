@@ -59,4 +59,10 @@ export class ProductHttpRepository implements CatalogRepository {
       body: input.body,
     })
   }
+
+  async reportReview(productId: string, reviewId: string): Promise<void> {
+    await this.http.post(
+      `/products/${encodeURIComponent(productId)}/reviews/${encodeURIComponent(reviewId)}/report`,
+    )
+  }
 }
