@@ -41,6 +41,9 @@ import { favoritesStateKey } from '@/modules/catalog/application/favoritesStateK
 import type { FavoriteRepository } from '@/modules/catalog/application/FavoriteRepository'
 import { FakeFavoriteRepository } from '@/modules/catalog/testing/FakeFavoriteRepository'
 import { createFakeCatalogRepository } from '@/modules/catalog/testing/fakeCatalogRepository'
+import type { NewsletterRepository } from '@/modules/newsletter/application/NewsletterRepository'
+import { newsletterRepositoryKey } from '@/modules/newsletter/application/newsletterRepositoryKey'
+import { FakeNewsletterRepository } from '@/modules/newsletter/testing/FakeNewsletterRepository'
 import type { Session } from '@/modules/auth/domain/Session'
 import { cookieConsentKey } from '@/shared/consent/cookieConsentKey'
 import {
@@ -64,6 +67,7 @@ export async function renderApp(options: {
   favoriteRepository?: FavoriteRepository
   addressBookRepository?: AddressBookRepository
   cookieConsent?: CookieConsentState
+  newsletterRepository?: NewsletterRepository
   session?: Session | null
   path?: string
 } = {}) {
@@ -108,6 +112,8 @@ export async function renderApp(options: {
         [cookieConsentKey as symbol]:
           options.cookieConsent ??
           createCookieConsentState(createMemoryCookieConsentStore('necessary')),
+        [newsletterRepositoryKey as symbol]:
+          options.newsletterRepository ?? new FakeNewsletterRepository(),
       },
     },
   })

@@ -78,6 +78,12 @@ doctrine:
                 dir: '%kernel.project_dir%/src/Audit/Infrastructure/Persistence/Doctrine/Entity'
                 prefix: 'App\Audit\Infrastructure\Persistence\Doctrine\Entity'
                 alias: Audit
+            Newsletter:
+                type: attribute
+                is_bundle: false
+                dir: '%kernel.project_dir%/src/Newsletter/Infrastructure/Persistence/Doctrine/Entity'
+                prefix: 'App\Newsletter\Infrastructure\Persistence\Doctrine\Entity'
+                alias: Newsletter
             Shared:
                 type: attribute
                 is_bundle: false

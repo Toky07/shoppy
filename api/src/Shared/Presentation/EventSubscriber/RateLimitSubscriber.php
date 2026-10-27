@@ -58,7 +58,8 @@ final readonly class RateLimitSubscriber implements EventSubscriberInterface
             '/auth/password-resets/confirm',
             '/auth/email-verifications',
             '/auth/email-verifications/request',
-            '/auth/email-changes/confirm' => $this->accountLimit,
+            '/auth/email-changes/confirm',
+            '/newsletter' => $this->accountLimit,
             default => null,
         };
     }

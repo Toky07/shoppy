@@ -13,6 +13,7 @@ import {
     catalogRepository,
     cookieConsent,
     favoritesState,
+    newsletterRepository,
     orderRepository,
     paymentRepository,
     userDirectory } from './app/dependencies'
@@ -30,6 +31,7 @@ import { favoritesStateKey } from './modules/catalog/application/favoritesStateK
 import { orderRepositoryKey } from './modules/order/application/orderRepositoryKey'
 import { paymentRepositoryKey } from './modules/payment/application/paymentRepositoryKey'
 import router from './router'
+import { newsletterRepositoryKey } from './modules/newsletter/application/newsletterRepositoryKey'
 import { cookieConsentKey } from './shared/consent/cookieConsentKey'
 import { createNavigationGuard } from './router/navigationGuard'
 import '@fontsource-variable/inter'
@@ -52,6 +54,7 @@ app.provide(userDirectoryKey, userDirectory);
 app.provide(favoritesStateKey, favoritesState);
 app.provide(addressBookStateKey, addressBookState);
 app.provide(cookieConsentKey, cookieConsent);
+app.provide(newsletterRepositoryKey, newsletterRepository);
 
 await authReady;
 router.beforeEach(createNavigationGuard(authSession));

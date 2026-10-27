@@ -70,13 +70,13 @@ export const legalDocuments: readonly LegalDocument[] = [
       {
         heading: 'Données collectées',
         paragraphs: [
-          "Nous collectons l'email, le mot de passe (stocké de façon irréversible), l'adresse de livraison et l'historique de commandes lorsque vous créez un compte ou passez commande. Le paiement est traité par Stripe : nous ne stockons pas le numéro de carte.",
+          "Nous collectons l'email, le mot de passe (stocké de façon irréversible), l'adresse de livraison et l'historique de commandes lorsque vous créez un compte ou passez commande. L'email fourni pour la lettre d'information est conservé tant que vous restez inscrit. Le paiement est traité par Stripe : nous ne stockons pas le numéro de carte.",
         ],
       },
       {
         heading: 'Finalités',
         paragraphs: [
-          "Ces données servent à exécuter la commande, sécuriser le compte, vous écrire au sujet d'un achat et, si la loi l'exige, conserver une trace comptable. Nous ne vendons pas vos données et ne faisons pas de profilage publicitaire.",
+          "Ces données servent à exécuter la commande, sécuriser le compte, vous écrire au sujet d'un achat, envoyer la lettre d'information si vous vous y êtes inscrit, et, si la loi l'exige, conserver une trace comptable. Nous ne vendons pas vos données et ne faisons pas de profilage publicitaire.",
         ],
       },
       {

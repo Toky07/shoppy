@@ -136,6 +136,8 @@ services:
 
     App\Audit\Application\Port\CurrentActor: '@App\Audit\Infrastructure\Security\SecurityCurrentActor'
 
+    App\Newsletter\Domain\Repository\NewsletterSubscriberRepository: '@App\Newsletter\Infrastructure\Persistence\Doctrine\DoctrineNewsletterSubscriberRepository'
+
     App\Favorite\Application\Catalog: '@App\Favorite\Infrastructure\Catalog\ProductCatalog'
 
     App\Payment\Domain\Repository\PaymentRepository: '@App\Payment\Infrastructure\Persistence\Doctrine\DoctrinePaymentRepository'

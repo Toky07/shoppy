@@ -19,6 +19,7 @@ import { ProductHttpRepository } from '@/modules/catalog/data/ProductHttpReposit
 import { UserHttpDirectory } from '@/modules/auth/data/UserHttpDirectory'
 import { createCookieConsentState } from '@/shared/consent/createCookieConsentState'
 import { createLocalCookieConsentStore } from '@/shared/consent/cookieConsentStore'
+import { NewsletterHttpRepository } from '@/modules/newsletter/data/NewsletterHttpRepository'
 
 window.localStorage.removeItem('shoppy.session')
 
@@ -57,3 +58,4 @@ export const addressBookState = createAddressBookState(
 export const cookieConsent = createCookieConsentState(
   createLocalCookieConsentStore(window.localStorage),
 )
+export const newsletterRepository = new NewsletterHttpRepository(httpClient)

@@ -2,6 +2,7 @@
 import { inject } from 'vue'
 import { RouterLink } from 'vue-router'
 import { legalDocuments } from '@/modules/legal/data/legalDocuments'
+import NewsletterForm from '@/modules/newsletter/ui/components/NewsletterForm.vue'
 import { cookieConsentKey } from '@/shared/consent/cookieConsentKey'
 import AppIcon from './AppIcon.vue'
 import BrandMark from './BrandMark.vue'
@@ -27,20 +28,7 @@ const year = new Date().getFullYear()
           <p class="mt-4 max-w-xs text-sm leading-relaxed text-muted">
             Une sélection courte d'objets bien faits. Expédiés vite, payés en toute sécurité.
           </p>
-          <form class="mt-6 max-w-xs" @submit.prevent>
-            <label class="field-label" for="newsletter">Lettre d'information</label>
-            <div class="flex gap-2">
-              <input
-                id="newsletter"
-                type="email"
-                placeholder="vous@domaine.com"
-                class="field rounded-full py-2.5 text-sm"
-              />
-              <button type="submit" class="btn-accent shrink-0" aria-label="S'abonner">
-                <AppIcon name="arrow-right" :size="17" />
-              </button>
-            </div>
-          </form>
+          <NewsletterForm />
         </div>
 
         <div>
