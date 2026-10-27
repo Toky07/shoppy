@@ -8,6 +8,7 @@ use App\Invoice\Domain\Exception\InvoiceAmountMismatch;
 use App\Invoice\Domain\ValueObject\CustomerReference;
 use App\Invoice\Domain\ValueObject\InvoiceId;
 use App\Invoice\Domain\ValueObject\InvoiceLine;
+use App\Invoice\Domain\ValueObject\InvoiceLogo;
 use App\Invoice\Domain\ValueObject\InvoiceNumber;
 use App\Invoice\Domain\ValueObject\MoneyAmount;
 use App\Invoice\Domain\ValueObject\OrderReference;
@@ -28,6 +29,7 @@ final class Invoice
         private MoneyAmount $amount,
         private DateTimeImmutable $issuedAt,
         private array $lines,
+        private ?InvoiceLogo $logo,
     ) {
     }
 
@@ -43,6 +45,7 @@ final class Invoice
         MoneyAmount $amount,
         DateTimeImmutable $issuedAt,
         array $lines = [],
+        ?InvoiceLogo $logo = null,
     ): self {
         if ($lines !== []) {
             $lineTotal = array_reduce(
@@ -56,7 +59,7 @@ final class Invoice
             }
         }
 
-        return new self($id, $number, $orderId, $customerId, $paymentId, $amount, $issuedAt, $lines);
+        return new self($id, $number, $orderId, $customerId, $paymentId, $amount, $issuedAt, $lines, $logo);
     }
 
     public function id(): InvoiceId
@@ -100,5 +103,10 @@ final class Invoice
     public function lines(): array
     {
         return $this->lines;
+    }
+
+    public function logo(): ?InvoiceLogo
+    {
+        return $this->logo;
     }
 }

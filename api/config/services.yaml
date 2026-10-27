@@ -146,6 +146,10 @@ services:
 
     App\Invoice\Domain\Repository\InvoiceOrderSnapshotRepository: '@App\Invoice\Infrastructure\Persistence\Doctrine\DoctrineInvoiceOrderSnapshotRepository'
 
+    App\Invoice\Domain\Repository\InvoiceBrandingRepository: '@App\Invoice\Infrastructure\Persistence\Doctrine\DoctrineInvoiceBrandingRepository'
+
+    App\Invoice\Application\Port\InvoiceLogoStorage: '@App\Invoice\Infrastructure\Storage\FilesystemInvoiceLogoStorage'
+
     App\Payment\Application\PaymentGateway: '@App\Payment\Infrastructure\Gateway\LocalPaymentGateway'
 
     App\Payment\Infrastructure\Gateway\Stripe\StripeSdkCheckoutClient:

@@ -7,6 +7,7 @@ use App\Invoice\Domain\Exception\InvoiceAmountMismatch;
 use App\Invoice\Domain\ValueObject\CustomerReference;
 use App\Invoice\Domain\ValueObject\InvoiceId;
 use App\Invoice\Domain\ValueObject\InvoiceLine;
+use App\Invoice\Domain\ValueObject\InvoiceLogo;
 use App\Invoice\Domain\ValueObject\InvoiceNumber;
 use App\Invoice\Domain\ValueObject\MoneyAmount;
 use App\Invoice\Domain\ValueObject\OrderReference;
@@ -43,3 +44,24 @@ it('keeps billed lines on the issued invoice', function () {
 it('rejects lines that do not add up to the invoice amount', function () {
     issueInvoice(4488, InvoiceLine::of('Nuvora Tee', 2, 1999));
 })->throws(InvoiceAmountMismatch::class);
+
+it('keeps the shop logo that was current when the invoice was issued', function () {
+    $logo = InvoiceLogo::of('invoices/logos/shop.png', 'image/png');
+    $invoice = Invoice::issue(
+        InvoiceId::fromString('ffffffff-ffff-4fff-8fff-ffffffffffff'),
+        InvoiceNumber::fromString('FAC-2026-0001'),
+        OrderReference::fromString('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'),
+        CustomerReference::fromString('11111111-1111-4111-8111-111111111111'),
+        PaymentReference::fromString('dddddddd-dddd-4ddd-8ddd-dddddddddddd'),
+        MoneyAmount::fromCents(4488),
+        new DateTimeImmutable('2026-08-20T12:05:00+00:00'),
+        [
+            InvoiceLine::of('Nuvora Tee', 2, 1999),
+            InvoiceLine::of('Livraison Standard', 1, 490),
+        ],
+        $logo,
+    );
+
+    expect($invoice->logo())->toBe($logo)
+        ->and($invoice->logo()?->publicUrl())->toBe('/uploads/invoices/logos/shop.png');
+});

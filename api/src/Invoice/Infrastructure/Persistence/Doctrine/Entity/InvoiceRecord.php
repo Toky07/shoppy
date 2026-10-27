@@ -8,6 +8,7 @@ use App\Invoice\Domain\Entity\Invoice;
 use App\Invoice\Domain\ValueObject\CustomerReference;
 use App\Invoice\Domain\ValueObject\InvoiceId;
 use App\Invoice\Domain\ValueObject\InvoiceLine;
+use App\Invoice\Domain\ValueObject\InvoiceLogo;
 use App\Invoice\Domain\ValueObject\InvoiceNumber;
 use App\Invoice\Domain\ValueObject\MoneyAmount;
 use App\Invoice\Domain\ValueObject\OrderReference;
@@ -52,6 +53,12 @@ class InvoiceRecord
     #[ORM\Column(name: 'issued_at')]
     private DateTimeImmutable $issuedAt;
 
+    #[ORM\Column(name: 'logo_relative_path', length: 255, nullable: true)]
+    private ?string $logoRelativePath = null;
+
+    #[ORM\Column(name: 'logo_mime_type', length: 32, nullable: true)]
+    private ?string $logoMimeType = null;
+
     /** @var Collection<int, InvoiceItemRecord> */
     #[ORM\OneToMany(targetEntity: InvoiceItemRecord::class, mappedBy: 'invoice', cascade: ['persist'], orphanRemoval: true)]
     #[ORM\OrderBy(['position' => 'ASC'])]
@@ -74,6 +81,8 @@ class InvoiceRecord
         $record->paymentId = $invoice->paymentId()->value();
         $record->amountCents = $invoice->amount()->cents();
         $record->issuedAt = $invoice->issuedAt();
+        $record->logoRelativePath = $invoice->logo()?->relativePath();
+        $record->logoMimeType = $invoice->logo()?->mimeType();
 
         foreach ($invoice->lines() as $position => $line) {
             $record->items->add(InvoiceItemRecord::fromDomain($record, $line, $position));
@@ -95,6 +104,9 @@ class InvoiceRecord
             array_values($this->items->map(
                 static fn (InvoiceItemRecord $item): InvoiceLine => $item->toDomain(),
             )->toArray()),
+            $this->logoRelativePath !== null && $this->logoMimeType !== null
+                ? InvoiceLogo::of($this->logoRelativePath, $this->logoMimeType)
+                : null,
         );
     }
 }
