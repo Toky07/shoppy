@@ -42,6 +42,12 @@ import type { FavoriteRepository } from '@/modules/catalog/application/FavoriteR
 import { FakeFavoriteRepository } from '@/modules/catalog/testing/FakeFavoriteRepository'
 import { createFakeCatalogRepository } from '@/modules/catalog/testing/fakeCatalogRepository'
 import type { Session } from '@/modules/auth/domain/Session'
+import { cookieConsentKey } from '@/shared/consent/cookieConsentKey'
+import {
+  createCookieConsentState,
+  type CookieConsentState,
+} from '@/shared/consent/createCookieConsentState'
+import { createMemoryCookieConsentStore } from '@/shared/consent/cookieConsentStore'
 import { createNavigationGuard } from '@/router/navigationGuard'
 import { routes } from '@/router/routes'
 
@@ -57,6 +63,7 @@ export async function renderApp(options: {
   userDirectory?: UserDirectory
   favoriteRepository?: FavoriteRepository
   addressBookRepository?: AddressBookRepository
+  cookieConsent?: CookieConsentState
   session?: Session | null
   path?: string
 } = {}) {
@@ -98,6 +105,9 @@ export async function renderApp(options: {
         [userDirectoryKey as symbol]: options.userDirectory ?? new FakeUserDirectory(),
         [favoritesStateKey as symbol]: favoritesState,
         [addressBookStateKey as symbol]: addressBookState,
+        [cookieConsentKey as symbol]:
+          options.cookieConsent ??
+          createCookieConsentState(createMemoryCookieConsentStore('necessary')),
       },
     },
   })

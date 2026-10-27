@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/vue'
+import { screen, waitFor, within } from '@testing-library/vue'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import { renderApp } from '@/shared/testing/renderApp'
@@ -6,6 +6,7 @@ import { adminSession, visitorSession } from '@/modules/auth/testing/authFixture
 import { FakeAuthRepository } from '@/modules/auth/testing/FakeAuthRepository'
 import { FakeCartRepository } from '@/modules/cart/testing/FakeCartRepository'
 import { filledCart } from '@/modules/cart/testing/cartFixtures'
+import { createCookieConsentState } from '@/shared/consent/createCookieConsentState'
 
 describe('AppLayout auth nav', () => {
   it('shows login links when logged out', async () => {
@@ -89,6 +90,37 @@ describe('AppLayout footer', () => {
     expect(screen.getByRole('link', { name: 'Livraison & retours' }).getAttribute('href')).toBe(
       '/retours',
     )
+    expect(screen.getByRole('button', { name: 'Cookies' })).toBeTruthy()
   })
 })
+
+describe('AppLayout cookies', () => {
+  it('asks for consent until the visitor chooses', async () => {
+    await renderApp({ cookieConsent: createCookieConsentState() })
+
+    const banner = screen.getByRole('dialog', { name: 'Cookies' })
+    expect(
+      within(banner).getByRole('link', { name: 'Politique de confidentialité' }).getAttribute('href'),
+    ).toBe('/confidentialite')
+
+    await userEvent.click(within(banner).getByRole('button', { name: 'Refuser' }))
+
+    expect(screen.queryByRole('dialog', { name: 'Cookies' })).toBeNull()
+  })
+
+  it('hides the banner when a choice is already stored', async () => {
+    await renderApp()
+
+    expect(screen.queryByRole('dialog', { name: 'Cookies' })).toBeNull()
+  })
+
+  it('reopens the banner from the footer', async () => {
+    await renderApp()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Cookies' }))
+
+    expect(screen.getByRole('dialog', { name: 'Cookies' })).toBeTruthy()
+  })
+})
+
 

@@ -3,6 +3,7 @@ import AppFooter from './AppFooter.vue'
 import AppHeader from './AppHeader.vue'
 import AppTrustBanner from './AppTrustBanner.vue'
 import BackToTop from './BackToTop.vue'
+import CookieBanner from './CookieBanner.vue'
 </script>
 
 <template>
@@ -22,6 +23,7 @@ import BackToTop from './BackToTop.vue'
     </main>
 
     <AppFooter />
+    <CookieBanner />
     <BackToTop />
   </div>
 </template>

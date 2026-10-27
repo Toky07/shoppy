@@ -21,6 +21,7 @@ describe('LegalPage', () => {
 
     expect(screen.getByRole('heading', { name: 'Politique de confidentialité' })).toBeTruthy()
     expect(screen.getByRole('heading', { name: 'Vos droits' })).toBeTruthy()
+    expect(screen.getByRole('heading', { name: 'Cookies' })).toBeTruthy()
   })
 
   it('shows the legal notices', async () => {

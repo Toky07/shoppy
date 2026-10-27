@@ -11,6 +11,7 @@ import {
     cartRepository,
     cartState,
     catalogRepository,
+    cookieConsent,
     favoritesState,
     orderRepository,
     paymentRepository,
@@ -29,6 +30,7 @@ import { favoritesStateKey } from './modules/catalog/application/favoritesStateK
 import { orderRepositoryKey } from './modules/order/application/orderRepositoryKey'
 import { paymentRepositoryKey } from './modules/payment/application/paymentRepositoryKey'
 import router from './router'
+import { cookieConsentKey } from './shared/consent/cookieConsentKey'
 import { createNavigationGuard } from './router/navigationGuard'
 import '@fontsource-variable/inter'
 import '@fontsource-variable/bricolage-grotesque/standard.css'
@@ -49,6 +51,7 @@ app.provide(auditLogRepositoryKey, auditLogRepository);
 app.provide(userDirectoryKey, userDirectory);
 app.provide(favoritesStateKey, favoritesState);
 app.provide(addressBookStateKey, addressBookState);
+app.provide(cookieConsentKey, cookieConsent);
 
 await authReady;
 router.beforeEach(createNavigationGuard(authSession));

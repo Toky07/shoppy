@@ -91,6 +91,13 @@ export const legalDocuments: readonly LegalDocument[] = [
           "Vous pouvez demander l'accès, la rectification ou la suppression de vos données, ainsi que la limitation ou la portabilité, en écrivant à contact@shoppy.test. Vous pouvez aussi introduire une réclamation auprès de la CNIL.",
         ],
       },
+      {
+        heading: 'Cookies',
+        paragraphs: [
+          'Les cookies strictement nécessaires (session, panier, sécurité) font fonctionner la boutique et ne demandent pas votre consentement.',
+          "Aucun cookie de mesure d'audience ou publicitaire n'est déposé tant que vous n'acceptez pas. Vous pouvez changer d'avis à tout moment via le lien Cookies du pied de page.",
+        ],
+      },
     ],
   },
   {

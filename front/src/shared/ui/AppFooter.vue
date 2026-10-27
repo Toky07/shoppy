@@ -1,8 +1,16 @@
 <script setup lang="ts">
+import { inject } from 'vue'
 import { RouterLink } from 'vue-router'
 import { legalDocuments } from '@/modules/legal/data/legalDocuments'
+import { cookieConsentKey } from '@/shared/consent/cookieConsentKey'
 import AppIcon from './AppIcon.vue'
 import BrandMark from './BrandMark.vue'
+
+const consent = inject(cookieConsentKey)
+
+if (!consent) {
+  throw new Error('CookieConsent is not provided.')
+}
 
 const year = new Date().getFullYear()
 </script>
@@ -78,6 +86,7 @@ const year = new Date().getFullYear()
           >
             {{ page.navLabel }}
           </RouterLink>
+          <button type="button" class="link-quiet" @click="consent.review">Cookies</button>
         </nav>
         <div class="mt-6 flex flex-col-reverse items-center justify-between gap-6 sm:flex-row">
           <p class="text-xs text-faint">© {{ year }} Shoppy · Conçu et développé avec soin.</p>

@@ -17,6 +17,8 @@ import { FavoriteHttpRepository } from '@/modules/catalog/data/FavoriteHttpRepos
 import { createLocalGuestFavorites } from '@/modules/catalog/data/guestFavoriteStorage'
 import { ProductHttpRepository } from '@/modules/catalog/data/ProductHttpRepository'
 import { UserHttpDirectory } from '@/modules/auth/data/UserHttpDirectory'
+import { createCookieConsentState } from '@/shared/consent/createCookieConsentState'
+import { createLocalCookieConsentStore } from '@/shared/consent/cookieConsentStore'
 
 window.localStorage.removeItem('shoppy.session')
 
@@ -51,4 +53,7 @@ export const addressBookRepository = new AddressHttpRepository(httpClient)
 export const addressBookState = createAddressBookState(
   addressBookRepository,
   authSession.isAuthenticated,
+)
+export const cookieConsent = createCookieConsentState(
+  createLocalCookieConsentStore(window.localStorage),
 )

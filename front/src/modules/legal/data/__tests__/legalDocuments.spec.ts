@@ -14,6 +14,9 @@ describe('legalDocuments', () => {
   it('looks up a legal page by path', () => {
     expect(legalDocumentByPath('/cgv')?.title).toBe('Conditions générales de vente')
     expect(legalDocumentByPath('/confidentialite')?.title).toBe('Politique de confidentialité')
+    expect(legalDocumentByPath('/confidentialite')?.sections.map((section) => section.heading)).toContain(
+      'Cookies',
+    )
     expect(legalDocumentByPath('/mentions')?.title).toBe('Mentions légales')
     expect(legalDocumentByPath('/retours')?.title).toBe('Livraison et retours')
     expect(legalDocumentByPath('/unknown')).toBeUndefined()
