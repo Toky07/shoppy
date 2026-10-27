@@ -14,6 +14,7 @@ import CartLine from '../components/CartLine.vue'
 import CartSummary from '../components/CartSummary.vue'
 import CheckoutAddressForm from '../components/CheckoutAddressForm.vue'
 import CheckoutShippingForm from '../components/CheckoutShippingForm.vue'
+import { useI18n } from '@/shared/i18n/useI18n'
 import { cartErrorMessage } from '../lib/cartErrorMessage'
 import { emptyAddressDraft, toPostalAddress, type AddressDraft } from '@/modules/order/domain/PostalAddress'
 import { quoteShipping, type ShippingMethodCode } from '@/modules/order/domain/ShippingMethod'
@@ -28,8 +29,9 @@ if (!session || !cartState) {
 
 const authSession = session
 const state = cartState
+const { t } = useI18n()
 const { pending, errorMessage: actionError, run } = usePendingAction((error) =>
-  cartErrorMessage(error),
+  cartErrorMessage(error, t),
 )
 const checkoutOrderId = ref<string>()
 const addressError = ref<string>()
@@ -57,7 +59,7 @@ const status = computed(() => {
   return 'ready'
 })
 const loadError = computed(() =>
-  state.error.value ? cartErrorMessage(state.error.value) : undefined,
+  state.error.value ? cartErrorMessage(state.error.value, t) : undefined,
 )
 
 async function runCart(action: () => Promise<unknown>) {
@@ -89,12 +91,12 @@ function addressReady(draft: AddressDraft): boolean {
 
 async function onCheckout() {
   if (!addressReady(shipping) || (!billingSameAsShipping.value && !addressReady(billing))) {
-    addressError.value = 'Renseignez l’adresse de livraison et de facturation.'
+    addressError.value = t('cart.addressRequired')
     return
   }
 
   if (!isAuthenticated.value && guestEmail.value.trim() === '') {
-    addressError.value = 'Indiquez un e-mail pour recevoir la commande.'
+    addressError.value = t('cart.guestEmailRequired')
     return
   }
 
@@ -119,29 +121,29 @@ async function onCheckout() {
 <template>
   <section class="animate-fade-in">
     <PageHeader
-      eyebrow="Étape 1 sur 2"
-      title="Votre Panier"
+      :eyebrow="t('cart.eyebrow')"
+      :title="t('cart.yourCart')"
       icon="cart"
-      description="Vérifiez vos articles, le paiement se fait à l'étape suivante."
+      :description="t('cart.description')"
     >
       <template #actions>
         <RouterLink to="/" class="btn-outline">
           <AppIcon name="arrow-left" :size="16" />
-          Continuer mes achats
+          {{ t('cart.continue') }}
         </RouterLink>
       </template>
     </PageHeader>
 
     <StatusNotice v-if="checkoutOrderId" tone="positive" class="mt-10">
-        <strong class="block font-display text-base">Commande créée</strong>
+        <strong class="block font-display text-base">{{ t('cart.createdTitle') }}</strong>
         <p class="mt-1">
-          La commande n°{{ checkoutOrderId }} est enregistrée. Le paiement se fait sur sa page.
+          {{ t('cart.createdBody', { id: checkoutOrderId }) }}
         </p>
         <RouterLink
           :to="{ name: 'order', params: { id: checkoutOrderId } }"
           class="mt-3 inline-flex items-center gap-1.5 font-semibold underline underline-offset-2"
         >
-          Payer la commande
+          {{ t('cart.pay') }}
           <AppIcon name="arrow-right" :size="15" />
         </RouterLink>
       </StatusNotice>
@@ -154,11 +156,11 @@ async function onCheckout() {
           <template #empty>
             <EmptyState
               icon="cart"
-              title="Votre panier est vide"
-              description="On dirait que vous n'avez pas encore trouvé votre bonheur. Jetez un œil aux nouveautés."
+              :title="t('cart.empty')"
+              :description="t('cart.emptyDescription')"
             >
               <RouterLink to="/" class="btn-primary btn-lg">
-                Explorer le catalogue
+                {{ t('cart.explore') }}
                 <AppIcon name="arrow-right" :size="16" />
               </RouterLink>
             </EmptyState>
@@ -176,13 +178,13 @@ async function onCheckout() {
               <li v-if="!isAuthenticated">
                 <section class="panel p-6" aria-labelledby="checkout-email-title">
                   <h2 id="checkout-email-title" class="font-display text-lg font-bold text-strong">
-                    Vos coordonnées
+                    {{ t('cart.guestTitle') }}
                   </h2>
                   <p class="mt-1 text-sm text-muted">
-                    Pas besoin de compte. Un e-mail suffit pour suivre le paiement.
+                    {{ t('cart.guestBody') }}
                   </p>
                   <label class="mt-5 block">
-                    <span class="field-label">E-mail</span>
+                    <span class="field-label">{{ t('cart.email') }}</span>
                     <input
                       v-model="guestEmail"
                       class="field"
@@ -212,12 +214,8 @@ async function onCheckout() {
               :shipping-label="quotedShipping.label"
               :shipping-fee-cents="quotedShipping.fee.cents"
               :pending="pending"
-              action-label="Valider ma commande"
-              :note="
-                isAuthenticated
-                  ? 'La commande est créée ici. Le paiement se fait sur la page suivante.'
-                  : 'Un e-mail suffit. Le paiement se fait sur la page suivante.'
-              "
+              :action-label="t('cart.checkoutAction')"
+              :note="isAuthenticated ? t('cart.checkoutNoteAuth') : t('cart.checkoutNoteGuest')"
               @checkout="onCheckout"
               @clear="onClear"
             />

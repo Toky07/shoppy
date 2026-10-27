@@ -3,6 +3,7 @@ import { createMemoryHistory, createRouter } from 'vue-router'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import { routes } from '@/router/routes'
+import { localeProvide } from '@/shared/testing/localeProvide'
 import ProductCard from '../ProductCard.vue'
 import { nuvoraTee, nuvoraTeeGallery, outOfStockMug } from '../../../testing/productFixtures'
 
@@ -16,7 +17,7 @@ async function renderCard(product = nuvoraTee) {
 
   return render(ProductCard, {
     props: { product },
-    global: { plugins: [router] },
+    global: { plugins: [router], provide: localeProvide() },
   })
 }
 

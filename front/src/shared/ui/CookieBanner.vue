@@ -2,6 +2,7 @@
 import { inject } from 'vue'
 import { RouterLink } from 'vue-router'
 import { cookieConsentKey } from '@/shared/consent/cookieConsentKey'
+import { useI18n } from '@/shared/i18n/useI18n'
 
 const consent = inject(cookieConsentKey)
 
@@ -10,6 +11,7 @@ if (!consent) {
 }
 
 const { visible, acceptAll, refuseOptional } = consent
+const { t } = useI18n()
 </script>
 
 <template>
@@ -23,18 +25,17 @@ const { visible, acceptAll, refuseOptional } = consent
   >
     <div class="mx-auto flex max-w-7xl flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
       <div class="max-w-2xl">
-        <h2 id="cookie-banner-title" class="text-sm font-semibold text-strong">Cookies</h2>
+        <h2 id="cookie-banner-title" class="text-sm font-semibold text-strong">{{ t('cookies.title') }}</h2>
         <p id="cookie-banner-text" class="mt-2 text-sm leading-relaxed text-muted">
-          Les cookies nécessaires au compte, au panier et à la sécurité sont déjà en place. Aucun
-          cookie de mesure d'audience n'est déposé tant que vous n'acceptez pas.
+          {{ t('cookies.body') }}
           <RouterLink to="/confidentialite" class="font-semibold link-quiet">
-            Politique de confidentialité
+            {{ t('cookies.privacy') }}
           </RouterLink>
         </p>
       </div>
       <div class="flex flex-wrap gap-2">
-        <button type="button" class="btn-outline" @click="refuseOptional">Refuser</button>
-        <button type="button" class="btn-primary" @click="acceptAll">Accepter</button>
+        <button type="button" class="btn-outline" @click="refuseOptional">{{ t('cookies.refuse') }}</button>
+        <button type="button" class="btn-primary" @click="acceptAll">{{ t('cookies.accept') }}</button>
       </div>
     </div>
   </div>

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from '@/shared/i18n/useI18n'
 import type { PostalAddress } from '../../domain/PostalAddress'
 
 defineProps<{
@@ -6,21 +7,12 @@ defineProps<{
   billing: PostalAddress | null
 }>()
 
-const countries: Record<string, string> = {
-  FR: 'France',
-  BE: 'Belgique',
-  CH: 'Suisse',
-  LU: 'Luxembourg',
-  DE: 'Allemagne',
-  ES: 'Espagne',
-  IT: 'Italie',
-  PT: 'Portugal',
-  NL: 'Pays-Bas',
-  GB: 'Royaume-Uni',
-}
+const { t } = useI18n()
 
 function countryName(code: string): string {
-  return countries[code] ?? code
+  const key = `checkout.countries.${code}`
+  const label = t(key)
+  return label === key ? code : label
 }
 
 function lines(address: PostalAddress): string[] {
@@ -37,13 +29,13 @@ function lines(address: PostalAddress): string[] {
 <template>
   <div v-if="shipping || billing" class="grid gap-6 border-b border-line p-6 sm:grid-cols-2 sm:p-8">
     <div v-if="shipping">
-      <h2 class="field-label">Livraison</h2>
+      <h2 class="field-label">{{ t('checkout.shippingTitle') }}</h2>
       <address class="mt-3 text-sm leading-relaxed text-body not-italic">
         <span v-for="(line, index) in lines(shipping)" :key="index" class="block">{{ line }}</span>
       </address>
     </div>
     <div v-if="billing">
-      <h2 class="field-label">Facturation</h2>
+      <h2 class="field-label">{{ t('checkout.billingTitle') }}</h2>
       <address class="mt-3 text-sm leading-relaxed text-body not-italic">
         <span v-for="(line, index) in lines(billing)" :key="index" class="block">{{ line }}</span>
       </address>

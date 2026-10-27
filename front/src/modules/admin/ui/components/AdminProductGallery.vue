@@ -1,6 +1,9 @@
 <script setup lang="ts">
+import { useI18n } from '@/shared/i18n/useI18n'
 import AppIcon from '@/shared/ui/AppIcon.vue'
 import AppImage from '@/shared/ui/AppImage.vue'
+
+const { t } = useI18n()
 
 export type GalleryImage = {
   key: string
@@ -35,18 +38,14 @@ function onFiles(event: Event) {
   <section class="border-t border-line pt-8">
     <div class="flex flex-wrap items-end justify-between gap-3">
       <div>
-        <p class="text-[0.7rem] font-semibold tracking-[0.14em] text-muted uppercase">Visuels</p>
+        <p class="text-[0.7rem] font-semibold tracking-[0.14em] text-muted uppercase">{{ t('admin.visuals') }}</p>
         <p class="mt-2 text-sm text-muted">
-          {{
-            queued
-              ? 'Ces images seront envoyées à la création du produit.'
-              : 'Ajoutez, réordonnez ou retirez les images. Le premier visuel est celui de la vitrine.'
-          }}
+          {{ queued ? t('admin.galleryQueued') : t('admin.galleryHint') }}
         </p>
       </div>
       <label class="btn-outline cursor-pointer">
         <AppIcon name="image" :size="15" />
-        Ajouter des images
+        {{ t('admin.addImages') }}
         <input
           type="file"
           accept="image/jpeg,image/png,image/webp,image/gif"
@@ -58,17 +57,17 @@ function onFiles(event: Event) {
       </label>
     </div>
 
-    <p v-if="images.length === 0" class="mt-4 text-sm text-faint">Aucune image pour le moment.</p>
+    <p v-if="images.length === 0" class="mt-4 text-sm text-faint">{{ t('admin.noImages') }}</p>
 
     <ul v-else class="mt-4 grid gap-3 sm:grid-cols-3">
       <li v-for="(image, index) in images" :key="image.key" class="overflow-hidden rounded-2xl border border-line bg-surface-muted">
-        <AppImage :src="image.url" :alt="`Image ${index + 1}`" variant="card" class="aspect-square w-full" />
+        <AppImage :src="image.url" :alt="t('admin.imageAlt', { index: index + 1 })" variant="card" class="aspect-square w-full" />
         <div class="flex items-center justify-between gap-1 p-2">
           <button
             type="button"
             class="btn-outline btn-sm"
             :disabled="pending || index === 0"
-            :aria-label="`Avancer l'image ${index + 1}`"
+            :aria-label="t('admin.moveImageBack', { index: index + 1 })"
             @click="emit('move', index, -1)"
           >
             <AppIcon name="chevron-left" :size="14" />
@@ -77,7 +76,7 @@ function onFiles(event: Event) {
             type="button"
             class="btn-outline btn-sm"
             :disabled="pending || index === images.length - 1"
-            :aria-label="`Reculer l'image ${index + 1}`"
+            :aria-label="t('admin.moveImageForward', { index: index + 1 })"
             @click="emit('move', index, 1)"
           >
             <AppIcon name="chevron-right" :size="14" />
@@ -86,7 +85,7 @@ function onFiles(event: Event) {
             type="button"
             class="btn-danger btn-sm"
             :disabled="pending"
-            :aria-label="`Retirer l'image ${index + 1}`"
+            :aria-label="t('admin.removeImage', { index: index + 1 })"
             @click="emit('remove', index)"
           >
             <AppIcon name="trash" :size="14" />

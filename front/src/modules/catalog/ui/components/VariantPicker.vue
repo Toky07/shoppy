@@ -1,5 +1,8 @@
 <script setup lang="ts">
+import { useI18n } from '@/shared/i18n/useI18n'
 import type { ProductVariant } from '../../domain/Product'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   variants: ProductVariant[]
@@ -29,8 +32,8 @@ function choose(size: string | null, color: string | null) {
 <template>
   <div class="mt-8 flex flex-col gap-5">
     <div v-if="unique(variants.map((variant) => variant.color)).length > 0">
-      <p class="text-xs font-semibold tracking-[0.12em] text-muted uppercase">Couleur</p>
-      <div class="mt-2 flex flex-wrap gap-2" role="radiogroup" aria-label="Couleur">
+      <p class="text-xs font-semibold tracking-[0.12em] text-muted uppercase">{{ t('catalog.color') }}</p>
+      <div class="mt-2 flex flex-wrap gap-2" role="radiogroup" :aria-label="t('catalog.color')">
         <button
           v-for="color in unique(variants.map((variant) => variant.color))"
           :key="color"
@@ -51,8 +54,8 @@ function choose(size: string | null, color: string | null) {
     </div>
 
     <div v-if="unique(variants.map((variant) => variant.size)).length > 0">
-      <p class="text-xs font-semibold tracking-[0.12em] text-muted uppercase">Taille</p>
-      <div class="mt-2 flex flex-wrap gap-2" role="radiogroup" aria-label="Taille">
+      <p class="text-xs font-semibold tracking-[0.12em] text-muted uppercase">{{ t('catalog.size') }}</p>
+      <div class="mt-2 flex flex-wrap gap-2" role="radiogroup" :aria-label="t('catalog.size')">
         <button
           v-for="size in unique(variants.map((variant) => variant.size))"
           :key="size"

@@ -1,3 +1,5 @@
+import type { Locale } from '@/shared/i18n/locale'
+
 export type LegalSlug = 'cgv' | 'confidentialite' | 'mentions' | 'retours'
 
 export type LegalSection = {
@@ -157,6 +159,153 @@ export const legalDocuments: readonly LegalDocument[] = [
   },
 ]
 
-export function legalDocumentByPath(path: string): LegalDocument | undefined {
-  return legalDocuments.find((page) => page.path === path)
+const legalDocumentsEn: readonly LegalDocument[] = [
+  {
+    slug: 'cgv',
+    path: '/cgv',
+    navLabel: 'Terms',
+    title: 'Terms of sale',
+    description: 'Price, order, delivery, withdrawal and warranties that apply to Shoppy purchases.',
+    sections: [
+      {
+        heading: 'Purpose',
+        paragraphs: [
+          'These terms govern sales on the Shoppy shop, a selection of objects shipped from France. Placing an order means you accept this document.',
+        ],
+      },
+      {
+        heading: 'Price and payment',
+        paragraphs: [
+          'Prices are in euros, tax included. Payment is due at checkout by card via Stripe. The order is confirmed only after payment is collected.',
+        ],
+      },
+      {
+        heading: 'Order',
+        paragraphs: [
+          'You can order as a guest or with an account. A summary is shown before payment. We may refuse an order if stock is insufficient, fraud is suspected, or the price is clearly wrong.',
+        ],
+      },
+      {
+        heading: 'Delivery',
+        paragraphs: [
+          'Products ship within 48 business hours, with tracking. Delivery is free from €49. Stated times are estimates, excluding weekends and public holidays.',
+        ],
+      },
+      {
+        heading: 'Right of withdrawal',
+        paragraphs: [
+          'You have 30 days from receipt to return an item, without giving a reason. Returns are free. The refund is issued after we receive the parcel in its original condition.',
+        ],
+      },
+      {
+        heading: 'Warranties',
+        paragraphs: [
+          'Products benefit from the legal warranty of conformity and hidden defects. A two-year commercial warranty on parts and labour is added, except for normal wear or misuse.',
+        ],
+      },
+    ],
+  },
+  {
+    slug: 'confidentialite',
+    path: '/confidentialite',
+    navLabel: 'Privacy',
+    title: 'Privacy policy',
+    description: 'What data Shoppy collects, why, and which rights you can exercise.',
+    sections: [
+      {
+        heading: 'Data we collect',
+        paragraphs: [
+          'We collect your email, password (stored irreversibly), delivery address and order history when you create an account or place an order. The email given for the newsletter is kept while you remain subscribed. Payment is handled by Stripe: we do not store card numbers.',
+        ],
+      },
+      {
+        heading: 'Purposes',
+        paragraphs: [
+          'This data is used to fulfil the order, secure the account, write to you about a purchase, send the newsletter if you subscribed, and keep accounting records when the law requires it. We do not sell your data or build advertising profiles.',
+        ],
+      },
+      {
+        heading: 'Retention',
+        paragraphs: [
+          'Account data is kept while the account exists. Orders are kept for as long as legal duties require. You can ask us to delete your account, except records we must keep.',
+        ],
+      },
+      {
+        heading: 'Your rights',
+        paragraphs: [
+          'You can ask for access, correction or deletion of your data, as well as restriction or portability, by writing to contact@shoppy.test. You can also lodge a complaint with the CNIL.',
+        ],
+      },
+      {
+        heading: 'Cookies',
+        paragraphs: [
+          'Strictly necessary cookies (session, cart, security) make the shop work and do not require your consent.',
+          'No audience-measurement or advertising cookies are set until you accept. You can change your mind at any time via the Cookies link in the footer.',
+        ],
+      },
+    ],
+  },
+  {
+    slug: 'mentions',
+    path: '/mentions',
+    navLabel: 'Legal notice',
+    title: 'Legal notice',
+    description: 'Publisher, hosting and contact for the Shoppy shop.',
+    sections: [
+      {
+        heading: 'Publisher',
+        paragraphs: [
+          'Shoppy is a demonstration shop. It is not a registered company: the identity notes below describe how the site works, not a company extract.',
+          'Publication director: the Shoppy team. Contact: contact@shoppy.test.',
+        ],
+      },
+      {
+        heading: 'Hosting',
+        paragraphs: [
+          'The site is served from the infrastructure you deployed it on. Product media is stored with the application.',
+        ],
+      },
+      {
+        heading: 'Intellectual property',
+        paragraphs: [
+          'Texts, visuals and trademarks on Shoppy remain the property of their owners. Unauthorised reproduction is prohibited.',
+        ],
+      },
+    ],
+  },
+  {
+    slug: 'retours',
+    path: '/retours',
+    navLabel: 'Returns',
+    title: 'Delivery and returns',
+    description: 'Shipping times, delivery fees and how to return an item within 30 days.',
+    sections: [
+      {
+        heading: 'Shipping',
+        paragraphs: [
+          'Orders leave France within 48 business hours, with tracking. Delivery is free from €49. Below that, shipping fees are shown before payment.',
+        ],
+      },
+      {
+        heading: 'Returns',
+        paragraphs: [
+          'You have 30 days after receipt to return an item, free of charge, if it is complete and in a condition that allows resale. Give your order number to contact@shoppy.test: we will send the label.',
+        ],
+      },
+      {
+        heading: 'Refund',
+        paragraphs: [
+          'The refund is issued to the original payment method after we receive the parcel. An item damaged on arrival is replaced or refunded, at no cost.',
+        ],
+      },
+    ],
+  },
+]
+
+export function legalDocumentsFor(locale: Locale): readonly LegalDocument[] {
+  return locale === 'en' ? legalDocumentsEn : legalDocuments
+}
+
+export function legalDocumentByPath(path: string, locale: Locale = 'fr'): LegalDocument | undefined {
+  return legalDocumentsFor(locale).find((page) => page.path === path)
 }

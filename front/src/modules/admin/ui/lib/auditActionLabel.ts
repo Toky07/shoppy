@@ -1,14 +1,16 @@
+import { translateFr } from '@/shared/i18n/catalogs'
+import type { Translate } from '@/shared/i18n/translate'
 import type { AuditAction, AuditEntry } from '../../domain/AuditEntry'
 
-const LABELS: Record<AuditAction, string> = {
-  role_changed: 'Rôle',
-  price_changed: 'Prix',
-  stock_changed: 'Stock',
-  payment_changed: 'Paiement',
+const KEYS: Record<AuditAction, 'admin.audit.role' | 'admin.audit.price' | 'admin.audit.stock' | 'admin.audit.payment'> = {
+  role_changed: 'admin.audit.role',
+  price_changed: 'admin.audit.price',
+  stock_changed: 'admin.audit.stock',
+  payment_changed: 'admin.audit.payment',
 }
 
-export function auditActionLabel(action: AuditAction): string {
-  return LABELS[action]
+export function auditActionLabel(action: AuditAction, t: Translate = translateFr): string {
+  return t(KEYS[action])
 }
 
 export function auditDetail(entry: AuditEntry): string {

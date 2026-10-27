@@ -20,5 +20,6 @@ describe('legalDocuments', () => {
     expect(legalDocumentByPath('/mentions')?.title).toBe('Mentions légales')
     expect(legalDocumentByPath('/retours')?.title).toBe('Livraison et retours')
     expect(legalDocumentByPath('/unknown')).toBeUndefined()
+    expect(legalDocumentByPath('/cgv', 'en')?.title).toBe('Terms of sale')
   })
 })

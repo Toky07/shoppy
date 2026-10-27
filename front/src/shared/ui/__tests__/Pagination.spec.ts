@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/vue'
 import { createMemoryHistory, createRouter } from 'vue-router'
 import { describe, expect, it } from 'vitest'
+import { localeProvide } from '@/shared/testing/localeProvide'
 import Pagination from '../Pagination.vue'
 
 async function renderPagination(props: { page: number; limit: number; total: number }, path = '/') {
@@ -13,7 +14,7 @@ async function renderPagination(props: { page: number; limit: number; total: num
 
   return render(Pagination, {
     props,
-    global: { plugins: [router] },
+    global: { plugins: [router], provide: localeProvide() },
   })
 }
 

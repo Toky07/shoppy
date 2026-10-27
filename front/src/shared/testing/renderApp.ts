@@ -51,6 +51,10 @@ import {
   type CookieConsentState,
 } from '@/shared/consent/createCookieConsentState'
 import { createMemoryCookieConsentStore } from '@/shared/consent/cookieConsentStore'
+import { createLocaleState, type LocaleState } from '@/shared/i18n/createLocaleState'
+import { localeStateKey } from '@/shared/i18n/localeStateKey'
+import { createMemoryLocaleStore } from '@/shared/i18n/localeStore'
+import type { Locale } from '@/shared/i18n/locale'
 import { createNavigationGuard } from '@/router/navigationGuard'
 import { routes } from '@/router/routes'
 
@@ -67,6 +71,8 @@ export async function renderApp(options: {
   favoriteRepository?: FavoriteRepository
   addressBookRepository?: AddressBookRepository
   cookieConsent?: CookieConsentState
+  localeState?: LocaleState
+  locale?: Locale
   newsletterRepository?: NewsletterRepository
   session?: Session | null
   path?: string
@@ -112,6 +118,9 @@ export async function renderApp(options: {
         [cookieConsentKey as symbol]:
           options.cookieConsent ??
           createCookieConsentState(createMemoryCookieConsentStore('necessary')),
+        [localeStateKey as symbol]:
+          options.localeState ??
+          createLocaleState(createMemoryLocaleStore(options.locale ?? 'fr')),
         [newsletterRepositoryKey as symbol]:
           options.newsletterRepository ?? new FakeNewsletterRepository(),
       },

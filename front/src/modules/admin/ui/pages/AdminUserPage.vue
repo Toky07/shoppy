@@ -18,6 +18,7 @@ import { userDirectoryKey } from '@/modules/auth/application/userDirectoryKey'
 import { useUserList } from '@/modules/auth/application/useUserList'
 import { authErrorMessage } from '@/modules/auth/ui/lib/authErrorMessage'
 import { userRoleLabel } from '@/modules/auth/ui/lib/userRoleLabel'
+import { useI18n } from '@/shared/i18n/useI18n'
 import AdminPageHeader from '../components/AdminPageHeader.vue'
 
 const directory = inject(userDirectoryKey)
@@ -27,6 +28,7 @@ if (!directory) {
   throw new Error('User directory is not provided.')
 }
 
+const { t, intlLocale } = useI18n()
 const users = directory
 const router = useRouter()
 const route = useRoute()
@@ -79,9 +81,9 @@ async function onRoleChange(user: User, event: Event) {
         items: page.value.items.map((item) => (item.id === user.id ? updated : item)),
       }
     }
-    successMessage.value = `Rôle mis à jour pour ${updated.email}.`
+    successMessage.value = t('admin.roleUpdated', { email: updated.email })
   } catch (caught) {
-    errorMessage.value = authErrorMessage(toApiError(caught))
+    errorMessage.value = authErrorMessage(toApiError(caught), t)
     await reload()
   } finally {
     pendingId.value = undefined
@@ -92,14 +94,14 @@ async function onRoleChange(user: User, event: Event) {
 <template>
   <section class="animate-fade-in">
     <AdminPageHeader
-      title="Utilisateurs"
+      :title="t('admin.titles.users')"
       icon="users"
-      description="Tous les comptes de la boutique, avec leur rôle et leur date d'inscription."
+      :description="t('admin.usersDescription')"
     />
 
     <form class="mt-6 flex flex-wrap items-center gap-3" @submit.prevent="onSearch">
       <label class="relative min-w-0 flex-1">
-        <span class="sr-only">Rechercher un email</span>
+        <span class="sr-only">{{ t('admin.searchEmail') }}</span>
         <span class="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-faint">
           <AppIcon name="search" :size="16" />
         </span>
@@ -107,12 +109,12 @@ async function onRoleChange(user: User, event: Event) {
           v-model="searchInput"
           type="search"
           class="field pl-11"
-          placeholder="Rechercher par email…"
+          :placeholder="t('admin.searchEmailPlaceholder')"
         />
       </label>
-      <button type="submit" class="btn-outline">Filtrer</button>
+      <button type="submit" class="btn-outline">{{ t('admin.filter') }}</button>
       <p v-if="page" class="numeric text-sm text-muted">
-        {{ page.total }} compte{{ page.total > 1 ? 's' : '' }}
+        {{ page.total > 1 ? t('admin.accountCountPlural', { count: page.total }) : t('admin.accountCount', { count: page.total }) }}
       </p>
     </form>
 
@@ -124,11 +126,11 @@ async function onRoleChange(user: User, event: Event) {
         <template #empty>
           <EmptyState
             icon="users"
-            :title="search ? 'Aucun résultat' : 'Aucun utilisateur'"
+            :title="search ? t('catalog.noResults') : t('admin.noUsers')"
             :description="
               search
-                ? `Aucun compte ne correspond à « ${search} ».`
-                : 'Les comptes apparaîtront ici dès la première inscription.'
+                ? t('admin.noUserMatch', { search })
+                : t('admin.usersEmpty')
             "
           />
         </template>
@@ -137,10 +139,10 @@ async function onRoleChange(user: User, event: Event) {
           <table class="admin-table">
             <thead>
               <tr>
-                <th>Compte</th>
-                <th>Rôle</th>
-                <th>Inscription</th>
-                <th class="w-56">Accès</th>
+                <th>{{ t('admin.account') }}</th>
+                <th>{{ t('admin.role') }}</th>
+                <th>{{ t('admin.signup') }}</th>
+                <th class="w-56">{{ t('admin.access') }}</th>
               </tr>
             </thead>
             <tbody>
@@ -160,7 +162,7 @@ async function onRoleChange(user: User, event: Event) {
                           v-if="user.id === currentUserId"
                           class="ml-2 align-middle text-[0.65rem] font-semibold tracking-[0.1em] text-accent-fg uppercase"
                         >
-                          Vous
+                          {{ t('admin.you') }}
                         </span>
                       </p>
                       <p class="numeric truncate text-xs text-faint">{{ user.id }}</p>
@@ -168,12 +170,12 @@ async function onRoleChange(user: User, event: Event) {
                   </div>
                 </td>
                 <td>
-                  <span :class="roleClass(user.role)">{{ userRoleLabel(user.role) }}</span>
+                  <span :class="roleClass(user.role)">{{ userRoleLabel(user.role, t) }}</span>
                 </td>
-                <td class="text-sm text-muted">{{ formatDate(user.createdAt) }}</td>
+                <td class="text-sm text-muted">{{ formatDate(user.createdAt, intlLocale) }}</td>
                 <td>
                   <label class="block">
-                    <span class="sr-only">Rôle de {{ user.email }}</span>
+                    <span class="sr-only">{{ t('admin.roleOf', { email: user.email }) }}</span>
                     <div class="relative">
                       <select
                         class="field appearance-none py-2 pr-10 font-medium"
@@ -181,8 +183,8 @@ async function onRoleChange(user: User, event: Event) {
                         :disabled="pendingId === user.id"
                         @change="onRoleChange(user, $event)"
                       >
-                        <option value="customer">Client</option>
-                        <option value="admin">Administrateur</option>
+                        <option value="customer">{{ t('auth.roleCustomer') }}</option>
+                        <option value="admin">{{ t('auth.roleAdmin') }}</option>
                       </select>
                       <span class="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-faint">
                         <AppIcon name="chevron-down" :size="14" />

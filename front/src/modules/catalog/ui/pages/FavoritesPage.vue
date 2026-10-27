@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { inject, ref, watch } from 'vue'
 import { RouterLink } from 'vue-router'
+import { useI18n } from '@/shared/i18n/useI18n'
 import AppIcon from '@/shared/ui/AppIcon.vue'
 import EmptyState from '@/shared/ui/EmptyState.vue'
 import PageHeader from '@/shared/ui/PageHeader.vue'
@@ -18,6 +19,7 @@ if (!repository) {
 }
 
 const catalog = repository
+const { t } = useI18n()
 const { favorites, count, clear, loading } = useFavorites()
 const products = ref<Product[]>([])
 const status = ref<'loading' | 'ready' | 'empty' | 'error'>('loading')
@@ -54,16 +56,16 @@ watch([favorites, loading], load, { immediate: true })
 <template>
   <section class="animate-fade-in">
     <PageHeader
-      eyebrow="Envies"
-      title="Ma liste d'envies"
+      :eyebrow="t('favorites.eyebrow')"
+      :title="t('favorites.title')"
       icon="heart"
       tone="accent"
-      description="Enregistrée sur votre compte dès que vous êtes connecté. Sans compte, elle reste sur cet appareil."
+      :description="t('favorites.description')"
     >
       <template #actions>
         <button v-if="count > 0" type="button" class="btn-outline" @click="clear">
           <AppIcon name="trash" :size="16" />
-          Vider la liste
+          {{ t('favorites.clear') }}
         </button>
       </template>
     </PageHeader>
@@ -73,12 +75,12 @@ watch([favorites, loading], load, { immediate: true })
         <template #empty>
           <EmptyState
             icon="heart"
-            title="Votre liste est vide"
-            description="Parcourez le catalogue et gardez sous la main les produits qui vous plaisent."
+            :title="t('favorites.emptyTitle')"
+            :description="t('favorites.emptyDescription')"
             :heading-level="2"
           >
             <RouterLink to="/" class="btn-primary">
-              Découvrir le catalogue
+              {{ t('favorites.discover') }}
               <AppIcon name="arrow-right" :size="16" />
             </RouterLink>
           </EmptyState>

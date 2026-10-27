@@ -94,6 +94,23 @@ describe('AppLayout footer', () => {
   })
 })
 
+describe('AppLayout language', () => {
+  it('switches the storefront from french to english', async () => {
+    await renderApp()
+
+    expect(document.documentElement.lang).toBe('fr')
+    expect(screen.getByRole('link', { name: 'Catalogue' })).toBeTruthy()
+    expect(screen.getByRole('link', { name: 'Connexion' })).toBeTruthy()
+
+    await userEvent.click(screen.getByRole('button', { name: 'English' }))
+
+    expect(document.documentElement.lang).toBe('en')
+    expect(screen.getByRole('link', { name: 'Catalog' })).toBeTruthy()
+    expect(screen.getByRole('link', { name: 'Sign in' })).toBeTruthy()
+    expect(screen.getByRole('link', { name: 'All products' })).toBeTruthy()
+  })
+})
+
 describe('AppLayout cookies', () => {
   it('asks for consent until the visitor chooses', async () => {
     await renderApp({ cookieConsent: createCookieConsentState() })

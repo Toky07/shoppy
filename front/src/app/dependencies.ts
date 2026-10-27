@@ -3,6 +3,7 @@ import { AuthHttpRepository } from '@/modules/auth/data/AuthHttpRepository'
 import { createAuthSession } from '@/modules/auth/application/createAuthSession'
 import { createCartState } from '@/modules/cart/application/createCartState'
 import { restoreAuthSession } from '@/modules/auth/application/restoreAuthSession'
+import { createLocalSessionPresenceStore } from '@/modules/auth/data/sessionPresenceStore'
 import { CartHttpRepository } from '@/modules/cart/data/CartHttpRepository'
 import { createLocalGuestCart } from '@/modules/cart/data/guestCartStorage'
 import { OrderHttpRepository } from '@/modules/order/data/OrderHttpRepository'
@@ -19,11 +20,14 @@ import { ProductHttpRepository } from '@/modules/catalog/data/ProductHttpReposit
 import { UserHttpDirectory } from '@/modules/auth/data/UserHttpDirectory'
 import { createCookieConsentState } from '@/shared/consent/createCookieConsentState'
 import { createLocalCookieConsentStore } from '@/shared/consent/cookieConsentStore'
+import { createLocaleState } from '@/shared/i18n/createLocaleState'
+import { createLocalLocaleStore } from '@/shared/i18n/localeStore'
 import { NewsletterHttpRepository } from '@/modules/newsletter/data/NewsletterHttpRepository'
 
 window.localStorage.removeItem('shoppy.session')
 
-export const authSession = createAuthSession()
+const sessionPresence = createLocalSessionPresenceStore(window.localStorage)
+export const authSession = createAuthSession(sessionPresence)
 export const httpClient = new FetchHttpClient(
   import.meta.env.VITE_API_URL ?? '/api',
   globalThis.fetch.bind(globalThis),
@@ -31,7 +35,7 @@ export const httpClient = new FetchHttpClient(
 )
 export const catalogRepository = new ProductHttpRepository(httpClient)
 export const authRepository = new AuthHttpRepository(httpClient)
-export const authReady = restoreAuthSession(authRepository, authSession)
+export const authReady = restoreAuthSession(authRepository, authSession, sessionPresence.remembered())
 export const cartRepository = new CartHttpRepository(httpClient)
 export const cartState = createCartState(
   cartRepository,
@@ -58,4 +62,5 @@ export const addressBookState = createAddressBookState(
 export const cookieConsent = createCookieConsentState(
   createLocalCookieConsentStore(window.localStorage),
 )
+export const localeState = createLocaleState(createLocalLocaleStore(window.localStorage))
 export const newsletterRepository = new NewsletterHttpRepository(httpClient)

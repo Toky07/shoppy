@@ -3,11 +3,13 @@ import { computed, onBeforeUnmount, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { legalDocumentByPath } from '../../data/legalDocuments'
 import { applyPageMeta, resetPageMeta } from '@/shared/seo/applyPageMeta'
+import { useI18n } from '@/shared/i18n/useI18n'
 import EmptyState from '@/shared/ui/EmptyState.vue'
 import PageHeader from '@/shared/ui/PageHeader.vue'
 
+const { locale, t } = useI18n()
 const route = useRoute()
-const page = computed(() => legalDocumentByPath(route.path))
+const page = computed(() => legalDocumentByPath(route.path, locale.value))
 
 watch(
   page,
@@ -32,7 +34,7 @@ onBeforeUnmount(resetPageMeta)
 <template>
   <article v-if="page" class="mx-auto max-w-3xl animate-fade-in">
     <PageHeader
-      eyebrow="Informations"
+      :eyebrow="t('legal.eyebrow')"
       :title="page.title"
       icon="info"
       :description="page.description"
@@ -55,8 +57,8 @@ onBeforeUnmount(resetPageMeta)
   <EmptyState
     v-else
     icon="alert-circle"
-    title="Page introuvable"
-    description="Cette page légale n'existe pas."
+    :title="t('legal.notFoundTitle')"
+    :description="t('legal.notFoundBody')"
     :heading-level="2"
   />
 </template>

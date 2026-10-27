@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/vue'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
+import { localeProvide } from '@/shared/testing/localeProvide'
 import ImageCarousel from '../ImageCarousel.vue'
 
 const images = ['/uploads/one.jpg', '/uploads/two.jpg', '/uploads/three.jpg']
@@ -17,6 +18,7 @@ describe('ImageCarousel', () => {
   it('shows a single image without controls', async () => {
     render(ImageCarousel, {
       props: { images: ['/uploads/one.jpg'], alt: 'Nuvora Tee' },
+      global: { provide: localeProvide() },
     })
 
     expect((await carouselImg('Nuvora Tee')).getAttribute('src')).toBe('/uploads/one.card.jpg')
@@ -26,6 +28,7 @@ describe('ImageCarousel', () => {
   it('browses the gallery with next and previous', async () => {
     render(ImageCarousel, {
       props: { images, alt: 'Nuvora Tee' },
+      global: { provide: localeProvide() },
     })
 
     expect((await carouselImg('Nuvora Tee (1/3)')).getAttribute('src')).toBe('/uploads/one.card.jpg')
@@ -40,6 +43,7 @@ describe('ImageCarousel', () => {
   it('changes slide on a horizontal swipe', async () => {
     render(ImageCarousel, {
       props: { images, alt: 'Nuvora Tee', interactive: true },
+      global: { provide: localeProvide() },
     })
 
     await carouselImg('Nuvora Tee (1/3)')
@@ -55,6 +59,7 @@ describe('ImageCarousel', () => {
   it('ignores a vertical swipe so the page can still scroll', async () => {
     render(ImageCarousel, {
       props: { images, alt: 'Nuvora Tee', interactive: true },
+      global: { provide: localeProvide() },
     })
 
     await carouselImg('Nuvora Tee (1/3)')
@@ -70,6 +75,7 @@ describe('ImageCarousel', () => {
   it('jumps to a slide from a thumbnail control', async () => {
     render(ImageCarousel, {
       props: { images, alt: 'Nuvora Tee' },
+      global: { provide: localeProvide() },
     })
 
     await carouselImg('Nuvora Tee (1/3)')

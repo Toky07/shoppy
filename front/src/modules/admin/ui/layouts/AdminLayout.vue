@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { computed, inject, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, inject, onBeforeUnmount, ref, watch } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { authRepositoryKey } from '@/modules/auth/application/authRepositoryKey'
 import { authSessionKey } from '@/modules/auth/application/authSessionKey'
 import { logout } from '@/modules/auth/application/logout'
+import { useI18n } from '@/shared/i18n/useI18n'
 import AppIcon from '@/shared/ui/AppIcon.vue'
 import BrandMark from '@/shared/ui/BrandMark.vue'
+import LanguageSwitcher from '@/shared/ui/LanguageSwitcher.vue'
 import ThemeToggle from '@/shared/ui/ThemeToggle.vue'
 import { userInitials } from '@/shared/text/userInitials'
 import { ADMIN_NAV, adminPageTitle, isAdminNavActive } from '../lib/adminNav'
@@ -21,12 +23,13 @@ if (!session || !repository) {
 
 const authSession = session
 const authRepository = repository
+const { t, locale } = useI18n()
 const sidebarOpen = ref(false)
 const isAuthenticated = computed(() => authSession.isAuthenticated.value)
 const isAdmin = computed(() => authSession.isAdmin.value)
 const email = computed(() => authSession.session.value?.user.email ?? '')
 const initials = computed(() => userInitials(email.value))
-const pageTitle = computed(() => adminPageTitle(route.path))
+const pageTitle = computed(() => adminPageTitle(route.path, t))
 
 watch(
   isAuthenticated,
@@ -48,12 +51,16 @@ watch(
   },
 )
 
-onMounted(() => {
-  document.title = 'Console — Shoppy'
-})
+watch(
+  locale,
+  () => {
+    document.title = t('meta.adminTitle')
+  },
+  { immediate: true },
+)
 
 onBeforeUnmount(() => {
-  document.title = 'Shoppy — Boutique'
+  document.title = t('meta.homeTitle')
 })
 
 async function onLogout() {
@@ -64,7 +71,7 @@ async function onLogout() {
 
 <template>
   <div v-if="!isAuthenticated" class="flex min-h-screen items-center justify-center bg-canvas">
-    <p class="text-sm font-medium text-muted">Redirection vers la connexion…</p>
+    <p class="text-sm font-medium text-muted">{{ t('admin.redirecting') }}</p>
   </div>
 
   <div
@@ -74,11 +81,11 @@ async function onLogout() {
     <div class="flex size-14 items-center justify-center rounded-2xl bg-danger-soft text-danger">
       <AppIcon name="shield" :size="24" />
     </div>
-    <h1 class="mt-6 font-display text-2xl font-bold text-strong">Accès refusé</h1>
+    <h1 class="mt-6 font-display text-2xl font-bold text-strong">{{ t('admin.deniedTitle') }}</h1>
     <p role="alert" class="mt-3 max-w-sm text-sm text-muted">
-      Cette page est réservée aux administrateurs.
+      {{ t('admin.deniedBody') }}
     </p>
-    <RouterLink to="/" class="btn-primary mt-8">Retour à la boutique</RouterLink>
+    <RouterLink to="/" class="btn-primary mt-8">{{ t('common.backToShop') }}</RouterLink>
   </div>
 
   <div v-else class="admin-root flex min-h-screen bg-canvas">
@@ -99,12 +106,12 @@ async function onLogout() {
         <div class="min-w-0">
           <p class="font-display text-lg font-extrabold tracking-tight text-white">Shoppy</p>
           <p class="text-[0.65rem] font-semibold tracking-[0.18em] text-white/45 uppercase">
-            Console
+            {{ t('admin.console') }}
           </p>
         </div>
       </div>
 
-      <nav class="mt-2 flex-1 space-y-1 overflow-y-auto px-3" aria-label="Navigation administration">
+      <nav class="mt-2 flex-1 space-y-1 overflow-y-auto px-3" :aria-label="t('admin.navLabel')">
         <RouterLink
           v-for="item in ADMIN_NAV"
           :key="item.to"
@@ -113,14 +120,14 @@ async function onLogout() {
           :class="isAdminNavActive(route.path, item) && 'admin-nav-active'"
         >
           <AppIcon :name="item.icon" :size="17" />
-          {{ item.label }}
+          {{ t(item.labelKey) }}
         </RouterLink>
       </nav>
 
       <div class="border-t px-3 py-4" style="border-color: var(--admin-ink-line)">
         <RouterLink to="/" class="admin-nav-item">
           <AppIcon name="globe" :size="17" />
-          Voir la boutique
+          {{ t('admin.shop') }}
         </RouterLink>
       </div>
     </aside>
@@ -132,7 +139,7 @@ async function onLogout() {
         <button
           type="button"
           class="btn-icon lg:hidden"
-          :aria-label="sidebarOpen ? 'Fermer le menu' : 'Ouvrir le menu'"
+          :aria-label="sidebarOpen ? t('header.closeMenu') : t('header.openMenu')"
           :aria-expanded="sidebarOpen"
           @click="sidebarOpen = !sidebarOpen"
         >
@@ -140,11 +147,12 @@ async function onLogout() {
         </button>
 
         <div class="min-w-0">
-          <p class="text-[0.65rem] font-semibold tracking-[0.16em] text-faint uppercase">Console</p>
+          <p class="text-[0.65rem] font-semibold tracking-[0.16em] text-faint uppercase">{{ t('admin.console') }}</p>
           <p class="truncate font-display text-lg font-bold text-strong">{{ pageTitle }}</p>
         </div>
 
         <div class="ml-auto flex items-center gap-2 sm:gap-3">
+          <LanguageSwitcher />
           <ThemeToggle />
           <span
             class="flex size-9 items-center justify-center rounded-full bg-primary font-display text-[0.65rem] font-bold tracking-wide text-primary-fg shadow-soft"
@@ -155,7 +163,7 @@ async function onLogout() {
           </span>
           <button type="button" class="btn-ghost btn-sm" @click="onLogout">
             <AppIcon name="logout" :size="15" />
-            <span class="hidden sm:inline">Déconnexion</span>
+            <span class="hidden sm:inline">{{ t('admin.logout') }}</span>
           </button>
         </div>
       </header>

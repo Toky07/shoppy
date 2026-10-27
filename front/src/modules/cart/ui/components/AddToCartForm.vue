@@ -5,6 +5,7 @@ import AppIcon from '@/shared/ui/AppIcon.vue'
 import { toApiError } from '@/shared/http/toApiError'
 import { authSessionKey } from '@/modules/auth/application/authSessionKey'
 import { cartStateKey } from '@/modules/cart/application/cartStateKey'
+import { useI18n } from '@/shared/i18n/useI18n'
 import { cartErrorMessage } from '@/modules/cart/ui/lib/cartErrorMessage'
 
 const props = defineProps<{
@@ -25,6 +26,7 @@ if (!session || !cartState) {
 
 const authSession = session
 const state = cartState
+const { t } = useI18n()
 const router = useRouter()
 const route = useRoute()
 const quantity = ref(1)
@@ -45,7 +47,7 @@ async function onSubmit() {
       availableStock: props.stock,
       imageUrl: props.imageUrl ?? null,
     })
-    successMessage.value = 'Ajouté au panier.'
+    successMessage.value = t('catalog.added')
   } catch (caught) {
     const error = toApiError(caught)
 
@@ -55,7 +57,7 @@ async function onSubmit() {
       return
     }
 
-    errorMessage.value = cartErrorMessage(error)
+    errorMessage.value = cartErrorMessage(error, t)
   } finally {
     pending.value = false
   }
@@ -71,7 +73,7 @@ async function onSubmit() {
         <button
           type="button"
           class="flex size-9 items-center justify-center rounded-full text-body transition-colors hover:bg-surface hover:text-strong disabled:opacity-40"
-          aria-label="Diminuer la quantité"
+          :aria-label="t('catalog.quantityDecrease')"
           :disabled="outOfStock || pending || quantity <= 1"
           @click="quantity > 1 && quantity--"
         >
@@ -83,13 +85,13 @@ async function onSubmit() {
           type="number"
           min="1"
           :max="stock"
-          aria-label="Quantité"
+          :aria-label="t('catalog.quantity')"
           :disabled="outOfStock || pending"
         />
         <button
           type="button"
           class="flex size-9 items-center justify-center rounded-full text-body transition-colors hover:bg-surface hover:text-strong disabled:opacity-40"
-          aria-label="Augmenter la quantité"
+          :aria-label="t('catalog.quantityIncrease')"
           :disabled="outOfStock || pending || quantity >= stock"
           @click="quantity < stock && quantity++"
         >
@@ -100,7 +102,7 @@ async function onSubmit() {
       <button type="submit" class="btn-primary btn-lg flex-1" :disabled="outOfStock || pending">
         <span v-if="pending" class="animate-orbit"><AppIcon name="loader" :size="17" /></span>
         <AppIcon v-else name="cart" :size="17" />
-        Ajouter au panier
+        {{ t('catalog.addToCart') }}
       </button>
     </div>
 
@@ -109,7 +111,7 @@ async function onSubmit() {
       <span>
         {{ successMessage }}
         <RouterLink to="/cart" class="font-semibold underline underline-offset-2">
-          Voir mon panier
+          {{ t('catalog.viewCart') }}
         </RouterLink>
       </span>
     </div>

@@ -1,9 +1,11 @@
 <script setup lang="ts">
+import { useI18n } from '@/shared/i18n/useI18n'
 import AppIcon from '@/shared/ui/AppIcon.vue'
 import AppImage from '@/shared/ui/AppImage.vue'
 import ProductPrice from '@/modules/catalog/ui/components/ProductPrice.vue'
 import type { CartItem } from '../../domain/CartItem'
 
+const { t } = useI18n()
 const props = defineProps<{
   item: CartItem
 }>()
@@ -40,7 +42,7 @@ function step(delta: number) {
         <div class="min-w-0">
           <h2 class="truncate font-display text-base font-bold text-strong">{{ item.name }}</h2>
           <p class="numeric mt-1 text-xs text-muted">
-            <ProductPrice :price="item.unitPrice" /> l'unité
+            <ProductPrice :price="item.unitPrice" /> {{ t('cart.unit') }}
           </p>
         </div>
         <p class="numeric shrink-0 font-display text-lg font-extrabold text-strong">
@@ -53,14 +55,14 @@ function step(delta: number) {
           <button
             type="button"
             class="flex size-8 items-center justify-center rounded-full text-body transition-colors hover:bg-surface hover:text-strong disabled:opacity-40"
-            :aria-label="`Diminuer la quantité de ${item.name}`"
+            :aria-label="t('catalog.quantityDecreaseNamed', { name: item.name })"
             :disabled="item.quantity <= 1"
             @click="step(-1)"
           >
             <AppIcon name="minus" :size="14" />
           </button>
           <input
-            :aria-label="`Quantité ${item.name}`"
+            :aria-label="t('catalog.quantityNamed', { name: item.name })"
             class="numeric w-10 border-none bg-transparent text-center text-sm font-bold text-strong focus:outline-none"
             type="number"
             min="1"
@@ -71,7 +73,7 @@ function step(delta: number) {
           <button
             type="button"
             class="flex size-8 items-center justify-center rounded-full text-body transition-colors hover:bg-surface hover:text-strong disabled:opacity-40"
-            :aria-label="`Augmenter la quantité de ${item.name}`"
+            :aria-label="t('catalog.quantityIncreaseNamed', { name: item.name })"
             :disabled="item.quantity >= item.availableStock"
             @click="step(1)"
           >
@@ -85,7 +87,7 @@ function step(delta: number) {
           @click="emit('remove')"
         >
           <AppIcon name="trash" :size="14" />
-          Retirer
+          {{ t('cart.remove') }}
         </button>
       </div>
     </div>

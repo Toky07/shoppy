@@ -3,6 +3,7 @@ import { inject, ref } from 'vue'
 import { newsletterRepositoryKey } from '../../application/newsletterRepositoryKey'
 import { newsletterErrorMessage } from '../lib/newsletterErrorMessage'
 import { toApiError } from '@/shared/http/toApiError'
+import { useI18n } from '@/shared/i18n/useI18n'
 import AppIcon from '@/shared/ui/AppIcon.vue'
 import StatusNotice from '@/shared/ui/StatusNotice.vue'
 
@@ -13,6 +14,7 @@ if (!injected) {
 }
 
 const repository = injected
+const { t } = useI18n()
 
 const email = ref('')
 const submitting = ref(false)
@@ -28,7 +30,7 @@ async function subscribe() {
     subscribed.value = true
     email.value = ''
   } catch (caught) {
-    errorMessage.value = newsletterErrorMessage(toApiError(caught))
+    errorMessage.value = newsletterErrorMessage(toApiError(caught), t)
   } finally {
     submitting.value = false
   }
@@ -37,7 +39,7 @@ async function subscribe() {
 
 <template>
   <form class="mt-6 max-w-xs" @submit.prevent="subscribe">
-    <label class="field-label" for="newsletter">Lettre d'information</label>
+    <label class="field-label" for="newsletter">{{ t('newsletter.label') }}</label>
     <div class="flex gap-2">
       <input
         id="newsletter"
@@ -46,21 +48,21 @@ async function subscribe() {
         name="email"
         required
         autocomplete="email"
-        placeholder="vous@domaine.com"
+        :placeholder="t('newsletter.placeholder')"
         class="field rounded-full py-2.5 text-sm"
         :disabled="submitting || subscribed"
       />
       <button
         type="submit"
         class="btn-accent shrink-0"
-        aria-label="S'abonner"
+        :aria-label="t('newsletter.subscribe')"
         :disabled="submitting || subscribed"
       >
         <AppIcon name="arrow-right" :size="17" />
       </button>
     </div>
     <StatusNotice v-if="subscribed" tone="positive" class="mt-3">
-      Merci, vous êtes inscrit.
+      {{ t('newsletter.success') }}
     </StatusNotice>
     <StatusNotice v-else-if="errorMessage" tone="danger" class="mt-3">
       {{ errorMessage }}

@@ -9,6 +9,7 @@ import { useOrder } from '@/modules/order/application/useOrder'
 import OrderLine from '@/modules/order/ui/components/OrderLine.vue'
 import OrderAddresses from '@/modules/order/ui/components/OrderAddresses.vue'
 import { orderErrorMessage } from '@/modules/order/ui/lib/orderErrorMessage'
+import { useI18n } from '@/shared/i18n/useI18n'
 import AdminOrderSummary from '../components/AdminOrderSummary.vue'
 import AdminPageHeader from '../components/AdminPageHeader.vue'
 
@@ -19,15 +20,16 @@ if (!session || !orderRepository) {
   throw new Error('Admin order dependencies are not provided.')
 }
 
+const { t } = useI18n()
 const orders = orderRepository
 const isAdmin = computed(() => session.isAdmin.value)
 const route = useRoute()
 const orderId = computed(() => String(route.params.id ?? ''))
 const { status, order, error, reload } = useOrder(orders, orderId, isAdmin)
 const { pending, errorMessage: actionError, run } = usePendingAction((error) =>
-  orderErrorMessage(error),
+  orderErrorMessage(error, t),
 )
-const loadError = computed(() => (error.value ? orderErrorMessage(error.value) : undefined))
+const loadError = computed(() => (error.value ? orderErrorMessage(error.value, t) : undefined))
 const canMarkPaid = computed(() => order.value?.status === 'pending')
 
 function onMarkPaid() {
@@ -41,10 +43,10 @@ function onMarkPaid() {
 <template>
   <section class="animate-fade-in">
     <AdminPageHeader
-      title="Commande"
+      :title="t('admin.order')"
       icon="package"
       back-to="/admin/orders"
-      back-label="Retour aux commandes"
+      :back-label="t('admin.backToOrders')"
     />
 
     <div class="mt-6">

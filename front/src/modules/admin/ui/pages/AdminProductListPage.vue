@@ -15,6 +15,7 @@ import { DEFAULT_PRODUCT_LIMIT } from '@/modules/catalog/application/defaultProd
 import { parseProductSort } from '@/modules/catalog/application/productSort'
 import { useProductList } from '@/modules/catalog/application/useProductList'
 import CatalogToolbar from '@/modules/catalog/ui/components/CatalogToolbar.vue'
+import { useI18n } from '@/shared/i18n/useI18n'
 import AdminPageHeader from '../components/AdminPageHeader.vue'
 import AdminProductCard from '../components/AdminProductCard.vue'
 
@@ -25,6 +26,7 @@ if (!catalog || !adminCatalog) {
   throw new Error('Admin catalog dependencies are not provided.')
 }
 
+const { t } = useI18n()
 const catalogRepository = catalog
 const adminRepository = adminCatalog
 const route = useRoute()
@@ -41,7 +43,7 @@ const pendingId = ref<string>()
 const { pending, errorMessage, run } = usePendingAction((caught) => caught.message)
 
 function onDelete(id: string, name: string) {
-  if (!window.confirm(`Supprimer « ${name} » du catalogue ? Cette action est définitive.`)) {
+  if (!window.confirm(t('admin.deleteConfirm', { name }))) {
     return
   }
 
@@ -60,14 +62,14 @@ function onDelete(id: string, name: string) {
 <template>
   <section class="animate-fade-in">
     <AdminPageHeader
-      title="Catalogue"
+      :title="t('admin.titles.catalog')"
       icon="tag"
-      description="Les produits en vente, leurs visuels, prix et stocks."
+      :description="t('admin.catalogDescription')"
     >
       <template #actions>
         <RouterLink to="/admin/products/new" class="btn-primary">
           <AppIcon name="plus" :size="16" />
-          Nouveau produit
+          {{ t('admin.newProduct') }}
         </RouterLink>
       </template>
     </AdminPageHeader>
@@ -80,21 +82,21 @@ function onDelete(id: string, name: string) {
         <template #empty>
           <EmptyState
             icon="tag"
-            :title="search ? 'Aucun résultat' : 'Aucun produit'"
+            :title="search ? t('catalog.noResults') : t('catalog.noProducts')"
             :description="
               search
-                ? `Aucun produit ne correspond à « ${search} ».`
-                : 'Aucun produit pour le moment.'
+                ? t('catalog.emptySearch', { search })
+                : t('admin.noProducts')
             "
           />
         </template>
 
         <div v-if="page" class="admin-product-list">
           <div class="admin-product-list-head" aria-hidden="true">
-            <span>Produit</span>
-            <span class="text-right">Prix</span>
-            <span>Stock</span>
-            <span class="text-right">Actions</span>
+            <span>{{ t('admin.product') }}</span>
+            <span class="text-right">{{ t('admin.price') }}</span>
+            <span>{{ t('admin.stock') }}</span>
+            <span class="text-right">{{ t('admin.actions') }}</span>
           </div>
           <AdminProductCard
             v-for="product in page.items"

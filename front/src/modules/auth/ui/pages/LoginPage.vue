@@ -7,6 +7,7 @@ import { authRepositoryKey } from '../../application/authRepositoryKey'
 import { authSessionKey } from '../../application/authSessionKey'
 import { login } from '../../application/login'
 import AuthCredentialsForm from '../components/AuthCredentialsForm.vue'
+import { useI18n } from '@/shared/i18n/useI18n'
 import { authErrorMessage } from '../lib/authErrorMessage'
 
 const repository = inject(authRepositoryKey)
@@ -18,9 +19,10 @@ if (!repository || !session) {
 
 const authRepository = repository
 const authSession = session
+const { t } = useI18n()
 const router = useRouter()
 const route = useRoute()
-const { pending, errorMessage, run } = usePendingAction((error) => authErrorMessage(error))
+const { pending, errorMessage, run } = usePendingAction((error) => authErrorMessage(error, t))
 
 function onSubmit(credentials: { email: string; password: string }) {
   return run(async () => {
@@ -32,21 +34,21 @@ function onSubmit(credentials: { email: string; password: string }) {
 
 <template>
   <AuthCredentialsForm
-    title="Connexion"
-    subtitle="Content de vous revoir. Reprenez là où vous en étiez."
-    submit-label="Se connecter"
+    :title="t('auth.loginTitle')"
+    :subtitle="t('auth.loginSubtitle')"
+    :submit-label="t('auth.loginSubmit')"
     :pending="pending"
     :error-message="errorMessage"
     @submit="onSubmit"
   >
     <template #password-aside>
       <RouterLink to="/forgot-password" class="text-xs font-semibold text-strong underline underline-offset-2">
-        Mot de passe oublié
+        {{ t('auth.forgot') }}
       </RouterLink>
     </template>
-    Pas encore de compte ?
+    {{ t('auth.noAccount') }}
     <RouterLink to="/register" class="ml-1 font-semibold text-strong underline underline-offset-2">
-      Créer un compte
+      {{ t('auth.createAccount') }}
     </RouterLink>
   </AuthCredentialsForm>
 </template>

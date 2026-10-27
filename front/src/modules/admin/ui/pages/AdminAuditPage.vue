@@ -10,6 +10,7 @@ import { toApiError } from '@/shared/http/toApiError'
 import { auditLogRepositoryKey } from '@/modules/admin/application/auditLogRepositoryKey'
 import { DEFAULT_AUDIT_LIMIT } from '@/modules/admin/application/defaultAuditLimit'
 import type { AuditLogPage } from '@/modules/admin/domain/AuditEntry'
+import { useI18n } from '@/shared/i18n/useI18n'
 import { auditActionLabel, auditDetail } from '../lib/auditActionLabel'
 import AdminPageHeader from '../components/AdminPageHeader.vue'
 
@@ -19,6 +20,7 @@ if (!repository) {
   throw new Error('Audit log dependencies are not provided.')
 }
 
+const { t, intlLocale } = useI18n()
 const log = repository
 const route = useRoute()
 const query = computed(() => ({
@@ -65,9 +67,9 @@ function subjectTo(type: string, id: string): string | null {
 <template>
   <section class="animate-fade-in">
     <AdminPageHeader
-      title="Journal"
+      :title="t('admin.titles.audit')"
       icon="list"
-      description="Qui a changé un rôle, un prix, un stock ou un paiement."
+      :description="t('admin.auditDescription')"
     />
 
     <div class="mt-6">
@@ -75,8 +77,8 @@ function subjectTo(type: string, id: string): string | null {
         <template #empty>
           <EmptyState
             icon="list"
-            title="Aucune entrée"
-            description="Les changements d'administration apparaîtront ici."
+            :title="t('admin.noEntries')"
+            :description="t('admin.auditEmpty')"
           />
         </template>
 
@@ -84,17 +86,17 @@ function subjectTo(type: string, id: string): string | null {
           <table class="admin-table">
             <thead>
               <tr>
-                <th>Date</th>
-                <th>Auteur</th>
-                <th>Action</th>
-                <th>Détail</th>
+                <th>{{ t('admin.date') }}</th>
+                <th>{{ t('admin.actor') }}</th>
+                <th>{{ t('admin.action') }}</th>
+                <th>{{ t('admin.detail') }}</th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="entry in page.items" :key="entry.id">
-                <td class="font-semibold text-strong">{{ formatDate(entry.createdAt) }}</td>
-                <td class="text-sm text-muted">{{ entry.actorEmail ?? 'Système' }}</td>
-                <td class="font-semibold text-strong">{{ auditActionLabel(entry.action) }}</td>
+                <td class="font-semibold text-strong">{{ formatDate(entry.createdAt, intlLocale) }}</td>
+                <td class="text-sm text-muted">{{ entry.actorEmail ?? t('admin.audit.system') }}</td>
+                <td class="font-semibold text-strong">{{ auditActionLabel(entry.action, t) }}</td>
                 <td>
                   <RouterLink
                     v-if="subjectTo(entry.subjectType, entry.subjectId)"

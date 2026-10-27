@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useI18n } from '@/shared/i18n/useI18n'
 import AppIcon from '@/shared/ui/AppIcon.vue'
 import BrandMark from '@/shared/ui/BrandMark.vue'
 import StatusNotice from '@/shared/ui/StatusNotice.vue'
@@ -19,6 +20,7 @@ const props = withDefaults(
   { passwordAutocomplete: 'current-password' },
 )
 
+const { t } = useI18n()
 const emit = defineEmits<{
   submit: [credentials: { email: string; password: string }]
 }>()
@@ -40,14 +42,14 @@ function onSubmit() {
 
         <h1 class="display-tight mt-6 text-3xl text-strong sm:text-4xl lg:mt-0">{{ title }}</h1>
         <p class="mt-3 text-sm text-muted">
-          {{ props.subtitle ?? 'Entrez vos identifiants pour continuer.' }}
+          {{ props.subtitle ?? t('auth.credentialsFallback') }}
         </p>
 
         <form class="mt-8 space-y-5" @submit.prevent="onSubmit">
           <StatusNotice v-if="props.errorMessage" tone="danger">{{ props.errorMessage }}</StatusNotice>
 
           <div>
-            <label class="field-label" for="auth-email">Adresse email</label>
+            <label class="field-label" for="auth-email">{{ t('common.email') }}</label>
             <div class="relative">
               <span class="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-faint">
                 <AppIcon name="mail" :size="16" />
@@ -59,7 +61,7 @@ function onSubmit() {
                 name="email"
                 autocomplete="email"
                 required
-                placeholder="vous@exemple.com"
+                :placeholder="t('common.emailPlaceholder')"
                 class="field pl-11"
               />
             </div>
@@ -67,7 +69,7 @@ function onSubmit() {
 
           <div>
             <div class="flex items-center justify-between gap-3">
-              <label class="field-label" for="auth-password">Mot de passe</label>
+              <label class="field-label" for="auth-password">{{ t('common.password') }}</label>
               <slot name="password-aside" />
             </div>
             <div class="relative">
@@ -83,13 +85,17 @@ function onSubmit() {
                 required
                 :minlength="props.passwordMinLength"
                 :maxlength="props.passwordMaxLength"
-                :placeholder="props.passwordMinLength ? `${props.passwordMinLength} caractères minimum` : 'Votre mot de passe'"
+                :placeholder="
+                  props.passwordMinLength
+                    ? t('auth.minLength', { count: props.passwordMinLength })
+                    : t('common.passwordPlaceholder')
+                "
                 class="field px-11"
               />
               <button
                 type="button"
                 class="absolute top-1/2 right-3 flex size-8 -translate-y-1/2 items-center justify-center rounded-full text-faint transition-colors hover:bg-surface-muted hover:text-strong"
-                :aria-label="revealed ? 'Masquer le mot de passe' : 'Afficher le mot de passe'"
+                :aria-label="revealed ? t('common.hidePassword') : t('common.showPassword')"
                 @click="revealed = !revealed"
               >
                 <AppIcon :name="revealed ? 'eye-off' : 'eye'" :size="16" />

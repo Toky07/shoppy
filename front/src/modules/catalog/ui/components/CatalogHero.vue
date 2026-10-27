@@ -1,12 +1,15 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { RouterLink } from 'vue-router'
+import { useI18n } from '@/shared/i18n/useI18n'
 import AppIcon from '@/shared/ui/AppIcon.vue'
 
-const highlights = [
-  { icon: 'truck', value: '48 h', label: 'Expédition' },
-  { icon: 'refresh', value: '30 j', label: "Pour changer d'avis" },
-  { icon: 'shield', value: '2 ans', label: 'De garantie' },
-] as const
+const { t } = useI18n()
+const highlights = computed(() => [
+  { icon: 'truck' as const, value: t('catalog.shipValue'), label: t('catalog.shipLabel') },
+  { icon: 'refresh' as const, value: t('catalog.returnValue'), label: t('catalog.returnLabel') },
+  { icon: 'shield' as const, value: t('catalog.warrantyValue'), label: t('catalog.warrantyLabel') },
+])
 </script>
 
 <template>
@@ -15,23 +18,22 @@ const highlights = [
       <div>
         <span class="badge-accent">
           <AppIcon name="sparkles" :size="13" />
-          Sélection de saison
+          {{ t('catalog.badge') }}
         </span>
         <h1 class="display-tight mt-6 text-5xl text-strong sm:text-6xl lg:text-7xl">
-          Notre <span class="text-accent-strong">Collection</span>
+          {{ t('catalog.titleBefore') }} <span class="text-accent-strong">{{ t('catalog.titleAccent') }}</span>
         </h1>
         <p class="mt-5 max-w-lg text-base leading-relaxed text-muted">
-          Des objets choisis un par un, gardés seulement s'ils tiennent la route. Pas de catalogue
-          interminable : juste ce qui mérite d'être acheté.
+          {{ t('catalog.intro') }}
         </p>
         <div class="mt-8 flex flex-wrap items-center gap-3">
           <RouterLink to="/?sort=newest" class="btn-primary btn-lg">
-            Voir les nouveautés
+            {{ t('catalog.newest') }}
             <AppIcon name="arrow-right" :size="17" />
           </RouterLink>
           <RouterLink to="/favorites" class="btn-outline btn-lg">
             <AppIcon name="heart" :size="16" />
-            Ma liste d'envies
+            {{ t('catalog.wishlist') }}
           </RouterLink>
         </div>
       </div>
@@ -39,7 +41,7 @@ const highlights = [
       <dl class="grid grid-cols-3 gap-3">
         <div
           v-for="item in highlights"
-          :key="item.label"
+          :key="item.icon"
           class="rounded-2xl border border-line bg-surface/70 p-4 backdrop-blur-sm"
         >
           <span class="text-accent-strong"><AppIcon :name="item.icon" :size="20" /></span>

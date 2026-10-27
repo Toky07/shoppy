@@ -13,6 +13,7 @@ import {
     catalogRepository,
     cookieConsent,
     favoritesState,
+    localeState,
     newsletterRepository,
     orderRepository,
     paymentRepository,
@@ -33,6 +34,7 @@ import { paymentRepositoryKey } from './modules/payment/application/paymentRepos
 import router from './router'
 import { newsletterRepositoryKey } from './modules/newsletter/application/newsletterRepositoryKey'
 import { cookieConsentKey } from './shared/consent/cookieConsentKey'
+import { localeStateKey } from './shared/i18n/localeStateKey'
 import { createNavigationGuard } from './router/navigationGuard'
 import '@fontsource-variable/inter'
 import '@fontsource-variable/bricolage-grotesque/standard.css'
@@ -54,6 +56,7 @@ app.provide(userDirectoryKey, userDirectory);
 app.provide(favoritesStateKey, favoritesState);
 app.provide(addressBookStateKey, addressBookState);
 app.provide(cookieConsentKey, cookieConsent);
+app.provide(localeStateKey, localeState);
 app.provide(newsletterRepositoryKey, newsletterRepository);
 
 await authReady;

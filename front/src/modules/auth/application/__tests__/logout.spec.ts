@@ -5,6 +5,7 @@ import { MemorySessionStore } from '../../testing/MemorySessionStore'
 import { createAuthSession } from '../createAuthSession'
 import { visitorSession } from '../../testing/authFixtures'
 import { ApiError } from '@/shared/http/ApiError'
+import { createMemorySessionPresenceStore } from '../../data/sessionPresenceStore'
 
 describe('logout', () => {
   it('clears the session after logout', async () => {
@@ -27,5 +28,16 @@ describe('logout', () => {
     await logout(repository, session)
 
     expect(session.session.value).toBeNull()
+  })
+
+  it('forgets the visit so an anonymous reload does not probe the API', async () => {
+    const repository = new FakeAuthRepository()
+    const presence = createMemorySessionPresenceStore(true)
+    const session = createAuthSession(presence)
+    session.set(visitorSession)
+
+    await logout(repository, session)
+
+    expect(presence.remembered()).toBe(false)
   })
 })

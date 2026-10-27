@@ -4,6 +4,7 @@ import { FakeAuthRepository } from '../../testing/FakeAuthRepository'
 import { MemorySessionStore } from '../../testing/MemorySessionStore'
 import { createAuthSession } from '../createAuthSession'
 import { ApiError } from '@/shared/http/ApiError'
+import { createMemorySessionPresenceStore } from '../../data/sessionPresenceStore'
 
 describe('login', () => {
   it('stores the session after a successful login', async () => {
@@ -25,5 +26,15 @@ describe('login', () => {
       login(repository, session, { email: 'visitor@shoppy.test', password: 'wrong-password' }),
     ).rejects.toMatchObject({ code: 'invalid_credentials' })
     expect(session.session.value).toBeNull()
+  })
+
+  it('remembers the visit so the next load can restore cookies', async () => {
+    const repository = new FakeAuthRepository()
+    const presence = createMemorySessionPresenceStore()
+    const session = createAuthSession(presence)
+
+    await login(repository, session, { email: 'visitor@shoppy.test', password: 'password123' })
+
+    expect(presence.remembered()).toBe(true)
   })
 })

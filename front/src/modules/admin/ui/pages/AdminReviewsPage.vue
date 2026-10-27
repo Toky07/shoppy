@@ -12,6 +12,7 @@ import { authSessionKey } from '@/modules/auth/application/authSessionKey'
 import { adminCatalogRepositoryKey } from '@/modules/catalog/application/adminCatalogRepositoryKey'
 import { DEFAULT_ADMIN_REVIEW_LIMIT } from '@/modules/catalog/application/defaultAdminReviewLimit'
 import type { AdminReviewPage } from '@/modules/catalog/domain/AdminReview'
+import { useI18n } from '@/shared/i18n/useI18n'
 import AdminPageHeader from '../components/AdminPageHeader.vue'
 
 const session = inject(authSessionKey)
@@ -21,6 +22,7 @@ if (!session || !repository) {
   throw new Error('Admin review dependencies are not provided.')
 }
 
+const { t, intlLocale } = useI18n()
 const catalog = repository
 const route = useRoute()
 const reportedOnly = computed(() => route.query.reported === '1')
@@ -81,9 +83,9 @@ async function onRestore(id: string) {
 <template>
   <section class="animate-fade-in">
     <AdminPageHeader
-      title="Avis"
+      :title="t('admin.titles.reviews')"
       icon="star"
-      description="Signalements et masquage des avis publiés sur le catalogue."
+      :description="t('admin.reviewsDescription')"
     >
       <template #actions>
         <RouterLink
@@ -91,14 +93,14 @@ async function onRestore(id: string) {
           :to="{ path: '/admin/reviews' }"
           class="btn-outline btn-sm"
         >
-          Tous les avis
+          {{ t('admin.allReviews') }}
         </RouterLink>
         <RouterLink
           v-else
           :to="{ path: '/admin/reviews', query: { reported: '1' } }"
           class="btn-outline btn-sm"
         >
-          Signalés seulement
+          {{ t('admin.reportedOnly') }}
         </RouterLink>
       </template>
     </AdminPageHeader>
@@ -109,8 +111,8 @@ async function onRestore(id: string) {
         <template #empty>
           <EmptyState
             icon="star"
-            title="Aucun avis"
-            description="Les avis clients apparaîtront ici dès le premier commentaire."
+            :title="t('admin.noReviews')"
+            :description="t('admin.reviewsEmpty')"
           />
         </template>
 
@@ -118,17 +120,17 @@ async function onRestore(id: string) {
           <table class="admin-table">
             <thead>
               <tr>
-                <th>Date</th>
-                <th>Produit</th>
-                <th>Auteur</th>
-                <th>Avis</th>
-                <th>Statut</th>
-                <th class="w-40"><span class="sr-only">Actions</span></th>
+                <th>{{ t('admin.date') }}</th>
+                <th>{{ t('admin.product') }}</th>
+                <th>{{ t('admin.author') }}</th>
+                <th>{{ t('admin.review') }}</th>
+                <th>{{ t('admin.status') }}</th>
+                <th class="w-40"><span class="sr-only">{{ t('admin.actions') }}</span></th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="review in page.items" :key="review.id">
-                <td class="font-semibold text-strong">{{ formatDate(review.createdAt) }}</td>
+                <td class="font-semibold text-strong">{{ formatDate(review.createdAt, intlLocale) }}</td>
                 <td>
                   <RouterLink
                     :to="{ path: `/products/${review.productSlug}` }"
@@ -143,9 +145,9 @@ async function onRestore(id: string) {
                   <p class="mt-1 max-w-sm text-sm leading-relaxed text-body">{{ review.body }}</p>
                 </td>
                 <td>
-                  <span v-if="review.reported" class="badge-accent">Signalé</span>
-                  <span v-if="review.hidden" class="badge-neutral ml-1">Masqué</span>
-                  <span v-if="!review.reported && !review.hidden" class="text-sm text-muted">Publié</span>
+                  <span v-if="review.reported" class="badge-accent">{{ t('reviews.reported') }}</span>
+                  <span v-if="review.hidden" class="badge-neutral ml-1">{{ t('admin.hidden') }}</span>
+                  <span v-if="!review.reported && !review.hidden" class="text-sm text-muted">{{ t('admin.published') }}</span>
                 </td>
                 <td class="text-right">
                   <button
@@ -155,7 +157,7 @@ async function onRestore(id: string) {
                     :disabled="pendingId === review.id"
                     @click="onRestore(review.id)"
                   >
-                    Restaurer
+                    {{ t('admin.restore') }}
                   </button>
                   <button
                     v-else
@@ -164,7 +166,7 @@ async function onRestore(id: string) {
                     :disabled="pendingId === review.id"
                     @click="onHide(review.id)"
                   >
-                    Masquer
+                    {{ t('admin.hide') }}
                   </button>
                 </td>
               </tr>

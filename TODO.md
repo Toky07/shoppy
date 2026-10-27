@@ -39,7 +39,7 @@ Récent : avatar seul dans le header, filtres décollés sur mobile, scroll en h
 - [x] Pages légales (CGV, confidentialité, mentions, retours) — le footer a des libellés non cliquables
 - [x] Bandeau cookies / base RGPD
 - [x] Newsletter du footer branchée, ou retirée (`@submit.prevent` sans envoi)
-- [ ] i18n (textes français en dur, devise EUR fixe)
+- [x] i18n (textes français en dur, devise EUR fixe)
 - [ ] Titre de page dynamique sur la fiche produit (seul l’admin change `document.title`)
 
 ## Sécurité

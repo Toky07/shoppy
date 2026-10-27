@@ -1,6 +1,9 @@
 <script setup lang="ts">
+import { useI18n } from '@/shared/i18n/useI18n'
 import AppIcon from './AppIcon.vue'
 import EmptyState from './EmptyState.vue'
+
+const { t } = useI18n()
 
 withDefaults(
   defineProps<{
@@ -14,7 +17,7 @@ withDefaults(
 
 <template>
   <template v-if="status === 'loading'">
-    <p v-if="skeleton !== 'spinner'" class="sr-only">Chargement en cours...</p>
+    <p v-if="skeleton !== 'spinner'" class="sr-only">{{ t('common.loading') }}</p>
 
     <div v-if="skeleton === 'cards'" class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       <div v-for="index in 8" :key="index" class="panel-flat overflow-hidden">
@@ -52,7 +55,7 @@ withDefaults(
       <span class="text-strong animate-orbit">
         <AppIcon name="loader" :size="30" :stroke-width="2" />
       </span>
-      <p class="text-xs font-semibold tracking-[0.2em] text-muted uppercase">Chargement en cours...</p>
+      <p class="text-xs font-semibold tracking-[0.2em] text-muted uppercase">{{ t('common.loading') }}</p>
     </div>
   </template>
 
@@ -66,9 +69,9 @@ withDefaults(
       <AppIcon name="alert-triangle" :size="22" />
     </span>
     <span class="sm:pt-2">
-      <strong class="block font-display text-base">Une erreur est survenue</strong>
+      <strong class="block font-display text-base">{{ t('common.errorTitle') }}</strong>
       <span class="mt-1 block text-sm opacity-90">{{
-        errorMessage || 'Impossible de charger les données.'
+        errorMessage || t('common.errorFallback')
       }}</span>
     </span>
   </div>
@@ -78,8 +81,8 @@ withDefaults(
     <slot name="empty">
       <EmptyState
         icon="package"
-        title="Rien à afficher"
-        description="Ce contenu est vide pour le moment."
+        :title="t('common.emptyTitle')"
+        :description="t('common.emptyDescription')"
       />
     </slot>
   </div>

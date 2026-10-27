@@ -4,9 +4,11 @@ import { RouterLink } from 'vue-router'
 import AppIcon from '@/shared/ui/AppIcon.vue'
 import AppImage from '@/shared/ui/AppImage.vue'
 import ProductPrice from '@/modules/catalog/ui/components/ProductPrice.vue'
+import { useI18n } from '@/shared/i18n/useI18n'
 import { stockLabel } from '@/modules/catalog/ui/lib/stockLabel'
 import type { Product } from '@/modules/catalog/domain/Product'
 
+const { t } = useI18n()
 const props = defineProps<{
   product: Product
   pending: boolean
@@ -34,7 +36,7 @@ const imageCount = computed(() => props.product.imageUrls.length)
     <RouterLink
       :to="{ name: 'admin-product-edit', params: { id: product.id } }"
       class="flex min-w-0 items-center gap-4"
-      :aria-label="`Modifier ${product.name}`"
+      :aria-label="t('admin.editProduct', { name: product.name })"
     >
       <div class="relative size-16 shrink-0 overflow-hidden rounded-2xl bg-surface-inset sm:size-20">
         <AppImage :src="product.imageUrl" :alt="product.name" variant="thumb" />
@@ -49,7 +51,7 @@ const imageCount = computed(() => props.product.imageUrls.length)
       <div class="min-w-0">
         <p class="truncate font-display text-base font-bold text-strong">{{ product.name }}</p>
         <p v-if="!product.published" class="mt-1">
-          <span class="badge-warning">Brouillon</span>
+          <span class="badge-warning">{{ t('admin.draft') }}</span>
         </p>
         <p v-if="product.slug" class="mt-0.5 truncate text-[0.7rem] font-semibold tracking-[0.12em] text-faint uppercase">
           /{{ product.slug }}
@@ -65,7 +67,7 @@ const imageCount = computed(() => props.product.imageUrls.length)
     </p>
 
     <div>
-      <span :class="stockTone">{{ stockLabel(product.stock) }}</span>
+      <span :class="stockTone">{{ stockLabel(product.stock, t) }}</span>
     </div>
 
     <div class="flex flex-wrap items-center justify-end gap-2">
@@ -74,17 +76,17 @@ const imageCount = computed(() => props.product.imageUrls.length)
         class="btn-outline btn-sm"
       >
         <AppIcon name="settings" :size="14" />
-        Modifier
+        {{ t('admin.edit') }}
       </RouterLink>
       <button
         type="button"
         class="btn-danger btn-sm"
         :disabled="pending"
-        :aria-label="`Supprimer ${product.name}`"
+        :aria-label="t('admin.deleteProduct', { name: product.name })"
         @click="emit('delete')"
       >
         <AppIcon name="trash" :size="14" />
-        <span class="hidden sm:inline">Supprimer</span>
+        <span class="hidden sm:inline">{{ t('account.delete') }}</span>
       </button>
     </div>
   </article>

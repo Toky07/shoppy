@@ -15,6 +15,7 @@ import ProductCard from '../components/ProductCard.vue'
 import VariantPicker from '../components/VariantPicker.vue'
 import { stockLabel } from '../lib/stockLabel'
 import type { Product } from '../../domain/Product'
+import { useI18n } from '@/shared/i18n/useI18n'
 import { applyPageMeta, resetPageMeta } from '@/shared/seo/applyPageMeta'
 
 const repository = inject(catalogRepositoryKey)
@@ -23,6 +24,7 @@ if (!repository) {
   throw new Error('CatalogRepository is not provided.')
 }
 
+const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const productRef = computed(() => String(route.params.slug ?? ''))
@@ -48,7 +50,7 @@ const selectedName = computed(() => {
 const related = ref<Product[]>([])
 const notFound = computed(() => error.value?.code === 'product_not_found')
 const errorMessage = computed(() =>
-  notFound.value ? 'Ce produit est introuvable.' : error.value?.message,
+  notFound.value ? t('catalog.notFound') : error.value?.message,
 )
 
 watch(product, async (current) => {
@@ -95,10 +97,10 @@ onBeforeUnmount(() => {
 
 <template>
   <section class="animate-fade-in">
-    <nav class="mb-8 flex items-center gap-3 text-sm" aria-label="Fil d'Ariane">
+    <nav class="mb-8 flex items-center gap-3 text-sm" :aria-label="t('catalog.breadcrumb')">
       <RouterLink to="/" class="inline-flex items-center gap-2 font-medium link-quiet">
         <AppIcon name="arrow-left" :size="15" />
-        Retour au catalogue
+        {{ t('catalog.backToCatalog') }}
       </RouterLink>
       <span v-if="product" class="text-faint" aria-hidden="true">/</span>
       <span v-if="product" class="truncate font-medium text-strong">{{ product.name }}</span>
@@ -122,7 +124,7 @@ onBeforeUnmount(() => {
               {{ product.category.name }}
             </RouterLink>
             <span v-if="product.category" class="mx-2 text-faint" aria-hidden="true">·</span>
-            <span>{{ stockLabel(selectedStock) }}</span>
+            <span>{{ stockLabel(selectedStock, t) }}</span>
           </p>
 
           <h1 class="display-tight mt-4 text-4xl text-strong sm:text-5xl">{{ product.name }}</h1>
@@ -131,7 +133,7 @@ onBeforeUnmount(() => {
             <p class="numeric font-display text-4xl font-extrabold text-strong">
               <ProductPrice :price="product.price" />
             </p>
-            <p class="text-xs text-muted">TTC · livraison offerte dès 49 €</p>
+            <p class="text-xs text-muted">{{ t('catalog.ttcFrom') }}</p>
           </div>
 
           <VariantPicker
@@ -158,7 +160,7 @@ onBeforeUnmount(() => {
 
       <section v-if="product && related.length > 0" class="mt-16" aria-labelledby="related-products-title">
         <h2 id="related-products-title" class="font-display text-3xl font-extrabold text-strong">
-          Produits associés
+          {{ t('catalog.relatedTitle') }}
         </h2>
         <div class="mt-6 grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
           <ProductCard v-for="item in related" :key="item.id" :product="item" />

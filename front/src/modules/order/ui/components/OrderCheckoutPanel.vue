@@ -4,7 +4,10 @@ import AppIcon from '@/shared/ui/AppIcon.vue'
 import StatusNotice from '@/shared/ui/StatusNotice.vue'
 import ProductPrice from '@/modules/catalog/ui/components/ProductPrice.vue'
 import type { OrderShipping } from '@/modules/order/domain/ShippingMethod'
+import { useI18n } from '@/shared/i18n/useI18n'
 import type { Money } from '@/shared/money/Money'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   total: Money
@@ -33,20 +36,20 @@ const emit = defineEmits<{
 
     <dl class="ml-auto max-w-xs space-y-3 text-sm">
       <div class="flex items-baseline justify-between gap-6">
-        <dt class="text-muted">Sous-total</dt>
+        <dt class="text-muted">{{ t('orders.subtotal') }}</dt>
         <dd class="numeric font-semibold text-strong">
           <ProductPrice :price="merchandise" />
         </dd>
       </div>
       <div class="flex items-baseline justify-between gap-6">
-        <dt class="text-muted">Livraison {{ shipping?.label }}</dt>
-        <dd v-if="shippingFee.cents === 0" class="font-semibold text-positive">Offerte</dd>
+        <dt class="text-muted">{{ t('cart.shipping', { label: shipping ? t(`shipping.${shipping.method}`) : '' }) }}</dt>
+        <dd v-if="shippingFee.cents === 0" class="font-semibold text-positive">{{ t('cart.shippingFree') }}</dd>
         <dd v-else class="numeric font-semibold text-strong">
           <ProductPrice :price="shippingFee" />
         </dd>
       </div>
       <div class="flex items-baseline justify-between gap-6 border-t border-line pt-3 text-base">
-        <dt class="font-semibold text-strong">Total</dt>
+        <dt class="font-semibold text-strong">{{ t('cart.total') }}</dt>
         <dd class="numeric font-display text-2xl font-extrabold text-strong">
           <ProductPrice :price="total" />
         </dd>
@@ -62,7 +65,7 @@ const emit = defineEmits<{
         @click="emit('cancel')"
       >
         <AppIcon name="close" :size="15" />
-        Annuler la commande
+        {{ t('orders.cancel') }}
       </button>
       <button
         v-if="canPay"
@@ -75,7 +78,7 @@ const emit = defineEmits<{
           <AppIcon name="loader" :size="17" />
         </span>
         <AppIcon v-else name="credit-card" :size="16" />
-        Procéder au paiement
+        {{ t('orders.payNow') }}
       </button>
     </div>
   </div>
