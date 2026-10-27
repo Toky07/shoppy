@@ -170,6 +170,26 @@ final class InMemoryProductRepository implements ProductRepository
         );
     }
 
+    public function findLowStock(int $maxStock, int $limit): array
+    {
+        if ($limit < 1) {
+            return [];
+        }
+
+        $products = array_values(array_filter(
+            $this->products,
+            static fn (Product $product): bool => $product->isPublished() && $product->stock()->value() <= $maxStock,
+        ));
+
+        usort(
+            $products,
+            static fn (Product $left, Product $right): int => $left->stock()->value() <=> $right->stock()->value()
+                ?: $left->name()->value() <=> $right->name()->value(),
+        );
+
+        return array_values(array_slice($products, 0, $limit));
+    }
+
     public function findRelated(Product $product, int $limit): array
     {
         $categoryId = $product->categoryId();

@@ -11,6 +11,9 @@ import { cartStateKey } from '@/modules/cart/application/cartStateKey'
 import { createCartState } from '@/modules/cart/application/createCartState'
 import type { AdminCatalogRepository } from '@/modules/catalog/application/AdminCatalogRepository'
 import { adminCatalogRepositoryKey } from '@/modules/catalog/application/adminCatalogRepositoryKey'
+import type { AdminDashboardRepository } from '@/modules/admin/application/AdminDashboardRepository'
+import { adminDashboardRepositoryKey } from '@/modules/admin/application/adminDashboardRepositoryKey'
+import { FakeAdminDashboardRepository } from '@/modules/admin/testing/FakeAdminDashboardRepository'
 import type { CatalogRepository } from '@/modules/catalog/application/CatalogRepository'
 import { catalogRepositoryKey } from '@/modules/catalog/application/catalogRepositoryKey'
 import type { OrderRepository } from '@/modules/order/application/OrderRepository'
@@ -46,6 +49,7 @@ export async function renderApp(options: {
   orderRepository?: OrderRepository
   paymentRepository?: PaymentRepository
   adminCatalogRepository?: AdminCatalogRepository
+  dashboardRepository?: AdminDashboardRepository
   userDirectory?: UserDirectory
   favoriteRepository?: FavoriteRepository
   addressBookRepository?: AddressBookRepository
@@ -84,6 +88,8 @@ export async function renderApp(options: {
         [orderRepositoryKey as symbol]: options.orderRepository ?? new FakeOrderRepository(),
         [paymentRepositoryKey as symbol]: options.paymentRepository ?? new FakePaymentRepository(),
         [adminCatalogRepositoryKey as symbol]: options.adminCatalogRepository ?? new FakeAdminCatalogRepository(),
+        [adminDashboardRepositoryKey as symbol]:
+          options.dashboardRepository ?? new FakeAdminDashboardRepository(),
         [userDirectoryKey as symbol]: options.userDirectory ?? new FakeUserDirectory(),
         [favoritesStateKey as symbol]: favoritesState,
         [addressBookStateKey as symbol]: addressBookState,

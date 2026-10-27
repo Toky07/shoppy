@@ -40,6 +40,13 @@ interface ProductRepository
     public function countAll(?ProductListCriteria $criteria = null): int;
 
     /**
+     * Published products whose stock is at or below the threshold, lowest first.
+     *
+     * @return list<Product>
+     */
+    public function findLowStock(int $maxStock, int $limit): array;
+
+    /**
      * Published products that share the category, excluding the product itself.
      *
      * @return list<Product>

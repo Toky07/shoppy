@@ -9,6 +9,7 @@ use App\Product\Domain\ValueObject\ProductId;
 use App\Product\Domain\ValueObject\ProductListCriteria;
 use App\Product\Domain\ValueObject\ProductName;
 use App\Product\Domain\ValueObject\ProductPrice;
+use App\Product\Domain\ValueObject\StockQuantity;
 use Doctrine\ORM\EntityManagerInterface;
 
 it('persists and retrieves a product', function () {
@@ -137,6 +138,56 @@ it('searches and sorts persisted products', function () {
             'Nuvora Tee',
             'Nuvora Hoodie',
         ]);
+});
+
+it('lists published products at or below a stock threshold', function () {
+    $repository = self::getContainer()->get(ProductRepository::class);
+    $entityManager = self::getContainer()->get(EntityManagerInterface::class);
+    $createdAt = new DateTimeImmutable('2026-08-20T12:00:00+00:00');
+
+    $repository->save(Product::create(
+        ProductId::fromString('550e8400-e29b-41d4-a716-446655440001'),
+        ProductName::fromString('Mug'),
+        ProductPrice::fromCents(1299),
+        $createdAt,
+        null,
+        StockQuantity::fromInt(0),
+    ));
+    $repository->save(Product::create(
+        ProductId::fromString('550e8400-e29b-41d4-a716-446655440002'),
+        ProductName::fromString('Tee'),
+        ProductPrice::fromCents(1999),
+        $createdAt,
+        null,
+        StockQuantity::fromInt(2),
+    ));
+    $repository->save(Product::create(
+        ProductId::fromString('550e8400-e29b-41d4-a716-446655440003'),
+        ProductName::fromString('Hoodie'),
+        ProductPrice::fromCents(4999),
+        $createdAt,
+        null,
+        StockQuantity::fromInt(10),
+    ));
+    $draft = Product::create(
+        ProductId::fromString('550e8400-e29b-41d4-a716-446655440004'),
+        ProductName::fromString('Draft'),
+        ProductPrice::fromCents(999),
+        $createdAt,
+        null,
+        StockQuantity::fromInt(1),
+    );
+    $draft->changePublication(false);
+    $repository->save($draft);
+    $entityManager->clear();
+
+    $low = $repository->findLowStock(5, 8);
+
+    expect($low)->toHaveCount(2)
+        ->and($low[0]->name()->value())->toBe('Mug')
+        ->and($low[0]->stock()->value())->toBe(0)
+        ->and($low[1]->name()->value())->toBe('Tee')
+        ->and($low[1]->stock()->value())->toBe(2);
 });
 
 it('deletes a persisted product', function () {

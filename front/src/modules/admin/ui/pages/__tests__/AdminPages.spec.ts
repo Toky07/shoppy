@@ -10,6 +10,8 @@ import { FakeAdminCatalogRepository } from '@/modules/catalog/testing/FakeAdminC
 import { createFakeCatalogRepository } from '@/modules/catalog/testing/fakeCatalogRepository'
 import { nuvoraTee } from '@/modules/catalog/testing/productFixtures'
 import { FakeUserDirectory } from '@/modules/auth/testing/FakeUserDirectory'
+import { FakeAdminDashboardRepository } from '@/modules/admin/testing/FakeAdminDashboardRepository'
+import { outOfStockMug } from '@/modules/catalog/testing/productFixtures'
 import { ApiError } from '@/shared/http/ApiError'
 
 describe('Admin pages', () => {
@@ -51,6 +53,35 @@ describe('Admin pages', () => {
     expect(
       screen.getAllByRole('link', { name: 'Utilisateurs' }).some((link) => link.getAttribute('href') === '/admin/users'),
     ).toBe(true)
+  })
+
+  it('shows revenue, today\'s orders and low stock on the dashboard', async () => {
+    const dashboardRepository = new FakeAdminDashboardRepository({
+      revenue: { cents: 12345, currency: 'EUR' },
+      today: { orders: 3, revenue: { cents: 4500, currency: 'EUR' } },
+      lowStock: [
+        {
+          id: outOfStockMug.id,
+          name: outOfStockMug.name,
+          slug: outOfStockMug.slug,
+          stock: 0,
+        },
+      ],
+    })
+
+    await renderApp({ path: '/admin', session: adminSession, dashboardRepository })
+
+    await waitFor(() => {
+      expect(screen.getByText(/123,45/).textContent).toMatch(/€/)
+    })
+    expect(screen.getByText('Chiffre d\'affaires')).toBeTruthy()
+    expect(screen.getByText('Commandes du jour')).toBeTruthy()
+    expect(screen.getByText('3')).toBeTruthy()
+    expect(screen.getByText(/45,00/).textContent).toMatch(/€/)
+    expect(screen.getByRole('link', { name: /Nuvora Mug/ }).getAttribute('href')).toBe(
+      `/admin/products/${outOfStockMug.id}`,
+    )
+    expect(screen.getByText('Rupture de stock')).toBeTruthy()
   })
 
   it('signs an admin into the console', async () => {
