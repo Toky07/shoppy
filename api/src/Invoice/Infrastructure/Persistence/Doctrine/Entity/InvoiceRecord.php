@@ -1,0 +1,80 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Invoice\Infrastructure\Persistence\Doctrine\Entity;
+
+use App\Invoice\Domain\Entity\Invoice;
+use App\Invoice\Domain\ValueObject\CustomerReference;
+use App\Invoice\Domain\ValueObject\InvoiceId;
+use App\Invoice\Domain\ValueObject\InvoiceNumber;
+use App\Invoice\Domain\ValueObject\MoneyAmount;
+use App\Invoice\Domain\ValueObject\OrderReference;
+use App\Invoice\Domain\ValueObject\PaymentReference;
+use DateTimeImmutable;
+use Doctrine\ORM\Mapping as ORM;
+
+#[ORM\Entity]
+#[ORM\Table(name: 'invoices')]
+#[ORM\UniqueConstraint(name: 'uniq_invoices_number', columns: ['number'])]
+#[ORM\UniqueConstraint(name: 'uniq_invoices_order_id', columns: ['order_id'])]
+#[ORM\Index(name: 'idx_invoices_year_sequence', columns: ['year', 'sequence'])]
+class InvoiceRecord
+{
+    #[ORM\Id]
+    #[ORM\Column(length: 36)]
+    private string $id;
+
+    #[ORM\Column(length: 32)]
+    private string $number;
+
+    #[ORM\Column]
+    private int $year;
+
+    #[ORM\Column]
+    private int $sequence;
+
+    #[ORM\Column(name: 'order_id', length: 36)]
+    private string $orderId;
+
+    #[ORM\Column(name: 'customer_id', length: 36)]
+    private string $customerId;
+
+    #[ORM\Column(name: 'payment_id', length: 36)]
+    private string $paymentId;
+
+    #[ORM\Column(name: 'amount_cents')]
+    private int $amountCents;
+
+    #[ORM\Column(name: 'issued_at')]
+    private DateTimeImmutable $issuedAt;
+
+    public static function fromDomain(Invoice $invoice): self
+    {
+        $record = new self();
+        $record->id = $invoice->id()->value();
+        $record->number = $invoice->number()->value();
+        $record->year = $invoice->number()->year();
+        $record->sequence = $invoice->number()->sequence();
+        $record->orderId = $invoice->orderId()->value();
+        $record->customerId = $invoice->customerId()->value();
+        $record->paymentId = $invoice->paymentId()->value();
+        $record->amountCents = $invoice->amount()->cents();
+        $record->issuedAt = $invoice->issuedAt();
+
+        return $record;
+    }
+
+    public function toDomain(): Invoice
+    {
+        return Invoice::issue(
+            InvoiceId::fromString($this->id),
+            InvoiceNumber::fromString($this->number),
+            OrderReference::fromString($this->orderId),
+            CustomerReference::fromString($this->customerId),
+            PaymentReference::fromString($this->paymentId),
+            MoneyAmount::fromCents($this->amountCents),
+            $this->issuedAt,
+        );
+    }
+}

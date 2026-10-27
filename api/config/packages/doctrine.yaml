@@ -66,6 +66,12 @@ doctrine:
                 dir: '%kernel.project_dir%/src/Payment/Infrastructure/Persistence/Doctrine/Entity'
                 prefix: 'App\Payment\Infrastructure\Persistence\Doctrine\Entity'
                 alias: Payment
+            Invoice:
+                type: attribute
+                is_bundle: false
+                dir: '%kernel.project_dir%/src/Invoice/Infrastructure/Persistence/Doctrine/Entity'
+                prefix: 'App\Invoice\Infrastructure\Persistence\Doctrine\Entity'
+                alias: Invoice
             Media:
                 type: attribute
                 is_bundle: false
