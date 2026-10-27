@@ -17,7 +17,7 @@ Récent : avatar seul dans le header, filtres décollés sur mobile, scroll en h
 ### Catalogue
 
 - [x] Modération des avis côté admin (pas d’écran, pas de signalement)
-- [ ] SEO par produit : title, meta, Open Graph, `sitemap.xml`, `robots.txt` (seul `index.html` a une description statique)
+- [x] SEO par produit : title, meta, Open Graph, `sitemap.xml`, `robots.txt` (seul `index.html` a une description statique)
 
 ### Achat, livraison, commande
 

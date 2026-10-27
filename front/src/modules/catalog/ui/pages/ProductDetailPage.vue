@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, inject, ref, watch } from 'vue'
+import { computed, inject, onBeforeUnmount, ref, watch } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import AppIcon from '@/shared/ui/AppIcon.vue'
 import PageStatus from '@/shared/ui/PageStatus.vue'
@@ -15,6 +15,7 @@ import ProductCard from '../components/ProductCard.vue'
 import VariantPicker from '../components/VariantPicker.vue'
 import { stockLabel } from '../lib/stockLabel'
 import type { Product } from '../../domain/Product'
+import { applyPageMeta, resetPageMeta } from '@/shared/seo/applyPageMeta'
 
 const repository = inject(catalogRepositoryKey)
 
@@ -51,7 +52,22 @@ const errorMessage = computed(() =>
 )
 
 watch(product, async (current) => {
-  if (current !== null && current.variants.length > 0) {
+  if (current === null) {
+    resetPageMeta()
+    selectedVariantId.value = ''
+    related.value = []
+    return
+  }
+
+  applyPageMeta({
+    title: `${current.name} — Shoppy`,
+    description: current.description?.trim() || `${current.name} — disponible chez Shoppy.`,
+    image: current.imageUrl,
+    path: `/products/${current.slug}`,
+    type: 'product',
+  })
+
+  if (current.variants.length > 0) {
     const available = current.variants.find((variant) => variant.stock > 0) ?? current.variants[0]
     selectedVariantId.value = available?.id ?? ''
   } else {
@@ -59,19 +75,21 @@ watch(product, async (current) => {
   }
 
   related.value = []
-  if (current !== null) {
-    try {
-      related.value = await repository.listRelated(current.id)
-    } catch {
-      related.value = []
-    }
+  try {
+    related.value = await repository.listRelated(current.id)
+  } catch {
+    related.value = []
   }
 
-  if (current === null || route.params.slug === current.slug) {
+  if (route.params.slug === current.slug) {
     return
   }
 
   void router.replace({ name: 'product', params: { slug: current.slug } })
+})
+
+onBeforeUnmount(() => {
+  resetPageMeta()
 })
 </script>
 

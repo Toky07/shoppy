@@ -26,6 +26,14 @@ describe('ProductDetailPage', () => {
     expect(screen.getByText('Réf. NUVORA-TEE')).toBeTruthy()
     expect(screen.getByRole('link', { name: 'Connectez-vous' })).toBeTruthy()
     expect(screen.queryByRole('button', { name: "Publier l'avis" })).toBeNull()
+    expect(document.title).toBe('Nuvora Tee — Shoppy')
+    expect(document.querySelector('meta[name="description"]')?.getAttribute('content')).toBe(
+      'Soft cotton tee',
+    )
+    expect(document.querySelector('meta[property="og:type"]')?.getAttribute('content')).toBe('product')
+    expect(document.querySelector('link[rel="canonical"]')?.getAttribute('href')).toContain(
+      `/products/${nuvoraTee.slug}`,
+    )
   })
 
   it('shows a thumbnail list to browse the gallery', async () => {

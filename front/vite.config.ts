@@ -34,6 +34,14 @@ const proxy = {
     target: apiProxyTarget,
     changeOrigin: true,
   },
+  '/sitemap.xml': {
+    target: apiProxyTarget,
+    changeOrigin: true,
+  },
+  '/robots.txt': {
+    target: apiProxyTarget,
+    changeOrigin: true,
+  },
 }
 
 export default defineConfig(({ command }) => ({

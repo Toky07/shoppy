@@ -22,6 +22,7 @@ const domInclude = [
   'src/modules/cart/application/__tests__/createCartState.spec.ts',
   'src/modules/catalog/application/__tests__/createFavoritesState.spec.ts',
   'src/modules/account/application/__tests__/createAddressBookState.spec.ts',
+  'src/shared/seo/**/*.spec.ts',
 ]
 
 export default defineConfig({
