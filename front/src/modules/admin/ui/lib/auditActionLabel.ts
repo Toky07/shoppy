@@ -1,4 +1,5 @@
 import { translateFr } from '@/shared/i18n/catalogs'
+import { shortId } from '@/shared/id/shortId'
 import type { Translate } from '@/shared/i18n/translate'
 import type { AuditAction, AuditEntry } from '../../domain/AuditEntry'
 
@@ -11,6 +12,20 @@ const KEYS: Record<AuditAction, 'admin.audit.role' | 'admin.audit.price' | 'admi
 
 export function auditActionLabel(action: AuditAction, t: Translate = translateFr): string {
   return t(KEYS[action])
+}
+
+export function auditSubject(entry: AuditEntry, t: Translate = translateFr): string {
+  const label = metadataLabel(entry.metadata.label)
+
+  if (entry.subjectType === 'order') {
+    const id = shortId(entry.subjectId)
+
+    return label === null
+      ? t('admin.audit.orderFallback', { id })
+      : t('admin.audit.orderSubject', { id, summary: label })
+  }
+
+  return label ?? shortId(entry.subjectId)
 }
 
 export function auditDetail(entry: AuditEntry): string {
@@ -29,6 +44,16 @@ export function auditDetail(entry: AuditEntry): string {
   }
 
   return `${metadata.from ?? '?'} → ${metadata.to ?? '?'}`
+}
+
+function metadataLabel(value: unknown): string | null {
+  if (typeof value !== 'string') {
+    return null
+  }
+
+  const label = value.trim()
+
+  return label === '' ? null : label
 }
 
 function formatCents(value: unknown): string {

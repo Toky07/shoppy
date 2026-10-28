@@ -84,25 +84,25 @@ it('records who changed a role, a price, a stock and a payment', function () {
             'action' => 'role_changed',
             'subjectType' => 'user',
             'subjectId' => $user->id()->value(),
-            'metadata' => ['from' => 'customer', 'to' => 'admin'],
+            'metadata' => ['from' => 'customer', 'to' => 'admin', 'label' => 'ada@nuvora.test'],
         ],
         [
             'action' => 'price_changed',
             'subjectType' => 'product',
             'subjectId' => $productId->value(),
-            'metadata' => ['fromCents' => 1999, 'toCents' => 2499],
+            'metadata' => ['fromCents' => 1999, 'toCents' => 2499, 'label' => 'Nuvora Tee'],
         ],
         [
             'action' => 'stock_changed',
             'subjectType' => 'product',
             'subjectId' => $productId->value(),
-            'metadata' => ['from' => 10, 'to' => 4],
+            'metadata' => ['from' => 10, 'to' => 4, 'label' => 'Nuvora Tee'],
         ],
         [
             'action' => 'payment_changed',
             'subjectType' => 'order',
             'subjectId' => $orderId,
-            'metadata' => ['from' => 'pending', 'to' => 'paid'],
+            'metadata' => ['from' => 'pending', 'to' => 'paid', 'label' => 'Nuvora Tee'],
         ],
     ]);
 });

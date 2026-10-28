@@ -380,7 +380,7 @@ describe('Admin pages', () => {
         actorEmail: adminUser.email,
         subjectType: 'user',
         subjectId: visitorUser.id,
-        metadata: { from: 'customer', to: 'admin' },
+        metadata: { from: 'customer', to: 'admin', label: visitorUser.email },
         createdAt: '2026-10-27T12:00:00+00:00',
       },
       {
@@ -390,8 +390,18 @@ describe('Admin pages', () => {
         actorEmail: adminUser.email,
         subjectType: 'product',
         subjectId: nuvoraTee.id,
-        metadata: { fromCents: 1999, toCents: 2499 },
+        metadata: { fromCents: 1999, toCents: 2499, label: nuvoraTee.name },
         createdAt: '2026-10-27T11:00:00+00:00',
+      },
+      {
+        id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa3',
+        action: 'payment_changed',
+        actorId: adminUser.id,
+        actorEmail: adminUser.email,
+        subjectType: 'order',
+        subjectId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+        metadata: { from: 'pending', to: 'paid', label: nuvoraTee.name },
+        createdAt: '2026-10-27T10:00:00+00:00',
       },
     ])
 
@@ -406,8 +416,17 @@ describe('Admin pages', () => {
       expect(screen.getByText('Rôle')).toBeTruthy()
       expect(screen.getByText('customer → admin')).toBeTruthy()
       expect(screen.getByText('Prix')).toBeTruthy()
+      expect(screen.getByText('Paiement')).toBeTruthy()
     })
     expect(screen.getAllByText(adminUser.email).length).toBeGreaterThan(0)
-    expect(screen.getByRole('link', { name: /19,99/ }).getAttribute('href')).toBe(`/admin/products/${nuvoraTee.id}`)
+    expect(screen.getByRole('link', { name: visitorUser.email }).getAttribute('href')).toBe('/admin/users')
+    expect(screen.getByRole('link', { name: nuvoraTee.name }).getAttribute('href')).toBe(
+      `/admin/products/${nuvoraTee.id}`,
+    )
+    expect(screen.getByText(/19,99.*24,99/).textContent).toMatch(/19,99/)
+    expect(
+      screen.getByRole('link', { name: 'Commande #AAAAAAAA · Nuvora Tee' }).getAttribute('href'),
+    ).toBe('/admin/orders/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa')
+    expect(screen.getByText('pending → paid')).toBeTruthy()
   })
 })
