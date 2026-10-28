@@ -1,82 +1,82 @@
-# Authorization
+# Autorisation
 
-The API separates **authentication** (who is calling) from **authorization** (what they may do).
+L’API sépare **l’authentification** (qui appelle) de **l’autorisation** (ce qu’il a le droit de faire).
 
-## Authentication
+## Authentification
 
-- **Credentials**: `Authorization: Bearer <token>` or the `shoppy_session` cookie set at login.
-- **Entry point**: `AccessTokenAuthenticator` validates access tokens and builds an `AuthenticatedUser` in the Symfony Security token store.
-- **Optional auth**: an invalid or expired token on a **public** route is treated as anonymous (no 401). Protected routes use `AuthorizationAttributes::IS_AUTHENTICATED` and return **401** when no valid session exists.
-- **Application access**: inject `CurrentUser` for the authenticated user id, session token (logout), and `isAuthenticated()`.
+- **Identifiants** : `Authorization: Bearer <token>` ou le cookie `shoppy_session` posé à la connexion.
+- **Entrée** : `AccessTokenAuthenticator` valide le jeton et construit un `AuthenticatedUser` dans le token store Symfony Security.
+- **Auth optionnelle** : un jeton invalide ou expiré sur une route **publique** est traité comme anonyme (pas de 401). Les routes protégées utilisent `AuthorizationAttributes::IS_AUTHENTICATED` et répondent **401** s’il n’y a pas de session valide.
+- **Côté application** : injecter `CurrentUser` pour l’id utilisateur, le jeton de session (déconnexion) et `isAuthenticated()`.
 
-## Roles
+## Rôles
 
-| Symfony role   | Domain role | Usage                          |
-|----------------|-------------|--------------------------------|
-| `ROLE_ADMIN`   | `admin`     | Back-office, catalog writes    |
-| `ROLE_USER`    | `customer`  | Every logged-in account        |
+| Rôle Symfony   | Rôle domaine | Usage                              |
+|----------------|--------------|------------------------------------|
+| `ROLE_ADMIN`   | `admin`      | Back-office, écriture catalogue    |
+| `ROLE_USER`    | `customer`   | Tout compte connecté               |
 
-Admin implies user (`role_hierarchy` in `security.yaml`).
+Admin implique user (`role_hierarchy` dans `security.yaml`).
 
-Global admin routes use `#[IsGranted(AuthorizationAttributes::ROLE_ADMIN)]` on controllers.
+Les routes admin globales portent `#[IsGranted(AuthorizationAttributes::ROLE_ADMIN)]` sur le contrôleur.
 
-Symfony roles on `AuthenticatedUser` map to domain roles via `domainRole()` (`admin` / `customer`) for legacy request attributes consumed by `CurrentUser`.
+Les rôles Symfony de `AuthenticatedUser` sont mappés vers le domaine via `domainRole()` (`admin` / `customer`) pour les attributs de requête consommés par `CurrentUser`.
 
-## Attribute registry
+## Registre d’attributs
 
-| Constant | Symfony / voter value | Typical use |
-|----------|----------------------|-------------|
-| `IS_AUTHENTICATED` | `IS_AUTHENTICATED_FULLY` | Cart, account, own orders |
-| `ROLE_ADMIN` | `ROLE_ADMIN` | Admin CRUD, list all orders |
-| `ORDER_VIEW` | `ORDER_VIEW` | Get order (owner or admin) |
-| `ORDER_CANCEL` | `ORDER_CANCEL` | Cancel order (owner only) |
-| `USER_VIEW` | `USER_VIEW` | Get user profile (self or admin) |
-| `PAYMENT_ACCESS` | `PAYMENT_ACCESS` | Payment flows (owner only) |
-| `PRODUCT_ADMIN` | `PRODUCT_ADMIN` | Drafts / unpublished catalog |
-| `MEDIA_LIST` | `MEDIA_LIST` | Non-product media listings |
+| Constante | Valeur Symfony / voter | Usage typique |
+|-----------|------------------------|---------------|
+| `IS_AUTHENTICATED` | `IS_AUTHENTICATED_FULLY` | Panier, compte, commandes du client |
+| `ROLE_ADMIN` | `ROLE_ADMIN` | CRUD admin, liste de toutes les commandes |
+| `ORDER_VIEW` | `ORDER_VIEW` | Lire une commande (propriétaire ou admin) |
+| `ORDER_CANCEL` | `ORDER_CANCEL` | Annuler une commande (propriétaire uniquement) |
+| `USER_VIEW` | `USER_VIEW` | Profil utilisateur (soi-même ou admin) |
+| `PAYMENT_ACCESS` | `PAYMENT_ACCESS` | Flux de paiement (propriétaire uniquement) |
+| `PRODUCT_ADMIN` | `PRODUCT_ADMIN` | Brouillons / catalogue non publié |
+| `MEDIA_LIST` | `MEDIA_LIST` | Listes média hors produit |
 
-## Resource voters
+## Voters de ressource
 
-When the voter **subject** comes from the URL (or a known request field), use `#[IsGranted(..., subject: '…')]` on the controller action together with **argument value resolvers** that build `OrderAccessSubject`, `UserAccessSubject`, or `PaymentAccessSubject`. Order loads are deduplicated via `OrderResponseRequestCache`.
+Quand le **sujet** du voter vient de l’URL (ou d’un champ de requête connu), poser `#[IsGranted(..., subject: '…')]` sur l’action, avec les **argument value resolvers** qui construisent `OrderAccessSubject`, `UserAccessSubject` ou `PaymentAccessSubject`. Les chargements de commande sont dédupliqués via `OrderResponseRequestCache`.
 
-Use `GrantChecker` for checks that depend on optional query flags (draft products) or that must map auth failures to another domain error (unpublished product → `ProductNotFound`).
+Utiliser `GrantChecker` pour les contrôles qui dépendent de flags de query (produits brouillon) ou qui doivent transformer un refus d’auth en une autre erreur métier (produit non publié → `ProductNotFound`).
 
-| Attribute        | Voter          | Subject              | Rule                                      |
-|------------------|----------------|----------------------|-------------------------------------------|
-| `ORDER_VIEW`     | `OrderVoter`   | `OrderAccessSubject` | Owner or admin                            |
-| `ORDER_CANCEL`   | `OrderVoter`   | `OrderAccessSubject` | Owner only                                |
-| `USER_VIEW`      | `UserVoter`    | `UserAccessSubject`  | Self or admin                             |
-| `PAYMENT_ACCESS` | `PaymentVoter` | `PaymentAccessSubject` | Owner only (no admin bypass)          |
-| `PRODUCT_ADMIN`  | `ProductVoter` | `null`               | Admin (drafts, unpublished products)      |
-| `MEDIA_LIST`     | `MediaVoter`   | `MediaListSubject`   | Public for `ownerType=product`; else admin. Unpublished or missing products are mapped to `ProductNotFound` (404), same as `GET /products/:id`. |
+| Attribut         | Voter          | Sujet                | Règle |
+|------------------|----------------|----------------------|-------|
+| `ORDER_VIEW`     | `OrderVoter`   | `OrderAccessSubject` | Propriétaire ou admin |
+| `ORDER_CANCEL`   | `OrderVoter`   | `OrderAccessSubject` | Propriétaire uniquement |
+| `USER_VIEW`      | `UserVoter`    | `UserAccessSubject`  | Soi-même ou admin |
+| `PAYMENT_ACCESS` | `PaymentVoter` | `PaymentAccessSubject` | Propriétaire uniquement (pas de passe-droit admin) |
+| `PRODUCT_ADMIN`  | `ProductVoter` | `null`               | Admin (brouillons, produits non publiés) |
+| `MEDIA_LIST`     | `MediaVoter`   | `MediaListSubject`   | Public si `ownerType=product` ; sinon admin. Produit manquant ou non publié → `ProductNotFound` (404), comme `GET /products/:id`. |
 
-### Declarative checks (value resolvers)
+### Contrôles déclaratifs (value resolvers)
 
-| Resolver | Resolves | Route / input |
-|----------|----------|---------------|
-| `OrderArgumentValueResolver` | `OrderResponse`, `OrderAccessSubject` | `{id}` or `{orderId}` |
+| Resolver | Résout | Route / entrée |
+|----------|--------|----------------|
+| `OrderArgumentValueResolver` | `OrderResponse`, `OrderAccessSubject` | `{id}` ou `{orderId}` |
 | `UserAccessSubjectValueResolver` | `UserAccessSubject` | `/users/{id}` |
-| `PaymentAccessSubjectValueResolver` | `PaymentAccessSubject` | `{orderId}` or JSON `orderId` |
+| `PaymentAccessSubjectValueResolver` | `PaymentAccessSubject` | `{orderId}` ou JSON `orderId` |
 | `MediaListArgumentValueResolver` | `ListMediaHttpRequest`, `MediaListSubject` | query `ownerType`, `ownerId` |
 
-Some actions declare a voter subject argument only for `#[IsGranted(subject: …)]`; it is not used in the handler body.
+Certaines actions déclarent un argument sujet uniquement pour `#[IsGranted(subject: …)]` ; il n’est pas utilisé dans le corps du handler.
 
-Denied `MEDIA_LIST` votes on anonymous callers become **401** via `ApiExceptionSubscriber` (same as `GrantChecker::denyUnlessGrantedOrRequireAuthentication`).
+Un vote `MEDIA_LIST` refusé pour un anonyme devient **401** via `ApiExceptionSubscriber` (comme `GrantChecker::denyUnlessGrantedOrRequireAuthentication`).
 
-## Domain
+## Domaine
 
-Ownership rules that belong to the business model live on aggregates (e.g. `Order::belongsTo(CustomerId)`). Voters and handlers may reuse them; the domain never depends on Symfony Security.
+Les règles de propriété métier vivent sur les agrégats (ex. `Order::belongsTo(CustomerId)`). Voters et handlers peuvent les réutiliser ; le domaine ne dépend jamais de Symfony Security.
 
-## HTTP errors
+## Erreurs HTTP
 
-| Situation                         | Status | `error.code`      |
+| Situation                         | Statut | `error.code`      |
 |-----------------------------------|--------|-------------------|
-| Not logged in on protected route  | 401    | `unauthenticated` |
-| Logged in, not allowed            | 403    | `forbidden`       |
+| Non connecté sur une route protégée | 401  | `unauthenticated` |
+| Connecté, pas le droit            | 403    | `forbidden`       |
 
-`ApiExceptionSubscriber` maps Symfony `AccessDeniedException` to 401 when the caller is not authenticated.
+`ApiExceptionSubscriber` mappe `AccessDeniedException` de Symfony en 401 si l’appelant n’est pas authentifié.
 
-| Method | When to use |
-|--------|-------------|
-| `denyUnlessGranted($attribute, $subject?)` | Route already has `IS_AUTHENTICATED` — denial → **403** |
-| `denyUnlessGrantedOrRequireAuthentication($attribute, $subject?)` | Public route with voter — anonymous denial → **401**, else **403** |
+| Méthode | Quand l’utiliser |
+|---------|------------------|
+| `denyUnlessGranted($attribute, $subject?)` | La route a déjà `IS_AUTHENTICATED` — refus → **403** |
+| `denyUnlessGrantedOrRequireAuthentication($attribute, $subject?)` | Route publique avec voter — anonyme → **401**, sinon **403** |
