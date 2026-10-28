@@ -611,10 +611,11 @@
     "addDescription": "Add a description for the shop page.",
     "visuals": "Images",
     "galleryQueued": "These images will be uploaded when the product is created.",
-    "galleryHint": "Add, reorder or remove images. The first visual is the storefront one.",
+    "galleryHint": "Drag images to reorder them. The first visual is the storefront one.",
     "addImages": "Add images",
     "noImages": "No image yet.",
     "imageAlt": "Image {index}",
+    "dragImage": "Drag image {index}",
     "moveImageBack": "Move image {index} backward",
     "moveImageForward": "Move image {index} forward",
     "removeImage": "Remove image {index}"
