@@ -240,6 +240,41 @@ describe('Admin pages', () => {
     })
   })
 
+  it('reorders and removes product images', async () => {
+    const adminCatalogRepository = new FakeAdminCatalogRepository([nuvoraTee])
+    adminCatalogRepository.images = [
+      { id: 'media-1', url: '/uploads/2026/09/tee-front.jpg', position: 0 },
+      { id: 'media-2', url: '/uploads/2026/09/tee-back.jpg', position: 1 },
+    ]
+
+    await renderApp({
+      path: `/admin/products/${nuvoraTee.id}`,
+      session: adminSession,
+      repository: createFakeCatalogRepository([nuvoraTee]),
+      adminCatalogRepository,
+    })
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: "Avancer l'image 1" })).toBeTruthy()
+      expect(screen.getByRole('button', { name: "Reculer l'image 1" })).toBeTruthy()
+      expect(screen.getByRole('button', { name: "Retirer l'image 1" })).toBeTruthy()
+    })
+
+    await userEvent.click(screen.getByRole('button', { name: "Reculer l'image 1" }))
+
+    await waitFor(() => {
+      expect(adminCatalogRepository.imageOrder).toEqual([['media-2', 'media-1']])
+    })
+
+    await userEvent.click(screen.getByRole('button', { name: "Retirer l'image 1" }))
+
+    await waitFor(() => {
+      expect(adminCatalogRepository.images.map((image) => image.id)).toEqual(['media-1'])
+      expect(screen.queryByRole('button', { name: "Retirer l'image 2" })).toBeNull()
+      expect(screen.getByRole('button', { name: "Retirer l'image 1" })).toBeTruthy()
+    })
+  })
+
   it('updates and deletes a product', async () => {
     const adminCatalogRepository = new FakeAdminCatalogRepository([nuvoraTee])
     const { router } = await renderApp({

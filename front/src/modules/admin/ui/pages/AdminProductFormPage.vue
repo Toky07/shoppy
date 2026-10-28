@@ -12,6 +12,7 @@ import AdminProductForm from '../components/AdminProductForm.vue'
 import { useI18n } from '@/shared/i18n/useI18n'
 import AdminProductGallery, { type GalleryImage } from '../components/AdminProductGallery.vue'
 import { emptyProductDraft } from '../lib/productDraft'
+import { moveItem } from '../lib/moveItem'
 import type { Category } from '@/modules/catalog/domain/Category'
 
 const catalog = inject(catalogRepositoryKey)
@@ -210,20 +211,7 @@ function onRemoveImage(index: number) {
   })
 }
 
-function onMoveImage(index: number, direction: -1 | 1) {
-  const nextIndex = index + direction
-  if (nextIndex < 0 || nextIndex >= images.value.length) {
-    return
-  }
-
-  const next = images.value.slice()
-  const [moved] = next.splice(index, 1)
-  if (!moved) {
-    return
-  }
-  next.splice(nextIndex, 0, moved)
-  images.value = next
-
+function persistImageOrder(next: GalleryImage[]) {
   if (next.some((image) => image.id === null)) {
     return
   }
@@ -234,6 +222,26 @@ function onMoveImage(index: number, direction: -1 | 1) {
       next.map((image) => image.id as string),
     )
   })
+}
+
+function onMoveImage(index: number, direction: -1 | 1) {
+  const next = moveItem(images.value, index, index + direction)
+  if (next === images.value) {
+    return
+  }
+  images.value = next
+  return persistImageOrder(next)
+}
+
+function onReorderImages(from: number, to: number) {
+  images.value = moveItem(images.value, from, to)
+}
+
+function onReorderEnd(changed: boolean) {
+  if (!changed) {
+    return
+  }
+  return persistImageOrder(images.value)
 }
 </script>
 
@@ -269,6 +277,8 @@ function onMoveImage(index: number, direction: -1 | 1) {
           @add="onAddImages"
           @remove="onRemoveImage"
           @move="onMoveImage"
+          @reorder="onReorderImages"
+          @reorder-end="onReorderEnd"
         />
       </template>
     </AdminProductForm>

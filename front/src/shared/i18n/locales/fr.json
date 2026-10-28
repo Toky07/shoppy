@@ -611,10 +611,11 @@
     "addDescription": "Ajoutez une description pour la fiche boutique.",
     "visuals": "Visuels",
     "galleryQueued": "Ces images seront envoyées à la création du produit.",
-    "galleryHint": "Ajoutez, réordonnez ou retirez les images. Le premier visuel est celui de la vitrine.",
+    "galleryHint": "Glissez les visuels pour les réordonner. Le premier est celui de la vitrine.",
     "addImages": "Ajouter des images",
     "noImages": "Aucune image pour le moment.",
     "imageAlt": "Image {index}",
+    "dragImage": "Glisser l'image {index}",
     "moveImageBack": "Avancer l'image {index}",
     "moveImageForward": "Reculer l'image {index}",
     "removeImage": "Retirer l'image {index}"
