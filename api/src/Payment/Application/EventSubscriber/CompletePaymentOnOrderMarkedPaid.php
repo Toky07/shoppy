@@ -8,7 +8,9 @@ use App\Payment\Application\PaymentGatewayRegistry;
 use App\Payment\Domain\Repository\PaymentRepository;
 use App\Payment\Domain\ValueObject\OrderReference;
 use App\Shared\Application\Event\OrderMarkedPaid;
+use App\Shared\Application\Event\PaymentCompleted;
 use App\Shared\Domain\Clock;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 final readonly class CompletePaymentOnOrderMarkedPaid implements EventSubscriberInterface
@@ -17,6 +19,7 @@ final readonly class CompletePaymentOnOrderMarkedPaid implements EventSubscriber
         private PaymentRepository $paymentRepository,
         private PaymentGatewayRegistry $gatewayRegistry,
         private Clock $clock,
+        private EventDispatcherInterface $eventDispatcher,
     ) {
     }
 
@@ -46,5 +49,12 @@ final readonly class CompletePaymentOnOrderMarkedPaid implements EventSubscriber
 
         $payment->complete($this->clock->now());
         $this->paymentRepository->save($payment);
+
+        $this->eventDispatcher->dispatch(new PaymentCompleted(
+            paymentId: $payment->id()->value(),
+            orderId: $payment->orderId()->value(),
+            customerId: $payment->customerId()->value(),
+            amountCents: $payment->amount()->cents(),
+        ));
     }
 }

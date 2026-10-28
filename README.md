@@ -9,6 +9,7 @@ make dev
 - Boutique : http://localhost:5173
 - API : http://localhost:8000
 - pgAdmin : http://localhost:5050 (`admin@example.com` / `shoppy`). Le serveur « Shoppy » est déjà déclaré ; mot de passe de la base : `shoppy`.
+- Mailpit (emails) : http://localhost:8025
 - PostgreSQL 16 : `127.0.0.1:5432`, base `shoppy`, utilisateur `shoppy`, mot de passe `shoppy`
 - Rechargement à chaud Vite activé
 
@@ -56,7 +57,7 @@ Comptes démo : `admin@shoppy.test` / `visitor@shoppy.test`, mot de passe `passw
 
 Paiement : `PAYMENT_PROVIDER=stripe` en développement. Dans `api/.env`, `STRIPE_SECRET_KEY` doit être la clé **secrète** (`sk_test_…` ou `sk_live_…`) du [dashboard Stripe](https://dashboard.stripe.com/test/apikeys), pas la clé publiable `pk_`. Recréez l’API après modification (`docker compose up -d --force-recreate api`). Pour que le webhook `checkout.session.completed` arrive en local : `make stripe-listen`, puis copiez le `whsec_…` affiché dans `STRIPE_WEBHOOK_SECRET`. Au retour de Checkout, l’app confirme aussi la session auprès de Stripe. En production le provider `local` est refusé.
 
-Emails : `MAILER_DSN=null://null` par défaut (aucun envoi). Expéditeur : `MAILER_FROM`. Les autres modules demandent un envoi en publiant `EmailRequested` sur le bus d’événements. L’événement accepte des pièces jointes. Une commande confirmée joint `recu.txt`.
+Emails : en développement, l’API envoie vers Mailpit (`smtp://mailer:1025`, boîte http://localhost:8025). Expéditeur : `MAILER_FROM`. Les modules demandent un envoi en publiant `EmailRequested` ; le module Email le livre via `App\Email\Application\Port\Mailer` (adaptateur Symfony). Les tests interceptent ce port. En production, définir un vrai `MAILER_DSN` SMTP. Une commande confirmée joint `recu.txt` ; une facture jointe le PDF.
 
 Les Dockerfiles sont dans `api/docker/` et `front/docker/`.
 

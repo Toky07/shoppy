@@ -30,3 +30,8 @@ services:
     App\Tests\Doubles\FakeStripeWebhookParser: ~
 
     App\Payment\Application\StripeWebhookParser: '@App\Tests\Doubles\FakeStripeWebhookParser'
+
+    App\Tests\Doubles\InMemoryMailer:
+        public: true
+
+    App\Email\Application\Port\Mailer: '@App\Tests\Doubles\InMemoryMailer'

@@ -264,11 +264,16 @@ it('completes the pending payment when an admin marks the order paid', function 
 
     $dispatcher = new EventDispatcher();
     $dispatcher->addSubscriber(new CreatePaymentOnOrderPlaced($payments, new FixedClock($now)));
+    $completed = [];
     $dispatcher->addSubscriber(new CompletePaymentOnOrderMarkedPaid(
         $payments,
         paymentGateways(),
         new FixedClock($paidAt),
+        $dispatcher,
     ));
+    $dispatcher->addListener(PaymentCompleted::class, static function (PaymentCompleted $event) use (&$completed): void {
+        $completed[] = $event;
+    });
     $dispatcher->dispatch(new OrderPlaced($orderId, $customerId, 1999));
 
     (new MarkOrderPaidCommandHandler($orders, $dispatcher))->handle(new MarkOrderPaidCommand($orderId));
@@ -277,7 +282,10 @@ it('completes the pending payment when an admin marks the order paid', function 
 
     expect($orders->findById(OrderId::fromString($orderId))?->status())->toEqual(OrderStatus::paid())
         ->and($payment?->status())->toEqual(PaymentStatus::completed())
-        ->and($payment?->completedAt())->toBe($paidAt);
+        ->and($payment?->completedAt())->toBe($paidAt)
+        ->and($completed)->toHaveCount(1)
+        ->and($completed[0]->orderId)->toBe($orderId)
+        ->and($completed[0]->amountCents)->toBe(1999);
 });
 
 it('expires the open stripe session when the order is cancelled', function () {
@@ -341,6 +349,7 @@ it('expires the open stripe session when an admin marks the order paid', functio
         $payments,
         paymentGateways($stripe),
         new FixedClock($paidAt),
+        $dispatcher,
     ));
     $dispatcher->dispatch(new OrderPlaced($orderId, $customerId, 3998));
 

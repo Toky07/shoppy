@@ -26,6 +26,7 @@ use App\Product\Infrastructure\Persistence\InMemoryCategoryRepository;
 use App\Product\Infrastructure\Persistence\InMemoryProductRepository;
 use App\Shared\Domain\Clock;
 use App\Tests\Doubles\FakeImageVariants;
+use App\Tests\Doubles\InMemoryMailer;
 use App\Tests\Doctrine\DatabaseSchema;
 use App\Tests\Support\FunctionalTestCase;
 use App\Tests\Support\IntegrationTestCase;
@@ -251,6 +252,7 @@ uses(FunctionalTestCase::class)
         DatabaseSchema::reset(FunctionalTestCase::getContainer()->get(EntityManagerInterface::class));
         clearCatalogHeaderCache();
         clearTestUploads((string) FunctionalTestCase::getContainer()->getParameter('app.media.upload_dir'));
+        InMemoryMailer::resetMailbox();
     })
     ->afterAll(function (): void {
         FunctionalTestCase::shutdownKernel();

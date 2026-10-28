@@ -10,7 +10,7 @@ COMPOSE_PROD := docker compose -f compose.prod.yaml
 
 help:
 	@echo "Shoppy"
-	@echo "  make dev    développement (HMR) — http://localhost:5173, pgAdmin http://localhost:5050"
+	@echo "  make dev    développement (HMR) — http://localhost:5173, pgAdmin http://localhost:5050, Mailpit http://localhost:8025"
 	@echo "  make prod   production — https://localhost"
 	@echo "  make down   arrêter dev et prod"
 	@echo "  make logs   logs (dev)"
