@@ -11,7 +11,7 @@ import { auditLogRepositoryKey } from '@/modules/admin/application/auditLogRepos
 import { DEFAULT_AUDIT_LIMIT } from '@/modules/admin/application/defaultAuditLimit'
 import type { AuditLogPage } from '@/modules/admin/domain/AuditEntry'
 import { useI18n } from '@/shared/i18n/useI18n'
-import { auditActionLabel, auditDetail } from '../lib/auditActionLabel'
+import { auditActionLabel, auditDetail, auditSubject } from '../lib/auditActionLabel'
 import AdminPageHeader from '../components/AdminPageHeader.vue'
 
 const repository = inject(auditLogRepositoryKey)
@@ -89,6 +89,7 @@ function subjectTo(type: string, id: string): string | null {
                 <th>{{ t('admin.date') }}</th>
                 <th>{{ t('admin.actor') }}</th>
                 <th>{{ t('admin.action') }}</th>
+                <th>{{ t('admin.subject') }}</th>
                 <th>{{ t('admin.detail') }}</th>
               </tr>
             </thead>
@@ -101,12 +102,13 @@ function subjectTo(type: string, id: string): string | null {
                   <RouterLink
                     v-if="subjectTo(entry.subjectType, entry.subjectId)"
                     :to="subjectTo(entry.subjectType, entry.subjectId)!"
-                    class="link-quiet text-sm"
+                    class="link-quiet font-medium text-strong"
                   >
-                    {{ auditDetail(entry) }}
+                    {{ auditSubject(entry, t) }}
                   </RouterLink>
-                  <span v-else class="text-sm">{{ auditDetail(entry) }}</span>
+                  <span v-else class="font-medium text-strong">{{ auditSubject(entry, t) }}</span>
                 </td>
+                <td class="text-sm text-muted">{{ auditDetail(entry) }}</td>
               </tr>
             </tbody>
           </table>

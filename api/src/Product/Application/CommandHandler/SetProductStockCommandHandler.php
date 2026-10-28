@@ -38,6 +38,7 @@ final readonly class SetProductStockCommandHandler
             $this->audit?->record(AuditAction::STOCK_CHANGED, AuditSubjectType::PRODUCT, $id->value(), [
                 'from' => $previous,
                 'to' => $command->stock,
+                'label' => $product->name()->value(),
             ]);
         }
     }

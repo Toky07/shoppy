@@ -1,5 +1,35 @@
 # Shoppy
 
+## Documentation
+
+| Où | Pour qui | Contenu |
+|----|----------|---------|
+| [`docs/`](docs/) | Dépôt / CI / prod packagée | Workflow GitHub Actions, job **Production images** |
+| [`api/docs/`](api/docs/) | API Symfony | Modules hexagonaux, auth, email, Stripe |
+| [`front/docs/`](front/docs/) | SPA Vue | Architecture, modules, HTTP, session, UI, tests |
+
+### Global — `docs/`
+
+- [GitHub Actions](docs/github-actions.md) — CI des pull requests : tests API, tests front, construction des images Docker de production (sans les publier).
+
+### API — `api/docs/`
+
+- [Modules](api/docs/modules.md) — chaque contexte borné (User, Auth, Product, Cart, Order, Payment, Invoice, Email, …), événements, routes
+- [Autorisation](api/docs/authorization.md) — session, rôles, voters
+- [Email](api/docs/email.md) — activer SMTP en production (`MAILER_DSN`)
+- [Stripe](api/docs/stripe.md) — activer le paiement carte en production
+
+### Front — `front/docs/`
+
+Point d’entrée : [front/docs/README.md](front/docs/README.md).
+
+- [Architecture](front/docs/architecture.md) — couches, injection, boot, router
+- [Modules](front/docs/modules.md) — pages, ports, correspondance API
+- [HTTP](front/docs/http.md) — client, cookie de session, proxy `/api`
+- [Auth](front/docs/auth.md) — gardes, invité, localStorage
+- [UI](front/docs/ui.md) — i18n, thème, SEO, images
+- [Tests](front/docs/testing.md) — Vitest, `renderApp`, Playwright
+
 ## Développement
 
 ```sh
@@ -24,6 +54,8 @@ docker compose exec api bin/console doctrine:migrations:diff
 ```
 
 ## Tests
+
+Chaque pull request lance le workflow **CI** (tests API, tests front, construction des images Docker de production). Voir [GitHub Actions](docs/github-actions.md).
 
 ```sh
 make test
@@ -59,17 +91,4 @@ Paiement : `PAYMENT_PROVIDER=stripe` en développement. Dans `api/.env`, `STRIPE
 
 Emails : en développement, l’API envoie vers Mailpit (`smtp://mailer:1025`, boîte http://localhost:8025). Expéditeur : `MAILER_FROM`. Les modules demandent un envoi en publiant `EmailRequested` ; le module Email le livre via `App\Email\Application\Port\Mailer` (adaptateur Symfony). Les tests interceptent ce port. En production, définir un vrai `MAILER_DSN` SMTP. Une commande confirmée joint `recu.txt` ; une facture jointe le PDF.
 
-Les Dockerfiles sont dans `api/docker/` et `front/docker/`.
-
-## Structure des modules front
-
-Chaque domaine (`auth`, `catalog`, `cart`, `order`, `admin`, `payment`) suit le même découpage :
-
-- `domain/` — modèles et règles métier
-- `data/` — API HTTP, mappers
-- `application/` — ports, use cases, composables (`use…`), clés d’injection
-- `testing/` — fakes et fixtures
-- `ui/pages/` — écrans routés (`*Page.vue`)
-- `ui/components/` — composants réutilisables du module
-- `ui/layouts/` — layouts (ex. admin)
-- `ui/lib/` — helpers UI (labels, messages d’erreur, brouillons)
+Les Dockerfiles sont dans `api/docker/` et `front/docker/`. Découpage des modules Vue : [front/docs/architecture.md](front/docs/architecture.md).

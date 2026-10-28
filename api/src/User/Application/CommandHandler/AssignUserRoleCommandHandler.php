@@ -53,6 +53,7 @@ final readonly class AssignUserRoleCommandHandler
             $this->audit?->record(AuditAction::ROLE_CHANGED, AuditSubjectType::USER, $id->value(), [
                 'from' => $previous,
                 'to' => $role->value(),
+                'label' => $user->email()->value(),
             ]);
         }
     }

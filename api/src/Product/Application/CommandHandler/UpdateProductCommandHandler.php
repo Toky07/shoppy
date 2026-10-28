@@ -56,6 +56,7 @@ final readonly class UpdateProductCommandHandler
                 $this->audit?->record(AuditAction::PRICE_CHANGED, AuditSubjectType::PRODUCT, $id->value(), [
                     'fromCents' => $previousPrice,
                     'toCents' => $command->priceCents,
+                    'label' => $product->name()->value(),
                 ]);
             }
         }

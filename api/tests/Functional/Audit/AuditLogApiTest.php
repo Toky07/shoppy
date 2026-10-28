@@ -44,10 +44,23 @@ it('lists admin changes newest first', function () {
         ->and($payload['items'][0]['action'])->toBe('payment_changed')
         ->and($byAction['payment_changed']['subjectId'])->toBe($order['id'])
         ->and($byAction['payment_changed']['actorEmail'])->toBe('admin@nuvora.test')
-        ->and($byAction['stock_changed']['metadata'])->toEqual(['from' => 10, 'to' => 3])
-        ->and($byAction['price_changed']['metadata'])->toEqual(['fromCents' => 1999, 'toCents' => 2499])
+        ->and($byAction['stock_changed']['metadata'])->toEqual([
+            'from' => 10,
+            'to' => 3,
+            'label' => 'Audit Tee',
+        ])
+        ->and($byAction['price_changed']['metadata'])->toEqual([
+            'fromCents' => 1999,
+            'toCents' => 2499,
+            'label' => 'Audit Tee',
+        ])
         ->and($byAction['role_changed']['subjectId'])->toBe($target['id'])
-        ->and($byAction['role_changed']['metadata'])->toEqual(['from' => 'customer', 'to' => 'admin']);
+        ->and($byAction['role_changed']['metadata'])->toEqual([
+            'from' => 'customer',
+            'to' => 'admin',
+            'label' => 'audit-ada@nuvora.test',
+        ])
+        ->and($byAction['payment_changed']['metadata']['label'])->toBe('Audit Tee');
 });
 
 it('rejects a customer reading the audit log', function () {

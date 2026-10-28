@@ -2,7 +2,6 @@
 
 Audit du 27 octobre 2026.
 
-
 ## Fonctionnalités
 
 ### Achat, livraison, commande
