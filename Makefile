@@ -35,8 +35,7 @@ seed:
 	$(COMPOSE_DEV) exec api bin/console app:seed-demo
 
 test:
-	$(COMPOSE_DEV) up -d --wait database
-	$(COMPOSE_DEV) run --rm --no-deps -T --entrypoint "" api composer test:parallel
+	$(COMPOSE_DEV) run --rm --no-deps -T --entrypoint "" api composer test
 
 stripe-listen:
 	stripe listen --forward-to localhost:8000/payments/webhooks/stripe

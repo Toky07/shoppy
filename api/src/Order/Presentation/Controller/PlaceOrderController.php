@@ -30,11 +30,10 @@ final readonly class PlaceOrderController
     #[IsGranted(AuthorizationAttributes::IS_AUTHENTICATED)]
     public function __invoke(Request $request): JsonResponse
     {
-        $userId = $this->currentUser->id();
         $httpRequest = PlaceOrderHttpRequest::fromPayload($request->toArray());
 
         $orderId = $this->checkoutCart->handle(new CheckoutCartCommand(
-            $userId,
+            $this->currentUser->id(),
             $httpRequest->delivery->shippingAddress,
             $httpRequest->delivery->billingAddress,
             $httpRequest->delivery->shippingMethod,
