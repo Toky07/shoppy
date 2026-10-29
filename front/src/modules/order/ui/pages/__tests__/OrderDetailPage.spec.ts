@@ -46,7 +46,7 @@ describe('OrderDetailPage', () => {
   })
 
   it('completes a local checkout immediately instead of staying on the pending order', async () => {
-    const assign = vi.fn()
+    const assign = vi.fn<(url: string | URL) => void>()
     vi.stubGlobal('location', {
       origin: 'http://localhost:5173',
       href: `http://localhost:5173/orders/${pendingOrder.id}`,
@@ -94,7 +94,7 @@ describe('OrderDetailPage', () => {
   })
 
   it('redirects to stripe checkout without marking the order paid', async () => {
-    const assign = vi.fn()
+    const assign = vi.fn<(url: string | URL) => void>()
     vi.stubGlobal('location', {
       origin: 'http://localhost:5173',
       href: `http://localhost:5173/orders/${pendingOrder.id}`,

@@ -10,7 +10,7 @@ function jsonResponse(status: number, body: unknown): Response {
 
 describe('FetchHttpClient', () => {
   it('gets JSON from the joined URL', async () => {
-    const fetchFn = vi.fn().mockResolvedValue(jsonResponse(200, { ok: true }))
+    const fetchFn = vi.fn<typeof fetch>().mockResolvedValue(jsonResponse(200, { ok: true }))
     const client = new FetchHttpClient('https://api.test', fetchFn)
 
     await expect(client.get('/products')).resolves.toEqual({ ok: true })
@@ -22,7 +22,7 @@ describe('FetchHttpClient', () => {
   })
 
   it('posts JSON with the session cookie', async () => {
-    const fetchFn = vi.fn().mockResolvedValue(jsonResponse(200, { ok: true }))
+    const fetchFn = vi.fn<typeof fetch>().mockResolvedValue(jsonResponse(200, { ok: true }))
     const client = new FetchHttpClient('/api', fetchFn)
 
     await expect(client.post('/auth/login', { email: 'a@b.c', password: 'secret-secret' })).resolves.toEqual({
@@ -40,7 +40,7 @@ describe('FetchHttpClient', () => {
   })
 
   it('returns undefined on 204', async () => {
-    const fetchFn = vi.fn().mockResolvedValue(new Response(null, { status: 204 }))
+    const fetchFn = vi.fn<typeof fetch>().mockResolvedValue(new Response(null, { status: 204 }))
     const client = new FetchHttpClient('/api', fetchFn)
 
     await expect(client.post('/auth/logout')).resolves.toBeUndefined()
@@ -48,7 +48,7 @@ describe('FetchHttpClient', () => {
 
   it('sends PUT and DELETE requests', async () => {
     const fetchFn = vi
-      .fn()
+      .fn<typeof fetch>()
       .mockResolvedValueOnce(jsonResponse(200, { ok: true }))
       .mockResolvedValueOnce(jsonResponse(200, { ok: true }))
       .mockResolvedValueOnce(jsonResponse(200, { ok: true }))
@@ -64,7 +64,7 @@ describe('FetchHttpClient', () => {
   })
 
   it('appends query parameters', async () => {
-    const fetchFn = vi.fn().mockResolvedValue(jsonResponse(200, { items: [] }))
+    const fetchFn = vi.fn<typeof fetch>().mockResolvedValue(jsonResponse(200, { items: [] }))
     const client = new FetchHttpClient('/api', fetchFn)
 
     await client.get('/products', { page: 2, limit: 20, unused: undefined })
@@ -73,8 +73,8 @@ describe('FetchHttpClient', () => {
   })
 
   it('clears a stale session when refresh also fails', async () => {
-    const clear = vi.fn()
-    const fetchFn = vi.fn().mockResolvedValue(
+    const clear = vi.fn<() => void>()
+    const fetchFn = vi.fn<typeof fetch>().mockResolvedValue(
       jsonResponse(401, {
         error: { code: 'unauthenticated', message: 'The request is not authenticated.' },
       }),
@@ -89,9 +89,9 @@ describe('FetchHttpClient', () => {
   })
 
   it('retries the request after a successful session refresh', async () => {
-    const clear = vi.fn()
+    const clear = vi.fn<() => void>()
     const fetchFn = vi
-      .fn()
+      .fn<typeof fetch>()
       .mockResolvedValueOnce(
         jsonResponse(401, {
           error: { code: 'unauthenticated', message: 'The request is not authenticated.' },
@@ -108,8 +108,8 @@ describe('FetchHttpClient', () => {
   })
 
   it('does not clear the session on invalid credentials', async () => {
-    const clear = vi.fn()
-    const fetchFn = vi.fn().mockResolvedValue(
+    const clear = vi.fn<() => void>()
+    const fetchFn = vi.fn<typeof fetch>().mockResolvedValue(
       jsonResponse(401, {
         error: { code: 'invalid_credentials', message: 'The provided credentials are invalid.' },
       }),
@@ -123,7 +123,7 @@ describe('FetchHttpClient', () => {
   })
 
   it('throws a parsed ApiError on failure', async () => {
-    const fetchFn = vi.fn().mockResolvedValue(
+    const fetchFn = vi.fn<typeof fetch>().mockResolvedValue(
       jsonResponse(404, {
         error: { code: 'product_not_found', message: 'Product not found.' },
       }),
@@ -138,7 +138,7 @@ describe('FetchHttpClient', () => {
   })
 
   it('throws a fallback ApiError when the body is not JSON', async () => {
-    const fetchFn = vi.fn().mockResolvedValue(new Response('nope', { status: 502 }))
+    const fetchFn = vi.fn<typeof fetch>().mockResolvedValue(new Response('nope', { status: 502 }))
     const client = new FetchHttpClient('/api', fetchFn)
 
     await expect(client.get('/products')).rejects.toMatchObject({

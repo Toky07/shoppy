@@ -20,4 +20,4 @@ Audit du 27 octobre 2026.
 ## Qualité
 
 - [ ] Parcours e2e (auth, achat, admin) — Playwright ne couvre qu’un smoke catalogue, et pas en CI
-- [ ] Lint front dans la CI (`npm run lint` existe, le workflow ne le lance pas)
+- [x] Lint front dans la CI (`npm run lint` existe, le workflow ne le lance pas)
