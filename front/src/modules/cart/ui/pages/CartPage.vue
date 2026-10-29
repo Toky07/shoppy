@@ -37,8 +37,10 @@ const { pending, errorMessage: actionError, run } = usePendingAction((error) =>
 const checkoutOrderId = ref<string>()
 const addressError = ref<string>()
 const guestEmail = ref('')
+/* eslint-disable prefer-const -- v-model:shipping / v-model:billing reassign these */
 let shipping = reactive<AddressDraft>(emptyAddressDraft())
 let billing = reactive<AddressDraft>(emptyAddressDraft())
+/* eslint-enable prefer-const */
 const billingSameAsShipping = ref(true)
 const shippingMethod = ref<ShippingMethodCode>('standard')
 const isAuthenticated = computed(() => authSession.isAuthenticated.value)

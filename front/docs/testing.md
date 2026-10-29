@@ -54,4 +54,4 @@ cd front && npm run test:e2e
 
 ## Lint / types
 
-`npm run lint` (oxlint puis eslint). `vue-tsc` dans `npm run build`. Prettier sur `src/`.
+`npm run lint` (oxlint puis eslint, avec `--fix`). En CI : `npm run lint:ci` (même outils, sans `--fix`). `vue-tsc` dans `npm run build`. Prettier sur `src/`.

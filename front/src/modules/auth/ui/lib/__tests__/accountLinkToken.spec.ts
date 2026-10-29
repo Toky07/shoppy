@@ -28,7 +28,7 @@ describe('accountLinkToken', () => {
 
 describe('concealAccountLinkToken', () => {
   it('strips token from hash and query so it leaves history and referer', async () => {
-    const replace = vi.fn().mockResolvedValue(undefined)
+    const replace = vi.fn<() => Promise<unknown>>().mockResolvedValue(undefined)
 
     await concealAccountLinkToken(
       { replace },
@@ -43,7 +43,7 @@ describe('concealAccountLinkToken', () => {
   })
 
   it('does nothing when the url is already clean', async () => {
-    const replace = vi.fn()
+    const replace = vi.fn<() => Promise<unknown>>()
 
     await concealAccountLinkToken({ replace }, { path: '/reset-password', query: {}, hash: '' })
 

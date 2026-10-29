@@ -8,7 +8,7 @@ Il tourne à **chaque pull request**. Pas sur `push` vers `main`, pas de déploi
 PR ouverte / mise à jour
         │
         ├── API tests          → PHP + Postgres + Redis
-        ├── Front tests        → Vitest + build Vite
+        ├── Front tests        → lint + Vitest + build Vite
         └── Production images  → Dockerfiles prod (sans publier)
 ```
 
@@ -34,8 +34,9 @@ Même idée que `make test` : Pest en parallèle, sur PostgreSQL 16 et Redis 7 (
 Dans `front/` :
 
 1. Node 22, `npm ci`.
-2. `npm run test:unit -- --run` (Vitest, un passage, pas watch).
-3. `npm run build` (type-check `vue-tsc` + bundle Vite).
+2. `npm run lint:ci` (oxlint puis eslint, **sans** `--fix` : le runner ne réécrit pas les fichiers).
+3. `npm run test:unit -- --run` (Vitest, un passage, pas watch).
+4. `npm run build` (type-check `vue-tsc` + bundle Vite).
 
 Ça valide le **code** et que le bundle se produit **sur le runner** (pas dans l’image Docker). Playwright / e2e ne tourne pas ici.
 
